@@ -4,420 +4,1543 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Traveling | América do Norte</title>
+  <meta
+    name="description"
+    content="Projeto escolar Traveling sobre a América do Norte: turismo, cultura, culinária, clima, documentos de viagem e curiosidades."
+  />
   <style>
+    :root {
+      --bg: #f4f8ff;
+      --bg-soft: #eef5ff;
+      --card: rgba(255, 255, 255, 0.86);
+      --text: #18324a;
+      --muted: #5f7286;
+      --primary: #0d6efd;
+      --primary-2: #00a6a6;
+      --accent: #ffb703;
+      --accent-2: #ff6b6b;
+      --white: #ffffff;
+      --border: rgba(24, 50, 74, 0.1);
+      --shadow: 0 18px 45px rgba(13, 51, 92, 0.12);
+      --radius: 24px;
+      --radius-sm: 18px;
+      --max: 1200px;
+      --nav-h: 76px;
+    }
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
-      background: #f4f9ff;
-      color: #1f2a44;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(13,110,253,0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(255,183,3,0.10), transparent 24%),
+        linear-gradient(180deg, #f8fbff 0%, #edf5ff 55%, #f8fbff 100%);
       line-height: 1.6;
+      overflow-x: hidden;
     }
 
-    header {
-      background: linear-gradient(135deg, #1e88e5, #43a047);
-      color: white;
-      padding: 60px 20px;
-      text-align: center;
+    img {
+      max-width: 100%;
+      display: block;
     }
 
-    header h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-    }
-
-    header p {
-      max-width: 800px;
-      margin: 0 auto;
-      font-size: 1.1rem;
-    }
-
-    nav {
-      background: #ffffff;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    nav ul {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      list-style: none;
-      padding: 15px;
-      gap: 20px;
-    }
-
-    nav a {
+    a {
       text-decoration: none;
-      color: #1e88e5;
-      font-weight: bold;
-      transition: 0.3s;
-    }
-
-    nav a:hover {
-      color: #43a047;
+      color: inherit;
     }
 
     .container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 40px auto;
+      width: min(92%, var(--max));
+      margin: 0 auto;
     }
 
-    section {
-      margin-bottom: 40px;
+    .section {
+      padding: 90px 0;
+      scroll-margin-top: 95px;
+    }
+
+    .section-header {
+      max-width: 760px;
+      margin-bottom: 36px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      background: rgba(13, 110, 253, 0.10);
+      color: var(--primary);
+      border: 1px solid rgba(13, 110, 253, 0.15);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      margin-bottom: 16px;
     }
 
     .section-title {
-      font-size: 2rem;
-      margin-bottom: 20px;
-      color: #1565c0;
-      border-left: 6px solid #43a047;
-      padding-left: 12px;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.1;
+      margin-bottom: 14px;
     }
 
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    .section-text {
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .site-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: var(--nav-h);
+      z-index: 999;
+      backdrop-filter: blur(16px);
+      background: rgba(255, 255, 255, 0.72);
+      border-bottom: 1px solid rgba(24, 50, 74, 0.08);
+    }
+
+    .nav-wrap {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 20px;
     }
 
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.2rem;
+    }
+
+    .brand-badge {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: white;
+      box-shadow: 0 10px 25px rgba(13, 110, 253, 0.22);
+      font-size: 1.2rem;
+    }
+
+    .nav-menu {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav-menu a {
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.95rem;
+      opacity: 0.85;
+      transition: 0.25s ease;
+    }
+
+    .nav-menu a:hover {
+      color: var(--primary);
+      opacity: 1;
+    }
+
+    .menu-toggle {
+      display: none;
+      border: none;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: white;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: calc(var(--nav-h) + 35px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(100deg, rgba(9, 38, 66, 0.78), rgba(13, 110, 253, 0.42)),
+        url("https://images.unsplash.com/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;
+      z-index: -2;
+      transform: scale(1.03);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.16), transparent 20%),
+        radial-gradient(circle at 85% 15%, rgba(255,183,3,0.18), transparent 14%),
+        linear-gradient(180deg, rgba(6, 16, 28, 0.20), rgba(6, 16, 28, 0.38));
+      z-index: -1;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .hero-content {
+      color: white;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 999px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      backdrop-filter: blur(8px);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.8rem, 6vw, 5.2rem);
+      line-height: 0.96;
+      margin-bottom: 20px;
+      letter-spacing: -1.4px;
+    }
+
+    .hero p {
+      max-width: 720px;
+      font-size: 1.08rem;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 28px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px 22px;
+      border-radius: 999px;
+      font-weight: 800;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #ffd166);
+      color: #2f2a1b;
+      box-shadow: 0 15px 30px rgba(255, 183, 3, 0.28);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.14);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.28);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      max-width: 700px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.17);
+      border-radius: 20px;
+      padding: 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .stat h3 {
+      font-size: 1.7rem;
+      margin-bottom: 3px;
+    }
+
+    .stat p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .hero-card {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 22px;
+      border-radius: 28px;
+      backdrop-filter: blur(16px);
+      color: white;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.18);
+    }
+
+    .hero-card img {
+      border-radius: 20px;
+      height: 220px;
+      width: 100%;
+      object-fit: cover;
+      margin-bottom: 16px;
+    }
+
+    .hero-card h3 {
+      margin-bottom: 8px;
+      font-size: 1.3rem;
+    }
+
+    .hero-card p {
+      margin-bottom: 16px;
+      color: rgba(255,255,255,0.88);
+      font-size: 0.98rem;
+    }
+
+    .hero-card ul {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .hero-card li {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: rgba(255,255,255,0.92);
+      font-size: 0.96rem;
+    }
+
+    .hero-card li span {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.16);
+      flex-shrink: 0;
+    }
+
+    .grid-3,
+    .grid-4,
+    .grid-2 {
+      display: grid;
+      gap: 24px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
     .card {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-      transition: transform 0.2s ease;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+      position: relative;
+      overflow: hidden;
     }
 
     .card:hover {
-      transform: translateY(-5px);
+      transform: translateY(-8px);
+      box-shadow: 0 24px 50px rgba(13, 51, 92, 0.16);
+      border-color: rgba(13, 110, 253, 0.18);
     }
 
-    .card h3 {
-      color: #2e7d32;
+    .card h3,
+    .card h4 {
       margin-bottom: 10px;
     }
 
-    .highlight {
-      background: #e3f2fd;
-      border-left: 5px solid #1e88e5;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 20px;
+    .card p,
+    .card li {
+      color: var(--muted);
     }
 
-    ul {
-      margin-left: 20px;
-      margin-top: 10px;
+    .card-icon {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(13,110,253,0.12), rgba(0,166,166,0.16));
+      font-size: 1.45rem;
+      margin-bottom: 16px;
     }
 
-    .hero-box {
-      background: white;
-      margin-top: -30px;
+    .country-card img,
+    .photo-card img,
+    .food-card img,
+    .wide-image img {
       border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      object-fit: cover;
     }
 
-    footer {
-      text-align: center;
-      background: #1f2a44;
+    .country-card img {
+      height: 180px;
+      margin-bottom: 16px;
+    }
+
+    .country-chip {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255,183,3,0.15);
+      color: #9b6b00;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .list {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .list li {
+      position: relative;
+      padding-left: 24px;
+    }
+
+    .list li::before {
+      content: "✈️";
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    .destinations-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 24px;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .mini-card {
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(13,110,253,0.06);
+      border: 1px solid rgba(13,110,253,0.08);
+    }
+
+    .mini-card h4 {
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .mini-card p {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .photo-card {
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .photo-card img {
+      height: 100%;
+      min-height: 520px;
+    }
+
+    .info-banner {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(13,110,253,0.94), rgba(0,166,166,0.92));
       color: white;
-      padding: 20px;
-      margin-top: 50px;
+      border-radius: 30px;
+      padding: 34px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .info-banner h3 {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      margin-bottom: 14px;
+    }
+
+    .info-banner p {
+      color: rgba(255,255,255,0.92);
+      margin-bottom: 16px;
+    }
+
+    .info-banner ul {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .info-banner li {
+      padding-left: 24px;
+      position: relative;
+    }
+
+    .info-banner li::before {
+      content: "✔";
+      position: absolute;
+      left: 0;
+      font-weight: 700;
+    }
+
+    .info-banner img {
+      border-radius: 24px;
+      height: 320px;
+      object-fit: cover;
+      width: 100%;
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+    }
+
+    .food-card img {
+      height: 190px;
+      margin-bottom: 16px;
+    }
+
+    .food-card .tag-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 12px 0 0;
     }
 
     .tag {
-      display: inline-block;
-      background: #43a047;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      margin-bottom: 10px;
+      font-size: 0.82rem;
+      background: rgba(255,183,3,0.16);
+      color: #8b6700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
     }
 
-    @media (max-width: 768px) {
-      header h1 {
-        font-size: 2.2rem;
+    .climate-wrap {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 24px;
+    }
+
+    .season-card {
+      background: linear-gradient(180deg, #ffffff, #f5faff);
+    }
+
+    .season-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(24, 50, 74, 0.08);
+    }
+
+    .season-item:last-child {
+      border-bottom: none;
+    }
+
+    .season-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: rgba(13,110,253,0.1);
+      flex-shrink: 0;
+      font-size: 1.2rem;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 18px;
+    }
+
+    .timeline-card {
+      position: relative;
+      padding-left: 24px;
+    }
+
+    .timeline-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 6px rgba(13,110,253,0.1);
+    }
+
+    .timeline-card h4 {
+      margin-bottom: 8px;
+    }
+
+    .documents-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .steps {
+      list-style: none;
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .steps li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      color: var(--muted);
+    }
+
+    .steps span {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(0,166,166,0.12);
+      color: var(--primary-2);
+      font-weight: 800;
+    }
+
+    .curiosities-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .wide-image img {
+      height: 100%;
+      min-height: 100%;
+      object-fit: cover;
+    }
+
+    .quote-box {
+      background: linear-gradient(135deg, rgba(255,183,3,0.12), rgba(255,107,107,0.08));
+      border: 1px solid rgba(255,183,3,0.18);
+      border-radius: 26px;
+      padding: 28px;
+      margin-top: 28px;
+    }
+
+    .quote-box p {
+      font-size: 1.12rem;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .footer {
+      padding: 38px 0 46px;
+      border-top: 1px solid rgba(24, 50, 74, 0.08);
+      background: rgba(255,255,255,0.5);
+    }
+
+    .footer-wrap {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .footer h3 {
+      margin-bottom: 4px;
+    }
+
+    .footer p {
+      color: var(--muted);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1100px) {
+      .hero-grid,
+      .destinations-grid,
+      .info-banner,
+      .climate-wrap,
+      .curiosities-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .photo-card img {
+        min-height: 320px;
+      }
+
+      .hero-stats {
+        max-width: 100%;
+      }
+
+      .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .documents-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .nav-menu {
+        position: absolute;
+        top: calc(var(--nav-h) + 8px);
+        left: 4%;
+        right: 4%;
+        background: rgba(255,255,255,0.96);
+        border: 1px solid rgba(24, 50, 74, 0.08);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        padding: 18px;
+        display: none;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .nav-menu.show {
+        display: flex;
+      }
+
+      .menu-toggle {
+        display: inline-flex;
+      }
+
+      .hero-stats,
+      .grid-3,
+      .grid-2,
+      .grid-4,
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        line-height: 1.02;
+      }
+
+      .section {
+        padding: 72px 0;
+      }
+
+      .info-banner {
+        padding: 24px;
+      }
+
+      .info-banner img {
+        height: 240px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hero {
+        min-height: auto;
+        padding-bottom: 60px;
+      }
+
+      .hero-card,
+      .card {
+        border-radius: 22px;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .hero-actions {
+        flex-direction: column;
       }
 
       .section-title {
-        font-size: 1.6rem;
+        font-size: 2rem;
       }
     }
   </style>
 </head>
 <body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="#inicio" class="brand">
+        <span class="brand-badge">🌍</span>
+        <span>Traveling</span>
+      </a>
 
-  <header>
-    <h1>🌍 Traveling</h1>
-    <p>
-      Um projeto escolar para explorar culturas, destinos, comidas, costumes e curiosidades
-      de diferentes partes do mundo. Nesta página, vamos conhecer a América do Norte.
-    </p>
+      <nav class="nav-menu" id="navMenu">
+        <a href="#america">América do Norte</a>
+        <a href="#cartoes">Cartões</a>
+        <a href="#destinos">Destinos</a>
+        <a href="#culinaria">Culinária</a>
+        <a href="#clima">Clima</a>
+        <a href="#epoca">Melhor época</a>
+        <a href="#documentos">Documentos</a>
+        <a href="#curiosidades">Curiosidades</a>
+      </nav>
+
+      <button class="menu-toggle" id="menuToggle">☰</button>
+    </div>
   </header>
 
-  <nav>
-    <ul>
-      <li><a href="#cartoes">Cartões de Viagem</a></li>
-      <li><a href="#destinos">Destinos</a></li>
-      <li><a href="#culinaria">Culinária</a></li>
-      <li><a href="#clima">Clima</a></li>
-      <li><a href="#epoca">Melhor Época</a></li>
-      <li><a href="#documentos">Passaporte e Visto</a></li>
-    </ul>
-  </nav>
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div class="hero-content reveal">
+          <div class="hero-badge">✈️ Projeto escolar de turismo, cultura e descobertas</div>
+          <h1>Traveling<br />América do Norte</h1>
+          <p>
+            Um site criado para apresentar a América do Norte de um jeito mais visual,
+            interessante e fácil de entender. Aqui você vai encontrar destinos famosos,
+            cartões postais, culinária típica, clima, melhor época para viajar,
+            documentos de viagem e curiosidades marcantes sobre Canadá, Estados Unidos e México.
+          </p>
 
-  <div class="container">
-    <div class="hero-box">
-      <span class="tag">América do Norte</span>
-      <h2>Conhecendo Estados Unidos, Canadá e México</h2>
-      <p>
-        A América do Norte reúne cidades famosas, paisagens naturais incríveis,
-        culinárias marcantes e culturas muito diferentes entre si. Neste espaço,
-        você vai encontrar informações sobre cartões postais, destinos turísticos,
-        clima, documentos e muito mais.
-      </p>
+          <div class="hero-actions">
+            <a href="#america" class="btn btn-primary">🌎 Explorar o projeto</a>
+            <a href="#destinos" class="btn btn-secondary">📍 Ver destinos</a>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat">
+              <h3>3</h3>
+              <p>países em destaque</p>
+            </div>
+            <div class="stat">
+              <h3>5+</h3>
+              <p>temas principais</p>
+            </div>
+            <div class="stat">
+              <h3>100%</h3>
+              <p>pronto para apresentação</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-card reveal">
+          <img
+            src="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=1200&q=80"
+            alt="Paisagem da América do Norte com montanhas e lago"
+          />
+          <h3>O que você vai encontrar aqui</h3>
+          <p>
+            Um passeio pelas belezas, culturas e curiosidades da América do Norte,
+            com linguagem simples, visual bonito e informações organizadas.
+          </p>
+          <ul>
+            <li><span>📬</span> Cartões de viagem e ideias de mensagem</li>
+            <li><span>🍔</span> Comidas típicas e sabores marcantes</li>
+            <li><span>🌦️</span> Clima, estações e melhor época</li>
+            <li><span>🛂</span> Passaporte, visto e aeroporto</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="america">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">🌎 Região em foco</span>
+          <h2 class="section-title">América do Norte</h2>
+          <p class="section-text">
+            A América do Norte reúne cidades super conhecidas, paisagens naturais incríveis,
+            climas bem diferentes, muita diversidade cultural e destinos turísticos famosos no mundo todo.
+            Nessa região, três países ganham destaque no nosso projeto: Canadá, Estados Unidos e México.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card country-card reveal">
+            <img
+              src="https://images.unsplash.com/photo-1517935706615-2717063c2225?auto=format&fit=crop&w=1200&q=80"
+              alt="Vista urbana do Canadá"
+            />
+            <span class="country-chip">🇨🇦 Canadá</span>
+            <h3>Natureza, organização e inverno marcante</h3>
+            <p>
+              O Canadá chama atenção pelas cidades modernas, qualidade de vida e paisagens naturais
+              impressionantes, com neve, montanhas, lagos e florestas.
+            </p>
+            <ul class="list">
+              <li>Toronto e Vancouver entre as cidades mais conhecidas</li>
+              <li>Banff e Cataratas do Niágara como destaques naturais</li>
+              <li>Clima frio em boa parte do ano</li>
+            </ul>
+          </article>
+
+          <article class="card country-card reveal">
+            <img
+              src="https://images.unsplash.com/photo-1499092346589-b9b6be3e94b2?auto=format&fit=crop&w=1200&q=80"
+              alt="Vista de Nova York nos Estados Unidos"
+            />
+            <span class="country-chip">🇺🇸 Estados Unidos</span>
+            <h3>Cidades famosas, entretenimento e variedade</h3>
+            <p>
+              Os Estados Unidos têm uma grande mistura de culturas, paisagens e estilos de vida.
+              É um país muito conhecido pelo cinema, pela música, pelos parques temáticos e por grandes metrópoles.
+            </p>
+            <ul class="list">
+              <li>Nova York, Los Angeles, Orlando e Las Vegas</li>
+              <li>Grand Canyon e Yellowstone como ícones da natureza</li>
+              <li>Forte influência cultural no mundo inteiro</li>
+            </ul>
+          </article>
+
+          <article class="card country-card reveal">
+            <img
+              src="https://images.unsplash.com/photo-1512813195386-6cf811ad3542?auto=format&fit=crop&w=1200&q=80"
+              alt="Paisagem do México com arquitetura histórica"
+            />
+            <span class="country-chip">🇲🇽 México</span>
+            <h3>Cores, história, praias e tradição</h3>
+            <p>
+              O México é conhecido pela riqueza histórica, pelas praias famosas, pela culinária marcante
+              e por suas tradições culturais cheias de identidade.
+            </p>
+            <ul class="list">
+              <li>Cidade do México, Cancún e Chichén Itzá</li>
+              <li>Comidas bem temperadas e festas tradicionais</li>
+              <li>Clima mais quente em muitas regiões</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cartoes">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">📬 Cartões de viagem</span>
+          <h2 class="section-title">Postais que contam uma viagem</h2>
+          <p class="section-text">
+            O cartão postal é uma forma simples e carinhosa de mandar uma mensagem curta pelo correio.
+            Além de servir como lembrança, ele também ajuda a compartilhar um pouco da experiência
+            vivida em outro país.
+          </p>
+        </div>
+
+        <div class="info-banner reveal">
+          <div>
+            <h3>Como funciona um cartão postal?</h3>
+            <p>
+              Normalmente, de um lado fica a imagem do lugar visitado e, do outro, a mensagem e o endereço.
+              Para enviar para o Brasil, é importante escrever o endereço completo, colocar “BRASIL” em destaque
+              e comprar um selo internacional no correio local.
+            </p>
+            <ul>
+              <li>Mensagem curta e afetiva</li>
+              <li>Imagem de cidade, paisagem ou ponto turístico</li>
+              <li>Selo internacional obrigatório</li>
+              <li>Ótimo como lembrança de viagem</li>
+            </ul>
+          </div>
+
+          <img
+            src="https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?auto=format&fit=crop&w=1400&q=80"
+            alt="Cartões postais e itens de viagem"
+          />
+        </div>
+
+        <div class="grid-3" style="margin-top: 28px;">
+          <article class="card reveal">
+            <div class="card-icon">🇨🇦</div>
+            <h3>Canadá</h3>
+            <p>
+              No Canadá, o cartão pode ser enviado pelo Canada Post. A entrega para o Brasil costuma levar
+              de uma a três semanas.
+            </p>
+            <ul class="list">
+              <li>Fale da CN Tower, Toronto e Vancouver</li>
+              <li>Cite as Cataratas do Niágara e Banff</li>
+              <li>Comente o frio, a neve e as paisagens naturais</li>
+            </ul>
+            <div class="quote-box">
+              <p>“Oi! Estou no Canadá e fiquei impressionado com as paisagens e com o frio daqui.”</p>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-icon">🇺🇸</div>
+            <h3>Estados Unidos</h3>
+            <p>
+              Nos Estados Unidos, o selo pode ser comprado no USPS. O cartão costuma chegar ao Brasil
+              em uma a três semanas.
+            </p>
+            <ul class="list">
+              <li>Fale de Nova York, Los Angeles ou Orlando</li>
+              <li>Cite a Estátua da Liberdade, Times Square e Grand Canyon</li>
+              <li>Comente filmes, música e estilo de vida americano</li>
+            </ul>
+            <div class="quote-box">
+              <p>“Estou nos EUA e aqui tudo lembra filmes, luzes, movimento e muita coisa famosa.”</p>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-icon">🇲🇽</div>
+            <h3>México</h3>
+            <p>
+              No México, o envio pode ser feito pelos Correos de México. O prazo também costuma ser parecido:
+              de uma a três semanas.
+            </p>
+            <ul class="list">
+              <li>Fale de Cancún, Chichén Itzá e Cidade do México</li>
+              <li>Cite as cores, festas e tradições mexicanas</li>
+              <li>Comente a culinária e o clima quente</li>
+            </ul>
+            <div class="quote-box">
+              <p>“O México é cheio de cor, história e comida deliciosa. Estou adorando conhecer tudo.”</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="destinos">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">📍 Principais destinos</span>
+          <h2 class="section-title">Lugares famosos e paisagens inesquecíveis</h2>
+          <p class="section-text">
+            A América do Norte oferece uma mistura incrível de cidades icônicas, parques nacionais,
+            praias, centros de entretenimento e lugares diferentes para quem gosta de natureza e aventura.
+          </p>
+        </div>
+
+        <div class="destinations-grid">
+          <div class="stack">
+            <div class="card reveal">
+              <div class="card-icon">🏙️</div>
+              <h3>Grandes cidades</h3>
+              <div class="mini-grid">
+                <div class="mini-card">
+                  <h4>Nova York</h4>
+                  <p>Times Square, arranha-céus, museus e a famosa Estátua da Liberdade.</p>
+                </div>
+                <div class="mini-card">
+                  <h4>Los Angeles</h4>
+                  <p>Hollywood, praias, sol e uma forte relação com o cinema.</p>
+                </div>
+                <div class="mini-card">
+                  <h4>Toronto</h4>
+                  <p>Cidade moderna, organizada e multicultural, com destaque para a CN Tower.</p>
+                </div>
+                <div class="mini-card">
+                  <h4>Cidade do México</h4>
+                  <p>História, arte, cultura e uma das culinárias mais marcantes da região.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card reveal">
+              <div class="card-icon">🌄</div>
+              <h3>Natureza e parques</h3>
+              <div class="mini-grid">
+                <div class="mini-card">
+                  <h4>Grand Canyon</h4>
+                  <p>Um dos cenários naturais mais impressionantes do planeta.</p>
+                </div>
+                <div class="mini-card">
+                  <h4>Yellowstone</h4>
+                  <p>Parque famoso por gêiseres, vida selvagem e fenômenos geotérmicos.</p>
+                </div>
+                <div class="mini-card">
+                  <h4>Banff</h4>
+                  <p>Montanhas, lagos azul-turquesa e paisagens muito fotografadas.</p>
+                </div>
+                <div class="mini-card">
+                  <h4>Cataratas do Niágara</h4>
+                  <p>Uma das quedas d’água mais conhecidas e visitadas do mundo.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card reveal">
+              <div class="card-icon">🏖️</div>
+              <h3>Praias e descanso</h3>
+              <ul class="list">
+                <li>Cancún – praias paradisíacas, resorts e mar azul</li>
+                <li>Miami – praia, compras, música e vida noturna</li>
+                <li>Honolulu – natureza tropical e clima agradável</li>
+              </ul>
+            </div>
+
+            <div class="grid-2">
+              <div class="card reveal">
+                <div class="card-icon">🎢</div>
+                <h3>Entretenimento</h3>
+                <ul class="list">
+                  <li>Orlando – Disney, Universal e parques temáticos</li>
+                  <li>Las Vegas – shows, luzes e turismo noturno</li>
+                </ul>
+              </div>
+
+              <div class="card reveal">
+                <div class="card-icon">🧭</div>
+                <h3>Destinos diferentes</h3>
+                <ul class="list">
+                  <li>Alasca – geleiras e natureza selvagem</li>
+                  <li>Vancouver – cidade cercada por mar e montanhas</li>
+                  <li>Montreal – clima europeu e muito charme cultural</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="card photo-card reveal">
+            <img
+              src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80"
+              alt="Paisagem turística com montanhas e lago"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="culinaria">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">🍔 Culinária</span>
+          <h2 class="section-title">Sabores que também fazem parte da viagem</h2>
+          <p class="section-text">
+            Conhecer a culinária de um lugar é uma forma de entender melhor sua cultura.
+            Na América do Norte, os sabores variam bastante: dos pratos rápidos dos EUA
+            às receitas tradicionais do México, passando pelas combinações típicas do Canadá.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card food-card reveal">
+            <img
+              src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80"
+              alt="Hambúrguer típico dos Estados Unidos"
+            />
+            <h3>🇺🇸 Estados Unidos</h3>
+            <p>
+              A culinária americana é muito conhecida pelos hambúrgueres, hot dogs, panquecas,
+              donuts e pelo famoso fast food. Ao mesmo tempo, como o país recebe influência de muitos povos,
+              também existem pratos de várias partes do mundo.
+            </p>
+            <div class="tag-row">
+              <span class="tag">hambúrguer</span>
+              <span class="tag">panquecas</span>
+              <span class="tag">fast food</span>
+            </div>
+          </article>
+
+          <article class="card food-card reveal">
+            <img
+              src="https://images.unsplash.com/photo-1514996937319-344454492b37?auto=format&fit=crop&w=1200&q=80"
+              alt="Prato típico do Canadá"
+            />
+            <h3>🇨🇦 Canadá</h3>
+            <p>
+              Um dos pratos mais famosos do Canadá é a poutine, feita com batata frita, queijo e molho.
+              Também há grande presença de pratos quentes, sopas e comidas reconfortantes, muito ligadas ao clima frio.
+            </p>
+            <div class="tag-row">
+              <span class="tag">poutine</span>
+              <span class="tag">pratos quentes</span>
+              <span class="tag">inverno</span>
+            </div>
+          </article>
+
+          <article class="card food-card reveal">
+            <img
+              src="https://images.unsplash.com/photo-1613514785940-daed07799d9b?auto=format&fit=crop&w=1200&q=80"
+              alt="Tacos típicos do México"
+            />
+            <h3>🇲🇽 México</h3>
+            <p>
+              A culinária mexicana é uma das mais marcantes do mundo. Ela mistura sabores fortes,
+              temperos, molhos, tortilhas e receitas famosas como tacos, burritos, nachos, quesadillas e guacamole.
+            </p>
+            <div class="tag-row">
+              <span class="tag">tacos</span>
+              <span class="tag">burritos</span>
+              <span class="tag">temperos</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="quote-box reveal">
+          <p>
+            Mais do que matar a fome, a culinária mostra hábitos, tradições e até o clima de cada país.
+            Comer também é uma forma de viajar.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="clima">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">🌦️ Época e clima</span>
+          <h2 class="section-title">Estações, temperaturas e fenômenos naturais</h2>
+          <p class="section-text">
+            Como a América do Norte está no hemisfério norte, as estações do ano são opostas às do Brasil.
+            Além disso, a região tem climas muito diferentes: do frio intenso do Canadá ao calor do México.
+          </p>
+        </div>
+
+        <div class="climate-wrap">
+          <article class="card season-card reveal">
+            <div class="card-icon">🗓️</div>
+            <h3>Estações do ano</h3>
+
+            <div class="season-item">
+              <div class="season-badge">🌸</div>
+              <div>
+                <h4>Primavera</h4>
+                <p>Março a junho – temperaturas mais agradáveis e paisagens floridas.</p>
+              </div>
+            </div>
+
+            <div class="season-item">
+              <div class="season-badge">☀️</div>
+              <div>
+                <h4>Verão</h4>
+                <p>Junho a setembro – calor forte em várias regiões e alta temporada turística.</p>
+              </div>
+            </div>
+
+            <div class="season-item">
+              <div class="season-badge">🍂</div>
+              <div>
+                <h4>Outono</h4>
+                <p>Setembro a dezembro – clima agradável e paisagens com folhas alaranjadas.</p>
+              </div>
+            </div>
+
+            <div class="season-item">
+              <div class="season-badge">❄️</div>
+              <div>
+                <h4>Inverno</h4>
+                <p>Dezembro a março – neve e temperaturas muito baixas em áreas do norte.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-icon">🌍</div>
+            <h3>Clima por região</h3>
+
+            <div class="timeline">
+              <div class="timeline-card">
+                <h4>❄️ Norte (Canadá e norte dos EUA)</h4>
+                <p>Invernos muito frios, neve intensa e temperaturas que podem chegar a -20 °C ou menos.</p>
+              </div>
+
+              <div class="timeline-card">
+                <h4>🌤️ Centro dos EUA</h4>
+                <p>Clima temperado, com bastante variação entre inverno frio e verão quente.</p>
+              </div>
+
+              <div class="timeline-card">
+                <h4>🌴 Sul dos EUA e México</h4>
+                <p>Regiões mais quentes, com verões úmidos, calor forte e invernos mais leves.</p>
+              </div>
+
+              <div class="timeline-card">
+                <h4>🏜️ Oeste</h4>
+                <p>Califórnia com clima mais ameno em algumas áreas e regiões desérticas com calor extremo.</p>
+              </div>
+
+              <div class="timeline-card">
+                <h4>🌪️ Fenômenos importantes</h4>
+                <p>Furacões no sul dos EUA e no México, nevascas no norte e tornados no centro dos Estados Unidos.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="epoca">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">🧳 Melhor época para viajar</span>
+          <h2 class="section-title">Quando aproveitar melhor cada país</h2>
+          <p class="section-text">
+            A melhor época depende do destino e do tipo de passeio. Em geral, primavera e outono são ótimos
+            nos Estados Unidos, o verão é melhor no Canadá e os meses mais secos são ideais no México.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card reveal">
+            <div class="card-icon">🇺🇸</div>
+            <h3>Estados Unidos</h3>
+            <p>
+              A melhor época costuma ser a primavera e o outono, quando o clima fica mais agradável,
+              há menos filas e os preços costumam ser mais equilibrados.
+            </p>
+            <ul class="list">
+              <li>Nova York – abril a junho / setembro a outubro</li>
+              <li>Orlando – março a maio</li>
+              <li>Miami – dezembro a abril</li>
+            </ul>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-icon">🇨🇦</div>
+            <h3>Canadá</h3>
+            <p>
+              O verão, entre junho e setembro, costuma ser a melhor escolha para visitar cidades e fazer passeios
+              ao ar livre, já que o frio diminui bastante.
+            </p>
+            <ul class="list">
+              <li>Toronto – junho a setembro</li>
+              <li>Vancouver – maio a setembro</li>
+              <li>Inverno é melhor só para neve e esportes</li>
+            </ul>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-icon">🇲🇽</div>
+            <h3>México</h3>
+            <p>
+              O período entre dezembro e abril é muito indicado, porque o clima costuma ficar mais seco
+              e ensolarado, ideal para praias e turismo.
+            </p>
+            <ul class="list">
+              <li>Cancún – dezembro a abril</li>
+              <li>Cidade do México – março a maio</li>
+              <li>Maio a outubro costuma ter mais chuva</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="documentos">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">🛂 Passaporte, visto e aeroporto</span>
+          <h2 class="section-title">O que é preciso para viajar</h2>
+          <p class="section-text">
+            Em viagens internacionais, alguns documentos e etapas são essenciais. Entender isso ajuda a planejar
+            melhor a viagem e evita problemas na hora do embarque.
+          </p>
+        </div>
+
+        <div class="documents-grid">
+          <article class="card reveal">
+            <div class="card-icon">📘</div>
+            <h3>Passaporte</h3>
+            <p>
+              O passaporte é o documento oficial usado para viajar para fora do país. Ele funciona como
+              uma identificação internacional.
+            </p>
+            <ul class="steps">
+              <li><span>1</span> Identifica o viajante em outro país</li>
+              <li><span>2</span> Registra entradas e saídas</li>
+              <li><span>3</span> Permite embarque em voos internacionais</li>
+            </ul>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-icon">📄</div>
+            <h3>Visto</h3>
+            <p>
+              O visto é uma autorização dada por alguns países para permitir a entrada de estrangeiros.
+            </p>
+            <ul class="steps">
+              <li><span>1</span> EUA exigem visto para brasileiros</li>
+              <li><span>2</span> Canadá pode exigir visto ou eTA</li>
+              <li><span>3</span> México depende da situação do viajante</li>
+            </ul>
+          </article>
+
+          <article class="card reveal">
+            <div class="card-icon">🛫</div>
+            <h3>Aeroporto</h3>
+            <p>
+              No aeroporto, a viagem passa por algumas etapas importantes antes do embarque internacional.
+            </p>
+            <ul class="steps">
+              <li><span>1</span> Check-in e bagagem</li>
+              <li><span>2</span> Segurança e inspeção</li>
+              <li><span>3</span> Imigração e embarque</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="quote-box reveal">
+          <p>
+            Para viajar para a América do Norte, o ideal é ter passaporte válido, verificar a necessidade de visto
+            e seguir corretamente os procedimentos do aeroporto.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="curiosidades">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="eyebrow">✨ Curiosidades</span>
+          <h2 class="section-title">Fatos interessantes sobre a América do Norte</h2>
+          <p class="section-text">
+            Além do turismo, a América do Norte também chama atenção pela diversidade de culturas,
+            pela força do cinema, dos esportes e pela variedade de paisagens e estilos de vida.
+          </p>
+        </div>
+
+        <div class="curiosities-grid">
+          <div class="stack">
+            <article class="card reveal">
+              <div class="card-icon">🎬</div>
+              <h3>Cinema e entretenimento</h3>
+              <p>
+                Hollywood, nos Estados Unidos, é uma das maiores referências mundiais em cinema e televisão,
+                influenciando a cultura global há muitos anos.
+              </p>
+            </article>
+
+            <article class="card reveal">
+              <div class="card-icon">⚽</div>
+              <h3>Esportes e competições</h3>
+              <p>
+                Na região, esportes como basquete, beisebol, futebol americano, hóquei no gelo e futebol
+                fazem parte do cotidiano e da identidade cultural de muitos lugares.
+              </p>
+            </article>
+
+            <article class="card reveal">
+              <div class="card-icon">🌐</div>
+              <h3>Diversidade cultural</h3>
+              <p>
+                A América do Norte recebe pessoas do mundo todo. Isso faz com que suas cidades tenham
+                línguas, comidas, festas e tradições muito variadas.
+              </p>
+            </article>
+
+            <article class="card reveal">
+              <div class="card-icon">🏔️</div>
+              <h3>Paisagens contrastantes</h3>
+              <p>
+                É possível encontrar neve, desertos, florestas, praias, grandes metrópoles e montanhas
+                na mesma região, o que torna a experiência de viagem ainda mais rica.
+              </p>
+            </article>
+          </div>
+
+          <div class="card wide-image reveal">
+            <img
+              src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1400&q=80"
+              alt="Paisagem ampla representando viagem e natureza"
+            />
+          </div>
+        </div>
+
+        <div class="quote-box reveal">
+          <p>
+            Viajar pela América do Norte é conhecer lugares muito diferentes entre si, mas todos cheios de cultura,
+            história, movimento e paisagens marcantes.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-wrap">
+      <div>
+        <h3>🌍 Traveling</h3>
+        <p>Projeto escolar sobre viagens, culturas e descobertas pelo mundo.</p>
+      </div>
+      <p>“Viajar também é aprender, observar e enxergar o mundo de um jeito novo.”</p>
     </div>
-
-    <section id="cartoes">
-      <h2 class="section-title">📬 Cartões de Viagem</h2>
-      <p>
-        O cartão postal é uma forma simples de enviar mensagens curtas pelo correio.
-        Normalmente, ele traz imagens de pontos turísticos, paisagens e cidades famosas,
-        sendo uma lembrança muito especial de uma viagem.
-      </p>
-
-      <div class="card-grid">
-        <div class="card">
-          <h3>🇨🇦 Canadá</h3>
-          <p>
-            Para enviar um cartão postal do Canadá, basta escrever a mensagem de um lado
-            e o endereço do destinatário do outro, incluindo “BRASIL”.
-            Depois, é preciso comprar um selo internacional no Canada Post e enviá-lo pelo correio.
-          </p>
-          <p>
-            No cartão, você pode falar sobre a CN Tower, as Cataratas do Niágara,
-            Banff National Park, Toronto, Vancouver, o frio e a neve.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>🇺🇸 Estados Unidos</h3>
-          <p>
-            Nos Estados Unidos, a mensagem vai de um lado e o endereço no outro.
-            O selo internacional pode ser comprado no United States Postal Service (USPS).
-          </p>
-          <p>
-            Você pode mencionar a Estátua da Liberdade, o Grand Canyon,
-            a Times Square, Nova York, Los Angeles e até a cultura do cinema.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>🇲🇽 México</h3>
-          <p>
-            No México, o processo é parecido: escreva a mensagem, coloque o endereço
-            completo com “BRASIL”, compre o selo no Correos de México e envie.
-          </p>
-          <p>
-            No texto, vale citar Chichén Itzá, Cancún, a Cidade do México,
-            as comidas típicas, as cores e as tradições mexicanas.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section id="destinos">
-      <h2 class="section-title">📍 Principais Destinos</h2>
-
-      <div class="card-grid">
-        <div class="card">
-          <h3>🏙️ Grandes cidades</h3>
-          <ul>
-            <li>Nova York</li>
-            <li>Los Angeles</li>
-            <li>Toronto</li>
-            <li>Cidade do México</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>🌄 Natureza e parques</h3>
-          <ul>
-            <li>Grand Canyon</li>
-            <li>Yellowstone</li>
-            <li>Banff National Park</li>
-            <li>Cataratas do Niágara</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>🏖️ Praias e descanso</h3>
-          <ul>
-            <li>Cancún</li>
-            <li>Miami</li>
-            <li>Honolulu</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>🎡 Entretenimento</h3>
-          <ul>
-            <li>Orlando</li>
-            <li>Las Vegas</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>🌎 Destinos diferentes</h3>
-          <ul>
-            <li>Alasca</li>
-            <li>Vancouver</li>
-            <li>Montreal</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section id="culinaria">
-      <h2 class="section-title">🍔 Culinária</h2>
-      <div class="highlight">
-        <p>
-          A culinária da América do Norte é bastante variada.
-          Nos Estados Unidos, são comuns hambúrgueres, fast food e comidas práticas.
-          No Canadá, um prato muito conhecido é a poutine.
-          Já no México, a culinária é marcada por sabores fortes, com tacos,
-          burritos, nachos e diferentes tipos de tempero.
-        </p>
-      </div>
-    </section>
-
-    <section id="clima">
-      <h2 class="section-title">🌦️ Época e Clima</h2>
-
-      <div class="card-grid">
-        <div class="card">
-          <h3>🌎 Estações do ano</h3>
-          <ul>
-            <li>Primavera: março a junho</li>
-            <li>Verão: junho a setembro</li>
-            <li>Outono: setembro a dezembro</li>
-            <li>Inverno: dezembro a março</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>❄️ Norte</h3>
-          <p>Canadá e norte dos EUA têm invernos muito frios, com neve intensa e temperaturas abaixo de zero.</p>
-        </div>
-
-        <div class="card">
-          <h3>🌤️ Centro</h3>
-          <p>Nos EUA centrais, o clima é temperado, com invernos frios e verões bem quentes.</p>
-        </div>
-
-        <div class="card">
-          <h3>🌴 Sul</h3>
-          <p>O sul dos EUA e o México têm clima quente, com verões fortes e úmidos.</p>
-        </div>
-
-        <div class="card">
-          <h3>🏜️ Oeste</h3>
-          <p>Na Califórnia, o clima é mais ameno. Já áreas desérticas têm muito calor e pouca chuva.</p>
-        </div>
-
-        <div class="card">
-          <h3>🌪️ Fenômenos naturais</h3>
-          <ul>
-            <li>Furacões</li>
-            <li>Nevascas</li>
-            <li>Tornados</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section id="epoca">
-      <h2 class="section-title">✈️ Melhor Época para Viajar</h2>
-
-      <div class="card-grid">
-        <div class="card">
-          <h3>🇺🇸 Estados Unidos</h3>
-          <p>
-            A melhor época geralmente é na primavera e no outono,
-            quando o clima está mais agradável e os lugares costumam estar menos cheios.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>🇨🇦 Canadá</h3>
-          <p>
-            O verão é a melhor época para visitar, porque as temperaturas ficam mais agradáveis
-            e as cidades mais movimentadas.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>🇲🇽 México</h3>
-          <p>
-            De dezembro a abril costuma ser o melhor período,
-            com clima mais seco e ótimo para praia e passeios.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section id="documentos">
-      <h2 class="section-title">🛂 Passaporte, Visto e Aeroporto</h2>
-
-      <div class="card-grid">
-        <div class="card">
-          <h3>📘 Passaporte</h3>
-          <p>
-            É o documento oficial usado para viagens internacionais.
-            Ele identifica o viajante e permite a entrada e saída de países.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>📄 Visto</h3>
-          <p>
-            O visto é uma autorização para entrar em outro país.
-            Os EUA exigem visto para brasileiros, o Canadá pode exigir visto ou eTA,
-            e o México depende da situação do viajante.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>🛫 Aeroporto</h3>
-          <p>
-            No aeroporto, o passageiro passa por etapas como check-in,
-            segurança, imigração e embarque.
-          </p>
-        </div>
-      </div>
-
-      <div class="highlight">
-        <p>
-          Para viajar para a América do Norte, é importante ter um passaporte válido,
-          verificar a necessidade de visto e seguir corretamente os procedimentos exigidos nos aeroportos.
-        </p>
-      </div>
-    </section>
-  </div>
-
-  <footer>
-    <p>Projeto Traveling 🌍 | Site criado para apresentação escolar</p>
   </footer>
 
+  <script>
+    const menuToggle = document.getElementById("menuToggle");
+    const navMenu = document.getElementById("navMenu");
+    const navLinks = navMenu.querySelectorAll("a");
+
+    menuToggle.addEventListener("click", () => {
+      navMenu.classList.toggle("show");
+    });
+
+    navLinks.forEach(link => {
+      link.addEventListener("click", () => {
+        navMenu.classList.remove("show");
+      });
+    });
+
+    const reveals = document.querySelectorAll(".reveal");
+
+    const revealOnScroll = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          revealOnScroll.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.12
+    });
+
+    reveals.forEach(item => revealOnScroll.observe(item));
+  </script>
 </body>
 </html>
