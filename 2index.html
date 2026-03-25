@@ -1,1 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRAVELING</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<style>
+:root{
+  --gold:#c9a84c;--gold-dim:#8a6f2e;--cream:#f0e8d5;
+  --map-land:#181818;--map-border:#2c2c2c;--map-dim:#0c0c0c;
+  --panel-bg:rgba(6,6,6,0.98);
+  --muted:rgba(240,232,213,.35);--dim:rgba(240,232,213,.62);--bright:rgba(240,232,213,.92);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;color:var(--cream);}
+body{font-family:'Montserrat',sans-serif;font-weight:300;}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .9s ease;}
+#loading.hide{opacity:0;pointer-events:none;}
+.ld-logo{font-family:'Playfair Display',serif;font-size:1.5rem;letter-spacing:.5em;color:var(--cream);margin-bottom:20px;}
+.ld-bar{width:140px;height:1px;background:rgba(201,168,76,.12);overflow:hidden;position:relative;}
+.ld-bar::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,transparent,var(--gold),transparent);animation:ldS 1.1s ease infinite;}
+@keyframes ldS{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+
+/* HEADER */
+#header{position:fixed;top:0;left:0;right:0;height:60px;display:flex;align-items:center;justify-content:center;z-index:100;pointer-events:none;}
+#logo{font-family:'Playfair Display',serif;font-size:clamp(1rem,1.8vw,1.5rem);letter-spacing:.5em;color:var(--cream);font-weight:400;opacity:0;animation:fD 1.2s ease .4s forwards;}
+#logo em{color:var(--gold);font-style:normal;}
+
+/* SEARCH */
+#sw{position:fixed;top:18px;right:28px;z-index:200;opacity:0;animation:fI 1s ease 1.2s forwards;}
+#si{background:transparent;border:none;border-bottom:1px solid rgba(201,168,76,.2);outline:none;color:var(--cream);font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:300;letter-spacing:.2em;padding:6px 2px;width:100px;transition:width .4s cubic-bezier(.4,0,.2,1),border-color .3s;text-transform:uppercase;caret-color:var(--gold);}
+#si::placeholder{color:var(--muted);letter-spacing:.2em;}
+#si:focus{width:170px;border-bottom-color:rgba(201,168,76,.65);}
+
+/* BACK */
+#bb{position:fixed;top:20px;left:52px;background:none;border:none;color:var(--muted);font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.25em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:8px;opacity:0;pointer-events:none;transition:opacity .3s,color .2s;z-index:200;}
+#bb.vis{opacity:1;pointer-events:all;}
+#bb:hover{color:var(--gold);}
+
+/* MAP */
+#mc{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;transition:transform .7s cubic-bezier(.4,0,.2,1);}
+#mc.shift{transform:translateX(-15%);}
+#ms{width:100vw;height:100vh;}
+.land{fill:var(--map-land);stroke:var(--map-border);stroke-width:.3px;cursor:pointer;transition:fill .2s;}
+.land:hover{fill:#232323;}
+.land.dimmed{fill:var(--map-dim);stroke:#161616;stroke-width:.2px;}
+.land.highlighted{fill:#202020;stroke:rgba(201,168,76,.35);stroke-width:.55px;}
+.land.selected{fill:#28211a;stroke:var(--gold);stroke-width:.9px;}
+
+/* MILES TAB */
+#mt{position:fixed;left:0;top:50%;transform:translateY(-50%);width:34px;height:220px;background:rgba(8,8,8,.92);border-right:1px solid rgba(201,168,76,.08);display:flex;align-items:center;justify-content:center;z-index:150;cursor:pointer;opacity:0;animation:fI 1.2s ease 1.6s forwards;}
+#mtl{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);font-size:.5rem;letter-spacing:.28em;color:var(--muted);white-space:nowrap;text-transform:uppercase;transition:color .2s;}
+#mt:hover #mtl{color:rgba(201,168,76,.5);}
+#mc2{position:fixed;left:-296px;top:50%;transform:translateY(-50%);width:280px;background:rgba(8,8,8,.93);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(201,168,76,.1);border-left:none;padding:28px 24px;z-index:160;transition:left .5s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+#mc2.open{left:34px;pointer-events:all;}
+.mc-t{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--gold);letter-spacing:.08em;margin-bottom:18px;font-style:italic;}
+.mcs{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(240,232,213,.05);}
+.mcs:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.mcs h4{font-size:.5rem;letter-spacing:.22em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:6px;font-weight:400;}
+.mcs p{font-size:.7rem;color:var(--dim);line-height:1.75;font-weight:300;}
+
+/* COUNTRY PANEL */
+#cp{position:fixed;right:-410px;top:0;bottom:0;width:390px;background:var(--panel-bg);border-left:1px solid rgba(201,168,76,.08);z-index:150;overflow-y:auto;overflow-x:hidden;transition:right .65s cubic-bezier(.4,0,.2,1);scrollbar-width:thin;scrollbar-color:rgba(201,168,76,.12) transparent;}
+#cp::-webkit-scrollbar{width:2px;}
+#cp::-webkit-scrollbar-thumb{background:rgba(201,168,76,.18);border-radius:2px;}
+#cp.open{right:0;}
+#pi{padding:50px 32px 60px;opacity:0;transform:translateX(16px);transition:opacity .4s ease .35s,transform .4s ease .35s;}
+#cp.open #pi{opacity:1;transform:translateX(0);}
+#pc{position:absolute;top:18px;left:18px;background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;transition:color .2s;padding:4px;font-family:'Montserrat',sans-serif;font-weight:200;}
+#pc:hover{color:var(--gold);}
+#cn{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:400;color:var(--cream);margin-bottom:4px;line-height:1.15;}
+#cr{font-size:.5rem;letter-spacing:.28em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:28px;}
+.dv{width:36px;height:1px;background:linear-gradient(to right,var(--gold),transparent);margin-bottom:28px;}
+.is{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid rgba(240,232,213,.05);}
+.is:last-child{border-bottom:none;}
+.ih{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.ii{width:26px;height:26px;border:1px solid rgba(201,168,76,.18);display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0;color:var(--gold);}
+.il{font-size:.48rem;letter-spacing:.22em;color:var(--gold-dim);text-transform:uppercase;font-weight:400;}
+.ic{font-size:.76rem;color:var(--dim);line-height:1.85;font-weight:300;}
+.ic strong{color:var(--bright);font-weight:400;}
+.cr2{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(240,232,213,.04);font-size:.7rem;}
+.cr2:last-child{border-bottom:none;}
+.cl{color:var(--muted);font-size:.6rem;letter-spacing:.1em;}
+.cb{color:var(--dim);}
+.cm{color:var(--gold);font-size:.65rem;}
+
+/* TOOLTIP */
+#tt{position:fixed;background:rgba(4,4,4,.92);border:1px solid rgba(201,168,76,.12);padding:7px 13px;font-size:.56rem;letter-spacing:.15em;color:var(--bright);text-transform:uppercase;pointer-events:none;z-index:300;opacity:0;transition:opacity .12s;backdrop-filter:blur(6px);white-space:nowrap;}
+
+/* HINT */
+#ht{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-size:.5rem;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;pointer-events:none;opacity:0;animation:fI 1s ease 2.2s forwards;}
+
+@keyframes fD{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fI{from{opacity:0;}to{opacity:1;}}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="ld-logo">TRAVELING</div><div class="ld-bar"></div></div>
+
+<div id="header"><div id="logo">TR<em>A</em>VELING</div></div>
+
+<div id="sw"><input id="si" type="text" placeholder="Pesquisa" autocomplete="off" spellcheck="false"></div>
+
+<button id="bb" onclick="resetView()">← Voltar</button>
+
+<div id="mc"><svg id="ms"></svg></div>
+
+<div id="mt" onmouseenter="openM()" onmouseleave="closeM()"><span id="mtl">Milhas & Cartões</span></div>
+<div id="mc2" onmouseenter="openM()" onmouseleave="closeM()">
+  <div class="mc-t">Milhas & Cartões</div>
+  <div class="mcs"><h4>O que são Milhas?</h4><p>Pontos de programas de fidelidade (Smiles, TudoAzul, Latam Pass) convertíveis em passagens com descontos de até 80%.</p></div>
+  <div class="mcs"><h4>Como Acumular</h4><p>Cartões com cashback em milhas, gastos do cotidiano, compras em parceiros e transferências entre bancos e programas.</p></div>
+  <div class="mcs"><h4>Vantagens</h4><p>Voos business por muito menos. Upgrades e salas VIP. Um voo para a Europa pode sair a 40k pontos em vez de R$ 8.000.</p></div>
+</div>
+
+<div id="cp">
+  <button id="pc" onclick="closePanel()">✕</button>
+  <div id="pi">
+    <div id="cn">—</div>
+    <div id="cr">—</div>
+    <div class="dv"></div>
+    <div id="ps"></div>
+  </div>
+</div>
+
+<div id="tt"></div>
+<div id="ht">Clique em um continente · depois em um país</div>
+
+<script>
+const CD={
+  "Brazil":{r:"América do Sul",c:"Real (BRL)",l:"Português",v:"Destino doméstico — nenhum requisito de visto.",k:"Diversidade impressionante: do Carnaval ao choro, do sertão à Amazônia. Hospitalidade e improviso são traços culturais centrais.",f:"Feijoada, acarajé, moqueca, pão de queijo, brigadeiro. Culinária varia radicalmente por região.",b:"Custo médio/dia: R$ 200–400",m:"Doméstico: 10k–30k milhas"},
+  "Argentina":{r:"América do Sul",c:"Peso (ARS)",l:"Espanhol",v:"Livre para brasileiros — RG ou passaporte válidos.",k:"Tango, asado e futebol são pilares. Mate a qualquer hora. Jantares após as 22h são normais em Buenos Aires.",f:"Asado, empanadas, milanesa, dulce de leche, medialunas. Uma das melhores cenas gastronômicas da América do Sul.",b:"Custo médio/dia: R$ 250–550",m:"GRU→EZE: 8k–20k milhas"},
+  "France":{r:"Europa Ocidental",c:"Euro (EUR)",l:"Francês",v:"Visto Schengen obrigatório. Solicite via VFS Global 2–3 meses antes. Validade: 90 dias.",k:"Haute cuisine, moda e filosofia são identidades nacionais. Etiqueta refinada à mesa e valorização do idioma local.",f:"Croissant, escargot, coq au vin, foie gras, crème brûlée, queijos artesanais. Vinhos e champanhe são patrimônio cultural.",b:"Custo médio/dia: R$ 900–1.800",m:"GRU→CDG: 40k–65k milhas"},
+  "Italy":{r:"Europa Meridional",c:"Euro (EUR)",l:"Italiano",v:"Visto Schengen — aprovação em ~15 dias úteis.",k:"Arte renascentista, moda, família e futebol. Passeggiata vespertina é ritual social. Gesticulação expressiva faz parte da conversa.",f:"Pizza napolitana, pasta al pomodoro, risotto, gelato artesanal, prosciutto di Parma, trufa branca.",b:"Custo médio/dia: R$ 750–1.500",m:"GRU→FCO: 38k–62k milhas"},
+  "Spain":{r:"Europa Meridional",c:"Euro (EUR)",l:"Espanhol",v:"Visto Schengen (90 dias em 180 dias).",k:"Siesta, flamenco e festas populares (La Tomatina, San Fermín). Horários tardios: jantar às 21–22h é comum.",f:"Paella valenciana, tapas variadas, jamón ibérico, tortilla española, churros. Vinhos Rioja e cava são excelentes.",b:"Custo médio/dia: R$ 650–1.300",m:"GRU→MAD: 38k–60k milhas"},
+  "Portugal":{r:"Europa Ocidental",c:"Euro (EUR)",l:"Português",v:"Sem visto (até 90 dias, Schengen). Brasileiros têm estatuto de igualdade em Portugal.",k:"Saudade e fado são a alma do país. Povo acolhedor para brasileiros. Lisboa e Porto têm vibrante cena gastronômica.",f:"Bacalhau (300+ formas), pastel de nata, francesinha, caldo verde, sardinhas assadas. Vinhos do Douro são imperdíveis.",b:"Custo médio/dia: R$ 550–1.100",m:"GRU→LIS: 34k–55k milhas"},
+  "Germany":{r:"Europa Central",c:"Euro (EUR)",l:"Alemão",v:"Visto Schengen. Aprovação rápida para turistas brasileiros.",k:"Pontualidade é essencial. Cerveja e Oktoberfest são ícones. Eficiência e organização marcam o cotidiano.",f:"Bratwurst, schnitzel, pretzel, sauerkraut, strudel de maçã. Cada Land tem cerveja e pratos regionais.",b:"Custo médio/dia: R$ 700–1.400",m:"GRU→FRA: 40k–65k milhas"},
+  "United Kingdom":{r:"Europa Ocidental",c:"Libra (GBP)",l:"Inglês",v:"Electronic Travel Authorisation (ETA) obrigatória desde 2024. £10, aprovação em minutos.",k:"Fila, fair play e humor irônico são traços culturais. Pub culture é central na vida social britânica.",f:"Fish & chips, full English breakfast, Sunday roast, scones com cream. Cena gastronômica de Londres é sofisticada.",b:"Custo médio/dia: R$ 1.000–2.200",m:"GRU→LHR: 40k–70k milhas"},
+  "Greece":{r:"Europa Meridional",c:"Euro (EUR)",l:"Grego",v:"Visto Schengen (90 dias). Processo simples para turistas.",k:"Berço da democracia. Philoxenia (hospitalidade) é valor central. Festas ortodoxas marcam o calendário social.",f:"Moussaka, souvlaki, spanakopita, dolmades, baklava, tzatziki. Vinho retsina e ouzo são tradicionais.",b:"Custo médio/dia: R$ 520–1.100",m:"GRU→ATH: 42k–68k milhas"},
+  "United States of America":{r:"América do Norte",c:"Dólar (USD)",l:"Inglês",v:"Visto B1/B2 obrigatório. Taxa: US$ 185. Entrevista na embaixada necessária. Processo: 2–8 semanas.",k:"Diversidade cultural extrema. Gorjeta de 15–20% é obrigatória. Smile culture e small talk são normas sociais.",f:"BBQ texano, lobster da Nova Inglaterra, cheesecake nova-iorquino, chili californiano, po'boy de Nova Orleans.",b:"Custo médio/dia: R$ 950–2.200",m:"GRU→MIA/JFK: 35k–58k milhas"},
+  "Canada":{r:"América do Norte",c:"Dólar Canadense (CAD)",l:"Inglês/Francês",v:"eTA obrigatória (CAD 7, online). Para estadias longas, visto de turista completo.",k:"Multiculturalismo é política de Estado. Gentileza genuína. Vida ao ar livre (skiing, hiking, canoeing) é parte do estilo.",f:"Poutine, maple syrup, tortière québécois, butter tarts. Frutos do mar frescos em BC e Maritimes.",b:"Custo médio/dia: R$ 800–1.700",m:"GRU→YYZ/YVR: 38k–60k milhas"},
+  "Mexico":{r:"América do Norte",c:"Peso Mexicano (MXN)",l:"Espanhol",v:"Sem visto para brasileiros (até 180 dias).",k:"Dia de Los Muertos, Lucha Libre e mariachi. Família e religião são centrais. Pontualidade flexível ('hora mexicana').",f:"Tacos al pastor, mole negro, chiles en nogada, pozole, tamales. Gastronomia mexicana é Patrimônio da UNESCO.",b:"Custo médio/dia: R$ 400–900",m:"GRU→MEX: 30k–50k milhas"},
+  "Japan":{r:"Ásia Oriental",c:"Iene (JPY)",l:"Japonês",v:"Isento de visto para brasileiros (até 15 dias). Para estadias maiores, requeira na Embaixada do Japão.",k:"Respeito e cortesia são fundamentais. Gorjetas são consideradas ofensivas. Hanami e matsuri são experiências únicas.",f:"Sushi, ramen, tempurá, wagyu, mochi. Street food nos mercados de Tsukiji e Nishiki é absolutamente imperdível.",b:"Custo médio/dia: R$ 650–1.300",m:"GRU→NRT: 50k–82k milhas"},
+  "China":{r:"Ásia Oriental",c:"Yuan (CNY)",l:"Mandarim",v:"Visto obrigatório. Transit sem visto de 72h em Pequim e Xangai para brasileiros.",k:"Protocolo de negócios elaborado (guanxi). Presente com as duas mãos. Foto com idosos é sinal de respeito.",f:"Dim sum, Peking duck, hot pot sichuanês, xiaolongbao, mapo tofu. Culinária varia imensamente entre as regiões.",b:"Custo médio/dia: R$ 400–900",m:"GRU→PEK/PVG: 55k–90k milhas"},
+  "India":{r:"Ásia Meridional",c:"Rupia (INR)",l:"Hindi/Inglês e +20 línguas",v:"e-Visa disponível online para brasileiros. USD 25. Aprovação em 72h.",k:"Namaste. Vaca é sagrada. Festivais como Holi e Diwali são experiências transformadoras e únicas.",f:"Butter chicken, biryani, dosa, chaat, samosa, lassi. Cada estado tem culinária completamente distinta.",b:"Custo médio/dia: R$ 200–600",m:"GRU→DEL/BOM: 58k–95k milhas"},
+  "Thailand":{r:"Sudeste Asiático",c:"Baht (THB)",l:"Tailandês",v:"Isento para brasileiros (30 dias). Extensão possível in-country.",k:"Budismo permeia o cotidiano. O sorriso é moeda social. Descalce-se em templos. Respeito à família real é lei.",f:"Pad Thai, som tam, massaman curry, mango sticky rice, tom yum. Street food de Bangkok é Patrimônio da UNESCO.",b:"Custo médio/dia: R$ 300–750",m:"GRU→BKK: 55k–88k milhas"},
+  "Morocco":{r:"Norte da África",c:"Dirham (MAD)",l:"Árabe/Berbere/Francês",v:"Sem visto para brasileiros (até 90 dias).",k:"Medinas históricas, souks e riads. Vista-se com modéstia em zonas religiosas. Regateio em souks é esperado.",f:"Tagine de cordeiro, couscous, pastilla, harira, msemen. Chá de hortelã é cerimônia de hospitalidade.",b:"Custo médio/dia: R$ 280–680",m:"GRU→CMN: 46k–72k milhas"},
+  "South Africa":{r:"África Austral",c:"Rand (ZAR)",l:"11 línguas oficiais",v:"Sem visto para turistas brasileiros (30 dias).",k:"'Rainbow Nation' com 11 idiomas. Ubuntu (comunidade) é valor central. Safari é experiência cultural e não só turística.",f:"Braai, biltong, bobotie, bunny chow, malva pudding. Vinhos do Cabo Ocidental estão entre os melhores do mundo.",b:"Custo médio/dia: R$ 400–900",m:"GRU→JNB: 48k–78k milhas"},
+  "Egypt":{r:"Norte da África",c:"Libra Egípcia (EGP)",l:"Árabe",v:"e-Visa online para brasileiros. Processo simples e rápido.",k:"Civilização de 5000 anos. Respeite as tradições islâmicas. Barganha é parte de qualquer compra em mercados.",f:"Koshari, ful medames, ta'ameya, molokhia, umm ali. Chá preto forte com açúcar é servido em todo lugar.",b:"Custo médio/dia: R$ 250–600",m:"GRU→CAI: 48k–76k milhas"},
+  "Turkey":{r:"Ásia/Europa",c:"Lira (TRY)",l:"Turco",v:"e-Visa online obrigatória para brasileiros. USD 50. Aprovação imediata.",k:"Ponte entre Oriente e Ocidente. Hospitalidade turca (misafirperverlik) é lendária. Chá turco em qualquer ocasião.",f:"Kebab (dezenas de variações), meze, pide, baklava, simit, menemen. Doces otomanos são obras de arte.",b:"Custo médio/dia: R$ 350–800",m:"GRU→IST: 44k–70k milhas"},
+  "Australia":{r:"Oceania",c:"Dólar Australiano (AUD)",l:"Inglês",v:"e-Visitor (subclass 651) obrigatório. Gratuito, aprovação em dias.",k:"'No worries' é estilo de vida. BBQ dominical é ritual social. Respeito à cultura aborígene é fundamental.",f:"Barramundi grelhado, meat pie, Tim Tams, Vegemite, Lamingtons, pavlova. Brunch culture levada a sério.",b:"Custo médio/dia: R$ 900–2.000",m:"GRU→SYD/MEL: 65k–100k milhas"},
+  "New Zealand":{r:"Oceania",c:"Dólar NZ (NZD)",l:"Inglês/Maori",v:"NZeTA obrigatória online para brasileiros.",k:"Haka é expressão cultural Maori. Natureza sagrada. Kiwis são diretos e informais. Líder em sustentabilidade e direitos indígenas.",f:"Hangi, green-lipped mussels, whitebait fritters, pavlova, Manuka honey. Vinhos Marlborough são mundialmente reconhecidos.",b:"Custo médio/dia: R$ 800–1.700",m:"GRU→AKL: 70k–110k milhas"},
+  "Colombia":{r:"América do Sul",c:"Peso Colombiano (COP)",l:"Espanhol",v:"Livre para brasileiros.",k:"Alegria e dança são marcas culturais. Cumbia e vallenato. Café colombiano é muito mais que bebida — é identidade.",f:"Bandeja paisa, ajiaco, empanadas, arepas, sancocho. Café colombiano está entre os melhores do mundo.",b:"Custo médio/dia: R$ 300–700",m:"GRU→BOG: 20k–38k milhas"},
+  "Peru":{r:"América do Sul",c:"Sol (PEN)",l:"Espanhol/Quéchua",v:"Livre para brasileiros.",k:"Uma das civilizações mais antigas. Machu Picchu é patrimônio espiritual. Respeito à Pachamama é valor andino central.",f:"Ceviche, lomo saltado, aji de gallina, causa limeña, anticuchos. Lima é a capital gastronômica da América Latina.",b:"Custo médio/dia: R$ 280–650",m:"GRU→LIM: 18k–35k milhas"},
+  "Russia":{r:"Europa/Ásia",c:"Rublo (RUB)",l:"Russo",v:"Visto obrigatório. Consulte regularidade das relações diplomáticas antes de planejar.",k:"Literatura, balé e música clássica são orgulhos nacionais. Brinde (Za zdorovye!) é ritual social sagrado.",f:"Borscht, pelmeni, blini com caviar, beef stroganoff, okroshka. Vodka é mais que bebida — é protocolo.",b:"Custo médio/dia: R$ 400–900",m:"GRU→SVO: 50k–80k milhas"},
+};
+
+const CC={
+  "Brazil":"South America","Argentina":"South America","Chile":"South America","Colombia":"South America","Peru":"South America","Venezuela":"South America","Bolivia":"South America","Ecuador":"South America","Paraguay":"South America","Uruguay":"South America","Guyana":"South America","Suriname":"South America","Fr. Guiana":"South America",
+  "France":"Europe","Germany":"Europe","Italy":"Europe","Spain":"Europe","Portugal":"Europe","United Kingdom":"Europe","Poland":"Europe","Netherlands":"Europe","Belgium":"Europe","Switzerland":"Europe","Austria":"Europe","Sweden":"Europe","Norway":"Europe","Denmark":"Europe","Finland":"Europe","Greece":"Europe","Czech Rep.":"Europe","Romania":"Europe","Hungary":"Europe","Serbia":"Europe","Croatia":"Europe","Ukraine":"Europe","Belarus":"Europe","Slovakia":"Europe","Bulgaria":"Europe","Moldova":"Europe","Lithuania":"Europe","Latvia":"Europe","Estonia":"Europe","Slovenia":"Europe","Bosnia and Herz.":"Europe","Albania":"Europe","Luxembourg":"Europe","Ireland":"Europe","Iceland":"Europe","Russia":"Europe","Cyprus":"Europe","Malta":"Europe","Kosovo":"Europe","Montenegro":"Europe","Macedonia":"Europe",
+  "Turkey":"Asia","China":"Asia","Japan":"Asia","India":"Asia","South Korea":"Asia","Indonesia":"Asia","Vietnam":"Asia","Thailand":"Asia","Malaysia":"Asia","Philippines":"Asia","Myanmar":"Asia","Cambodia":"Asia","Laos":"Asia","Bangladesh":"Asia","Pakistan":"Asia","Afghanistan":"Asia","Iran":"Asia","Iraq":"Asia","Saudi Arabia":"Asia","Syria":"Asia","Yemen":"Asia","United Arab Emirates":"Asia","Israel":"Asia","Jordan":"Asia","Kazakhstan":"Asia","Uzbekistan":"Asia","Mongolia":"Asia","Nepal":"Asia","Sri Lanka":"Asia","Bhutan":"Asia","Maldives":"Asia","Timor-Leste":"Asia","Brunei":"Asia","Singapore":"Asia","Taiwan":"Asia","N. Korea":"Asia","Kyrgyzstan":"Asia","Tajikistan":"Asia","Turkmenistan":"Asia","Azerbaijan":"Asia","Armenia":"Asia","Georgia":"Asia","Lebanon":"Asia","Kuwait":"Asia","Bahrain":"Asia","Qatar":"Asia","Oman":"Asia",
+  "Nigeria":"Africa","South Africa":"Africa","Egypt":"Africa","Kenya":"Africa","Ethiopia":"Africa","Ghana":"Africa","Morocco":"Africa","Tanzania":"Africa","Algeria":"Africa","Sudan":"Africa","Angola":"Africa","Mozambique":"Africa","Madagascar":"Africa","Cameroon":"Africa","Niger":"Africa","Mali":"Africa","Senegal":"Africa","Tunisia":"Africa","Libya":"Africa","Somalia":"Africa","Uganda":"Africa","Zimbabwe":"Africa","Zambia":"Africa","Rwanda":"Africa","Botswana":"Africa","Namibia":"Africa","Chad":"Africa","Mauritania":"Africa","D.R. Congo":"Africa","Congo":"Africa","Ivory Coast":"Africa","Burkina Faso":"Africa","Guinea":"Africa","Benin":"Africa","Togo":"Africa","Sierra Leone":"Africa","Liberia":"Africa","Central African Rep.":"Africa","Eritrea":"Africa","Djibouti":"Africa","Malawi":"Africa","Lesotho":"Africa","Swaziland":"Africa","Gabon":"Africa","Eq. Guinea":"Africa","S. Sudan":"Africa","Burundi":"Africa","Cape Verde":"Africa",
+  "United States of America":"North America","Canada":"North America","Mexico":"North America","Cuba":"North America","Haiti":"North America","Dominican Rep.":"North America","Guatemala":"North America","Honduras":"North America","El Salvador":"North America","Nicaragua":"North America","Costa Rica":"North America","Panama":"North America","Jamaica":"North America","Trinidad and Tobago":"North America","Belize":"North America",
+  "Australia":"Oceania","New Zealand":"Oceania","Papua New Guinea":"Oceania","Fiji":"Oceania","Solomon Is.":"Oceania","Vanuatu":"Oceania",
+  "Antarctica":"Antarctica"
+};
+
+const CB={
+  "Africa":{k:2.1,tx:0.04,ty:0.06},"Europe":{k:3.4,tx:0.08,ty:-0.22},
+  "Asia":{k:1.9,tx:0.12,ty:-0.08},"North America":{k:2.4,tx:-0.26,ty:-0.08},
+  "South America":{k:2.9,tx:-0.22,ty:0.22},"Oceania":{k:3.0,tx:0.22,ty:0.26},
+  "Antarctica":{k:2.8,tx:0.0,ty:0.5}
+};
+
+const NM={
+  4:"Afghanistan",8:"Albania",12:"Algeria",24:"Angola",32:"Argentina",36:"Australia",
+  40:"Austria",50:"Bangladesh",56:"Belgium",64:"Bhutan",68:"Bolivia",76:"Brazil",
+  100:"Bulgaria",116:"Cambodia",120:"Cameroon",124:"Canada",140:"Central African Rep.",
+  144:"Sri Lanka",152:"Chile",156:"China",170:"Colombia",188:"Costa Rica",
+  191:"Croatia",192:"Cuba",203:"Czech Rep.",208:"Denmark",214:"Dominican Rep.",
+  218:"Ecuador",818:"Egypt",222:"El Salvador",231:"Ethiopia",246:"Finland",
+  250:"France",266:"Gabon",276:"Germany",288:"Ghana",300:"Greece",
+  320:"Guatemala",332:"Haiti",340:"Honduras",348:"Hungary",356:"India",
+  360:"Indonesia",364:"Iran",368:"Iraq",372:"Ireland",376:"Israel",
+  380:"Italy",388:"Jamaica",400:"Jordan",398:"Kazakhstan",404:"Kenya",
+  410:"South Korea",418:"Laos",434:"Libya",440:"Lithuania",442:"Luxembourg",
+  450:"Madagascar",454:"Malawi",458:"Malaysia",466:"Mali",484:"Mexico",
+  496:"Mongolia",504:"Morocco",508:"Mozambique",524:"Nepal",528:"Netherlands",
+  554:"New Zealand",558:"Nicaragua",562:"Niger",566:"Nigeria",578:"Norway",
+  586:"Pakistan",591:"Panama",598:"Papua New Guinea",600:"Paraguay",
+  604:"Peru",608:"Philippines",616:"Poland",620:"Portugal",642:"Romania",
+  643:"Russia",682:"Saudi Arabia",686:"Senegal",703:"Slovakia",705:"Slovenia",
+  706:"Somalia",710:"South Africa",724:"Spain",736:"Sudan",752:"Sweden",
+  756:"Switzerland",760:"Syria",764:"Thailand",792:"Turkey",800:"Uganda",
+  804:"Ukraine",784:"United Arab Emirates",826:"United Kingdom",
+  840:"United States of America",858:"Uruguay",860:"Uzbekistan",
+  862:"Venezuela",704:"Vietnam",887:"Yemen",894:"Zambia",716:"Zimbabwe",
+  408:"N. Korea",232:"Eritrea",262:"Djibouti",384:"Ivory Coast",
+  854:"Burkina Faso",324:"Guinea",204:"Benin",768:"Togo",
+  178:"Congo",180:"D.R. Congo",148:"Chad",478:"Mauritania",
+  729:"S. Sudan",108:"Burundi",646:"Rwanda",72:"Botswana",
+  516:"Namibia",748:"Swaziland",426:"Lesotho",226:"Eq. Guinea",
+  120:"Cameroon",132:"Cape Verde",174:"Comoros",270:"Gambia",
+  288:"Ghana",312:"Guadeloupe",414:"Kuwait",422:"Lebanon",
+  48:"Bahrain",634:"Qatar",512:"Oman",462:"Maldives",470:"Malta",
+  352:"Iceland",233:"Estonia",428:"Latvia",440:"Lithuania",112:"Belarus",
+  498:"Moldova",807:"Macedonia",499:"Montenegro",688:"Serbia",
+  191:"Croatia",70:"Bosnia and Herz.",8:"Albania",705:"Slovenia",
+  196:"Cyprus",528:"Netherlands",56:"Belgium",442:"Luxembourg",
+  372:"Ireland",756:"Switzerland",40:"Austria",208:"Denmark",
+  578:"Norway",752:"Sweden",246:"Finland",756:"Switzerland",
+  792:"Turkey",268:"Georgia",031:"Azerbaijan",051:"Armenia",
+  417:"Kyrgyzstan",762:"Tajikistan",795:"Turkmenistan",860:"Uzbekistan",
+};
+
+let curC=null, selEl=null;
+const W=window.innerWidth,H=window.innerHeight;
+const svg=d3.select("#ms").attr("viewBox",`0 0 ${W} ${H}`);
+const g=svg.append("g");
+const proj=d3.geoNaturalEarth1().scale(W/6.2).translate([W/2,H/2]);
+const pg=d3.geoPath().projection(proj);
+const getName=id=>NM[parseInt(id)]||`Region ${id}`;
+
+fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
+.then(r=>{if(!r.ok)throw new Error();return r.json();})
+.then(world=>{
+  const feats=topojson.feature(world,world.objects.countries).features;
+  g.selectAll(".land").data(feats).enter().append("path")
+    .attr("class","land").attr("d",pg)
+    .attr("data-name",d=>getName(d.id))
+    .on("mousemove",function(ev){
+      const t=document.getElementById("tt");
+      t.textContent=this.getAttribute("data-name");
+      t.style.left=(ev.clientX+14)+"px";
+      t.style.top=(ev.clientY-10)+"px";
+      t.style.opacity=1;
+    })
+    .on("mouseleave",()=>{document.getElementById("tt").style.opacity=0;})
+    .on("click",function(ev){
+      ev.stopPropagation();
+      const name=this.getAttribute("data-name");
+      const cont=CC[name]||"Europe";
+      if(!curC){zoomC(cont);}
+      else{selCountry(name,cont,this);}
+    });
+  setTimeout(()=>document.getElementById("loading").classList.add("hide"),700);
+}).catch(()=>{document.querySelector(".ld-logo").textContent="⚠ Erro ao carregar";});
+
+function zoomC(cont){
+  curC=cont;
+  const b=CB[cont]||{k:2,tx:0,ty:0};
+  const tx=W/2+b.tx*W-(W/2)*b.k;
+  const ty=H/2+b.ty*H-(H/2)*b.k;
+  g.transition().duration(900).ease(d3.easeCubicInOut)
+    .attr("transform",`translate(${tx},${ty}) scale(${b.k})`);
+  g.selectAll(".land").each(function(){
+    const on=CC[this.getAttribute("data-name")]===cont;
+    d3.select(this).classed("dimmed",!on).classed("highlighted",on);
+  });
+  document.getElementById("bb").classList.add("vis");
+}
+
+function selCountry(name,region,el){
+  g.selectAll(".land").classed("selected",false);
+  d3.select(el).classed("selected",true).classed("highlighted",false);
+  selEl=el;
+  openPanel(name,region);
+}
+
+function resetView(){
+  curC=null;selEl=null;
+  g.transition().duration(900).ease(d3.easeCubicInOut).attr("transform","");
+  g.selectAll(".land").classed("dimmed",false).classed("highlighted",false).classed("selected",false);
+  closePanel();
+  document.getElementById("bb").classList.remove("vis");
+}
+
+function openPanel(name,region){
+  document.getElementById("cn").textContent=name;
+  document.getElementById("cr").textContent=(region||"").toUpperCase();
+  const d=CD[name];
+  const ps=document.getElementById("ps");
+  if(d){
+    ps.innerHTML=`
+      <div class="is"><div class="ih"><div class="ii">₡</div><div class="il">Moeda & Língua</div></div><div class="ic"><strong>${d.c}</strong> · ${d.l}</div></div>
+      <div class="is"><div class="ih"><div class="ii">✦</div><div class="il">Visto & Burocracia</div></div><div class="ic">${d.v}</div></div>
+      <div class="is"><div class="ih"><div class="ii">⬡</div><div class="il">Tradições & Cultura</div></div><div class="ic">${d.k}</div></div>
+      <div class="is"><div class="ih"><div class="ii">◈</div><div class="il">Gastronomia</div></div><div class="ic">${d.f}</div></div>
+      <div class="is"><div class="ih"><div class="ii">◎</div><div class="il">Custo de Viagem</div></div>
+        <div class="cr2"><span class="cl">Em Reais</span><span class="cb">${d.b}</span></div>
+        <div class="cr2"><span class="cl">Em Milhas</span><span class="cm">✦ ${d.m}</span></div>
+      </div>`;
+  } else {
+    ps.innerHTML=`<div class="is"><div class="ic" style="color:var(--muted);font-style:italic;line-height:2;">Informações em breve para este destino.<br><br>Experimente: França · Japão · EUA · Portugal · Argentina · Itália · Tailândia · Austrália · México · Peru · Colômbia</div></div>`;
+  }
+  document.getElementById("cp").classList.add("open");
+  document.getElementById("mc").classList.add("shift");
+}
+
+function closePanel(){
+  document.getElementById("cp").classList.remove("open");
+  document.getElementById("mc").classList.remove("shift");
+  if(selEl){d3.select(selEl).classed("selected",false);if(curC)d3.select(selEl).classed("highlighted",true);selEl=null;}
+}
+
+function openM(){document.getElementById("mc2").classList.add("open");}
+function closeM(){document.getElementById("mc2").classList.remove("open");}
+
+document.getElementById("si").addEventListener("keydown",e=>{
+  if(e.key!=="Enter")return;
+  const q=e.target.value.trim().toLowerCase();
+  if(!q)return;
+  let found=null;
+  g.selectAll(".land").each(function(){if(!found&&this.getAttribute("data-name")?.toLowerCase().includes(q))found=this;});
+  if(found){
+    const name=found.getAttribute("data-name"),cont=CC[name]||"Europe";
+    if(!curC)zoomC(cont);
+    setTimeout(()=>selCountry(name,cont,found),curC?0:950);
+    e.target.value="";e.target.blur();
+  }
+});
+
+svg.on("click",ev=>{if(ev.target.tagName==="svg"||ev.target===g.node()){if(selEl)closePanel();}});
+
+window.addEventListener("resize",()=>{
+  const nw=window.innerWidth,nh=window.innerHeight;
+  svg.attr("viewBox",`0 0 ${nw} ${nh}`);
+  proj.scale(nw/6.2).translate([nw/2,nh/2]);
+  g.selectAll(".land").attr("d",pg);
+});
+</script>
+</body>
+</html>
 
