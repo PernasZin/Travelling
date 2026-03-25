@@ -3,1544 +3,1268 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Traveling | América do Norte</title>
-  <meta
-    name="description"
-    content="Projeto escolar Traveling sobre a América do Norte: turismo, cultura, culinária, clima, documentos de viagem e curiosidades."
-  />
+  <title>Traveling | Mapa Mundi Interativo</title>
   <style>
-    :root {
-      --bg: #f4f8ff;
-      --bg-soft: #eef5ff;
-      --card: rgba(255, 255, 255, 0.86);
-      --text: #18324a;
-      --muted: #5f7286;
-      --primary: #0d6efd;
-      --primary-2: #00a6a6;
-      --accent: #ffb703;
-      --accent-2: #ff6b6b;
-      --white: #ffffff;
-      --border: rgba(24, 50, 74, 0.1);
-      --shadow: 0 18px 45px rgba(13, 51, 92, 0.12);
-      --radius: 24px;
-      --radius-sm: 18px;
-      --max: 1200px;
-      --nav-h: 76px;
+    :root{
+      --bg:#07111f;
+      --bg-2:#0d1b2f;
+      --panel:rgba(10,20,36,.82);
+      --panel-2:rgba(255,255,255,.06);
+      --line:rgba(255,255,255,.1);
+      --text:#eef6ff;
+      --muted:#aac0d8;
+      --accent:#4fd1c5;
+      --accent-2:#5da9ff;
+      --accent-3:#ffd166;
+      --danger:#ff7b7b;
+      --shadow:0 20px 45px rgba(0,0,0,.35);
+      --radius:22px;
+      --radius-sm:16px;
+      --left-width:360px;
+      --right-width:320px;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
     }
 
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      color: var(--text);
+    html,body{
+      height:100%;
+      scroll-behavior:smooth;
+      font-family:Arial, Helvetica, sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(13,110,253,0.08), transparent 28%),
-        radial-gradient(circle at top right, rgba(255,183,3,0.10), transparent 24%),
-        linear-gradient(180deg, #f8fbff 0%, #edf5ff 55%, #f8fbff 100%);
-      line-height: 1.6;
-      overflow-x: hidden;
+        radial-gradient(circle at 10% 20%, rgba(93,169,255,.18), transparent 22%),
+        radial-gradient(circle at 90% 10%, rgba(79,209,197,.16), transparent 20%),
+        radial-gradient(circle at 80% 80%, rgba(255,209,102,.10), transparent 18%),
+        linear-gradient(180deg,#081321 0%, #091728 100%);
+      color:var(--text);
+      overflow:hidden;
     }
 
-    img {
-      max-width: 100%;
-      display: block;
+    button, input{
+      font:inherit;
     }
 
-    a {
-      text-decoration: none;
-      color: inherit;
+    .app{
+      height:100%;
+      display:grid;
+      grid-template-columns: var(--left-width) 1fr var(--right-width);
+      gap:18px;
+      padding:18px;
     }
 
-    .container {
-      width: min(92%, var(--max));
-      margin: 0 auto;
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      border-radius:var(--radius);
+      backdrop-filter: blur(18px);
+      overflow:hidden;
+      min-height:0;
     }
 
-    .section {
-      padding: 90px 0;
-      scroll-margin-top: 95px;
+    .left-panel, .right-panel{
+      display:flex;
+      flex-direction:column;
     }
 
-    .section-header {
-      max-width: 760px;
-      margin-bottom: 36px;
+    .panel-header{
+      padding:20px 20px 14px;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), transparent);
     }
 
-    .eyebrow {
-      display: inline-block;
-      background: rgba(13, 110, 253, 0.10);
-      color: var(--primary);
-      border: 1px solid rgba(13, 110, 253, 0.15);
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-size: 0.88rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      margin-bottom: 16px;
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:8px;
     }
 
-    .section-title {
-      font-size: clamp(2rem, 4vw, 3rem);
-      line-height: 1.1;
-      margin-bottom: 14px;
+    .brand-badge{
+      width:44px;
+      height:44px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      font-size:1.2rem;
+      background:linear-gradient(135deg, var(--accent-2), var(--accent));
+      box-shadow:0 10px 22px rgba(77,180,255,.28);
     }
 
-    .section-text {
-      color: var(--muted);
-      font-size: 1.02rem;
+    .brand h1{
+      font-size:1.35rem;
+      line-height:1.05;
     }
 
-    .site-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: var(--nav-h);
-      z-index: 999;
-      backdrop-filter: blur(16px);
-      background: rgba(255, 255, 255, 0.72);
-      border-bottom: 1px solid rgba(24, 50, 74, 0.08);
+    .panel-header p{
+      color:var(--muted);
+      font-size:.95rem;
+      line-height:1.45;
     }
 
-    .nav-wrap {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
+    .tab-row{
+      display:flex;
+      gap:8px;
+      margin-top:16px;
+      flex-wrap:wrap;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 800;
-      font-size: 1.2rem;
+    .tab-btn{
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border:1px solid transparent;
+      padding:9px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      transition:.25s;
+      font-weight:700;
+      font-size:.92rem;
     }
 
-    .brand-badge {
-      width: 42px;
-      height: 42px;
-      display: grid;
-      place-items: center;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: white;
-      box-shadow: 0 10px 25px rgba(13, 110, 253, 0.22);
-      font-size: 1.2rem;
+    .tab-btn.active,
+    .tab-btn:hover{
+      background:rgba(79,209,197,.14);
+      border-color:rgba(79,209,197,.35);
+      color:#dbfffb;
     }
 
-    .nav-menu {
-      display: flex;
-      gap: 20px;
-      align-items: center;
-      flex-wrap: wrap;
+    .panel-scroll{
+      padding:18px;
+      overflow:auto;
+      min-height:0;
+      scrollbar-width:thin;
     }
 
-    .nav-menu a {
-      color: var(--text);
-      font-weight: 700;
-      font-size: 0.95rem;
-      opacity: 0.85;
-      transition: 0.25s ease;
+    .card{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:var(--radius-sm);
+      padding:16px;
+      margin-bottom:14px;
     }
 
-    .nav-menu a:hover {
-      color: var(--primary);
-      opacity: 1;
+    .card h3{
+      font-size:1rem;
+      margin-bottom:8px;
     }
 
-    .menu-toggle {
-      display: none;
-      border: none;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: white;
-      padding: 10px 14px;
-      border-radius: 12px;
-      font-size: 1rem;
-      cursor: pointer;
+    .card p, .card li, .small{
+      color:var(--muted);
+      line-height:1.55;
+      font-size:.95rem;
     }
 
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      padding-top: calc(var(--nav-h) + 35px);
-      position: relative;
-      overflow: hidden;
+    .bullet-list{
+      list-style:none;
+      display:grid;
+      gap:10px;
+      margin-top:10px;
     }
 
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
+    .bullet-list li{
+      padding-left:22px;
+      position:relative;
+    }
+
+    .bullet-list li::before{
+      content:"✦";
+      position:absolute;
+      left:0;
+      top:0;
+      color:var(--accent);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(93,169,255,.12);
+      border:1px solid rgba(93,169,255,.25);
+      color:#dcecff;
+      font-size:.87rem;
+      font-weight:700;
+    }
+
+    .map-stage{
+      position:relative;
+      min-width:0;
+      overflow:hidden;
+      border-radius:var(--radius);
+      border:1px solid var(--line);
       background:
-        linear-gradient(100deg, rgba(9, 38, 66, 0.78), rgba(13, 110, 253, 0.42)),
-        url("https://images.unsplash.com/photo-1488085061387-422e29b40080?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;
-      z-index: -2;
-      transform: scale(1.03);
+        radial-gradient(circle at 50% 40%, rgba(93,169,255,.08), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      box-shadow:var(--shadow);
     }
 
-    .hero::after {
-      content: "";
-      position: absolute;
-      inset: 0;
+    .topbar{
+      position:absolute;
+      left:18px;
+      right:18px;
+      top:18px;
+      z-index:10;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      pointer-events:none;
+    }
+
+    .topbar-card{
+      pointer-events:auto;
+      background:rgba(7,17,31,.76);
+      border:1px solid var(--line);
+      backdrop-filter: blur(14px);
+      border-radius:18px;
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      color:var(--text);
+    }
+
+    .topbar h2{
+      font-size:1rem;
+      margin-bottom:2px;
+    }
+
+    .topbar p{
+      color:var(--muted);
+      font-size:.85rem;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .ghost-btn, .accent-btn{
+      border:none;
+      border-radius:999px;
+      padding:10px 14px;
+      cursor:pointer;
+      transition:.25s;
+      font-weight:700;
+    }
+
+    .ghost-btn{
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+
+    .accent-btn{
+      background:linear-gradient(135deg,var(--accent-2),var(--accent));
+      color:#031420;
+      box-shadow:0 10px 25px rgba(77,180,255,.25);
+    }
+
+    .ghost-btn:hover, .accent-btn:hover{
+      transform:translateY(-2px);
+    }
+
+    .map-wrap{
+      position:absolute;
+      inset:0;
+      padding:88px 16px 16px;
+    }
+
+    #worldMap{
+      width:100%;
+      height:100%;
+      display:block;
+      border-radius:24px;
       background:
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.16), transparent 20%),
-        radial-gradient(circle at 85% 15%, rgba(255,183,3,0.18), transparent 14%),
-        linear-gradient(180deg, rgba(6, 16, 28, 0.20), rgba(6, 16, 28, 0.38));
-      z-index: -1;
+        radial-gradient(circle at 35% 30%, rgba(93,169,255,.08), transparent 22%),
+        linear-gradient(180deg, rgba(10,24,42,.94), rgba(5,12,22,.98));
     }
 
-    .hero-grid {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 36px;
-      align-items: center;
+    .continent,
+    .country{
+      cursor:pointer;
+      transition:fill .25s, stroke .25s, opacity .25s, transform .25s;
     }
 
-    .hero-content {
-      color: white;
+    .continent{
+      fill:#153250;
+      stroke:#7cc5ff55;
+      stroke-width:2;
     }
 
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 16px;
-      background: rgba(255,255,255,0.14);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 999px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      backdrop-filter: blur(8px);
+    .continent:hover{
+      fill:#1d466d;
+      stroke:#7ce4dd;
     }
 
-    .hero h1 {
-      font-size: clamp(2.8rem, 6vw, 5.2rem);
-      line-height: 0.96;
-      margin-bottom: 20px;
-      letter-spacing: -1.4px;
+    .country{
+      fill:#1f4b6f;
+      stroke:#b5edff55;
+      stroke-width:1.5;
+      opacity:.96;
     }
 
-    .hero p {
-      max-width: 720px;
-      font-size: 1.08rem;
-      color: rgba(255,255,255,0.9);
-      margin-bottom: 28px;
+    .country:hover{
+      fill:#2f6e99;
+      stroke:#cfffff;
     }
 
-    .hero-actions {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 28px;
+    .continent-label,
+    .country-label{
+      fill:#eaf5ff;
+      font-size:18px;
+      font-weight:700;
+      pointer-events:none;
+      text-shadow:0 3px 12px rgba(0,0,0,.45);
     }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 15px 22px;
-      border-radius: 999px;
-      font-weight: 800;
-      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-      cursor: pointer;
+    .country-label{
+      font-size:13px;
+      opacity:.94;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), #ffd166);
-      color: #2f2a1b;
-      box-shadow: 0 15px 30px rgba(255, 183, 3, 0.28);
+    .continent.hidden{
+      opacity:.12;
+      pointer-events:none;
     }
 
-    .btn-secondary {
-      background: rgba(255,255,255,0.14);
-      color: white;
-      border: 1px solid rgba(255,255,255,0.28);
-      backdrop-filter: blur(10px);
+    .country.hidden{
+      opacity:.12;
+      pointer-events:none;
     }
 
-    .btn:hover {
-      transform: translateY(-3px);
+    .country.showing{
+      opacity:1;
     }
 
-    .hero-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      max-width: 700px;
+    .selected{
+      fill:#4fd1c5 !important;
+      stroke:#f4ffb5 !important;
+      stroke-width:2.5 !important;
+      filter: drop-shadow(0 0 12px rgba(79,209,197,.7));
     }
 
-    .stat {
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.17);
-      border-radius: 20px;
-      padding: 18px;
-      backdrop-filter: blur(10px);
+    .search-box{
+      display:flex;
+      gap:10px;
+      margin-top:14px;
     }
 
-    .stat h3 {
-      font-size: 1.7rem;
-      margin-bottom: 3px;
+    .search-input{
+      flex:1;
+      padding:13px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      outline:none;
     }
 
-    .stat p {
-      margin: 0;
-      font-size: 0.92rem;
-      color: rgba(255,255,255,0.85);
+    .search-input::placeholder{
+      color:#8ea9c2;
     }
 
-    .hero-card {
-      background: rgba(255,255,255,0.14);
-      border: 1px solid rgba(255,255,255,0.18);
-      padding: 22px;
-      border-radius: 28px;
-      backdrop-filter: blur(16px);
-      color: white;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.18);
+    .search-btn{
+      padding:0 16px;
+      border:none;
+      border-radius:14px;
+      background:linear-gradient(135deg,var(--accent-2),var(--accent));
+      color:#031420;
+      font-weight:800;
+      cursor:pointer;
     }
 
-    .hero-card img {
-      border-radius: 20px;
-      height: 220px;
-      width: 100%;
-      object-fit: cover;
-      margin-bottom: 16px;
+    .search-results{
+      margin-top:14px;
+      display:grid;
+      gap:10px;
     }
 
-    .hero-card h3 {
-      margin-bottom: 8px;
-      font-size: 1.3rem;
+    .search-item{
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      cursor:pointer;
+      transition:.25s;
     }
 
-    .hero-card p {
-      margin-bottom: 16px;
-      color: rgba(255,255,255,0.88);
-      font-size: 0.98rem;
+    .search-item:hover{
+      border-color:rgba(79,209,197,.35);
+      background:rgba(79,209,197,.08);
     }
 
-    .hero-card ul {
-      list-style: none;
-      display: grid;
-      gap: 10px;
+    .search-item strong{
+      display:block;
+      margin-bottom:2px;
     }
 
-    .hero-card li {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      color: rgba(255,255,255,0.92);
-      font-size: 0.96rem;
+    .country-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
     }
 
-    .hero-card li span {
-      width: 28px;
-      height: 28px;
-      display: grid;
-      place-items: center;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.16);
-      flex-shrink: 0;
+    .country-title h2{
+      font-size:1.25rem;
     }
 
-    .grid-3,
-    .grid-4,
-    .grid-2 {
-      display: grid;
-      gap: 24px;
+    .grid-info{
+      display:grid;
+      gap:12px;
     }
 
-    .grid-2 {
-      grid-template-columns: repeat(2, 1fr);
+    .info-box{
+      background:rgba(255,255,255,.045);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
     }
 
-    .grid-3 {
-      grid-template-columns: repeat(3, 1fr);
+    .info-box h4{
+      font-size:.95rem;
+      margin-bottom:6px;
+      color:#f3fbff;
     }
 
-    .grid-4 {
-      grid-template-columns: repeat(4, 1fr);
+    .info-box p{
+      color:var(--muted);
+      font-size:.94rem;
+      line-height:1.5;
     }
 
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
-      position: relative;
-      overflow: hidden;
+    .empty-state{
+      display:grid;
+      gap:14px;
     }
 
-    .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 24px 50px rgba(13, 51, 92, 0.16);
-      border-color: rgba(13, 110, 253, 0.18);
+    .empty-hero{
+      background:linear-gradient(145deg, rgba(93,169,255,.12), rgba(79,209,197,.08));
+      border:1px solid rgba(93,169,255,.22);
+      border-radius:20px;
+      padding:18px;
     }
 
-    .card h3,
-    .card h4 {
-      margin-bottom: 10px;
+    .empty-hero h2{
+      font-size:1.18rem;
+      margin-bottom:8px;
     }
 
-    .card p,
-    .card li {
-      color: var(--muted);
+    .helper{
+      position:absolute;
+      bottom:18px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:9;
+      background:rgba(7,17,31,.74);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:10px 16px;
+      color:var(--muted);
+      font-size:.9rem;
+      backdrop-filter: blur(14px);
+      text-align:center;
+      max-width:90%;
     }
 
-    .card-icon {
-      width: 54px;
-      height: 54px;
-      display: grid;
-      place-items: center;
-      border-radius: 18px;
-      background: linear-gradient(135deg, rgba(13,110,253,0.12), rgba(0,166,166,0.16));
-      font-size: 1.45rem;
-      margin-bottom: 16px;
+    .legend{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
     }
 
-    .country-card img,
-    .photo-card img,
-    .food-card img,
-    .wide-image img {
-      border-radius: 20px;
-      width: 100%;
-      object-fit: cover;
+    .legend-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--muted);
+      font-size:.92rem;
     }
 
-    .country-card img {
-      height: 180px;
-      margin-bottom: 16px;
+    .legend-dot{
+      width:14px;
+      height:14px;
+      border-radius:999px;
+      flex-shrink:0;
     }
 
-    .country-chip {
-      display: inline-block;
-      margin-bottom: 10px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(255,183,3,0.15);
-      color: #9b6b00;
-      font-size: 0.85rem;
-      font-weight: 700;
+    .mobile-toggle{
+      display:none;
     }
 
-    .list {
-      list-style: none;
-      display: grid;
-      gap: 10px;
-      margin-top: 12px;
+    @media (max-width: 1200px){
+      .app{
+        grid-template-columns: 320px 1fr 290px;
+      }
     }
 
-    .list li {
-      position: relative;
-      padding-left: 24px;
-    }
-
-    .list li::before {
-      content: "✈️";
-      position: absolute;
-      left: 0;
-      top: 0;
-    }
-
-    .destinations-grid {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 24px;
-    }
-
-    .stack {
-      display: grid;
-      gap: 24px;
-    }
-
-    .mini-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
-    }
-
-    .mini-card {
-      padding: 18px;
-      border-radius: 20px;
-      background: rgba(13,110,253,0.06);
-      border: 1px solid rgba(13,110,253,0.08);
-    }
-
-    .mini-card h4 {
-      margin-bottom: 8px;
-      color: var(--text);
-    }
-
-    .mini-card p {
-      font-size: 0.95rem;
-      color: var(--muted);
-    }
-
-    .photo-card {
-      overflow: hidden;
-      padding: 0;
-    }
-
-    .photo-card img {
-      height: 100%;
-      min-height: 520px;
-    }
-
-    .info-banner {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 24px;
-      align-items: center;
-      background: linear-gradient(135deg, rgba(13,110,253,0.94), rgba(0,166,166,0.92));
-      color: white;
-      border-radius: 30px;
-      padding: 34px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .info-banner h3 {
-      font-size: clamp(1.8rem, 3vw, 2.4rem);
-      margin-bottom: 14px;
-    }
-
-    .info-banner p {
-      color: rgba(255,255,255,0.92);
-      margin-bottom: 16px;
-    }
-
-    .info-banner ul {
-      list-style: none;
-      display: grid;
-      gap: 10px;
-    }
-
-    .info-banner li {
-      padding-left: 24px;
-      position: relative;
-    }
-
-    .info-banner li::before {
-      content: "✔";
-      position: absolute;
-      left: 0;
-      font-weight: 700;
-    }
-
-    .info-banner img {
-      border-radius: 24px;
-      height: 320px;
-      object-fit: cover;
-      width: 100%;
-      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
-    }
-
-    .food-card img {
-      height: 190px;
-      margin-bottom: 16px;
-    }
-
-    .food-card .tag-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin: 12px 0 0;
-    }
-
-    .tag {
-      font-size: 0.82rem;
-      background: rgba(255,183,3,0.16);
-      color: #8b6700;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-weight: 700;
-    }
-
-    .climate-wrap {
-      display: grid;
-      grid-template-columns: 0.9fr 1.1fr;
-      gap: 24px;
-    }
-
-    .season-card {
-      background: linear-gradient(180deg, #ffffff, #f5faff);
-    }
-
-    .season-item {
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      padding: 14px 0;
-      border-bottom: 1px solid rgba(24, 50, 74, 0.08);
-    }
-
-    .season-item:last-child {
-      border-bottom: none;
-    }
-
-    .season-badge {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      background: rgba(13,110,253,0.1);
-      flex-shrink: 0;
-      font-size: 1.2rem;
-    }
-
-    .timeline {
-      display: grid;
-      gap: 18px;
-    }
-
-    .timeline-card {
-      position: relative;
-      padding-left: 24px;
-    }
-
-    .timeline-card::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 10px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--primary);
-      box-shadow: 0 0 0 6px rgba(13,110,253,0.1);
-    }
-
-    .timeline-card h4 {
-      margin-bottom: 8px;
-    }
-
-    .documents-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 22px;
-    }
-
-    .steps {
-      list-style: none;
-      display: grid;
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .steps li {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      color: var(--muted);
-    }
-
-    .steps span {
-      width: 28px;
-      height: 28px;
-      flex-shrink: 0;
-      display: grid;
-      place-items: center;
-      border-radius: 10px;
-      background: rgba(0,166,166,0.12);
-      color: var(--primary-2);
-      font-weight: 800;
-    }
-
-    .curiosities-grid {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 24px;
-      align-items: stretch;
-    }
-
-    .wide-image img {
-      height: 100%;
-      min-height: 100%;
-      object-fit: cover;
-    }
-
-    .quote-box {
-      background: linear-gradient(135deg, rgba(255,183,3,0.12), rgba(255,107,107,0.08));
-      border: 1px solid rgba(255,183,3,0.18);
-      border-radius: 26px;
-      padding: 28px;
-      margin-top: 28px;
-    }
-
-    .quote-box p {
-      font-size: 1.12rem;
-      color: var(--text);
-      font-weight: 700;
-    }
-
-    .footer {
-      padding: 38px 0 46px;
-      border-top: 1px solid rgba(24, 50, 74, 0.08);
-      background: rgba(255,255,255,0.5);
-    }
-
-    .footer-wrap {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .footer h3 {
-      margin-bottom: 4px;
-    }
-
-    .footer p {
-      color: var(--muted);
-    }
-
-    .reveal {
-      opacity: 0;
-      transform: translateY(28px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    @media (max-width: 1100px) {
-      .hero-grid,
-      .destinations-grid,
-      .info-banner,
-      .climate-wrap,
-      .curiosities-grid {
+    @media (max-width: 980px){
+      body{
+        overflow:auto;
+      }
+      .app{
+        height:auto;
+        min-height:100%;
         grid-template-columns: 1fr;
+        padding:12px;
       }
-
-      .photo-card img {
-        min-height: 320px;
+      .left-panel, .right-panel{
+        min-height:unset;
       }
-
-      .hero-stats {
-        max-width: 100%;
+      .map-stage{
+        min-height:72vh;
       }
-
-      .grid-4 {
-        grid-template-columns: repeat(2, 1fr);
+      .topbar{
+        top:14px;
+        left:14px;
+        right:14px;
+        flex-direction:column;
+        align-items:stretch;
       }
-
-      .documents-grid {
-        grid-template-columns: 1fr;
+      .top-actions{
+        justify-content:flex-end;
       }
-    }
-
-    @media (max-width: 860px) {
-      .nav-menu {
-        position: absolute;
-        top: calc(var(--nav-h) + 8px);
-        left: 4%;
-        right: 4%;
-        background: rgba(255,255,255,0.96);
-        border: 1px solid rgba(24, 50, 74, 0.08);
-        border-radius: 20px;
-        box-shadow: var(--shadow);
-        padding: 18px;
-        display: none;
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .nav-menu.show {
-        display: flex;
-      }
-
-      .menu-toggle {
-        display: inline-flex;
-      }
-
-      .hero-stats,
-      .grid-3,
-      .grid-2,
-      .grid-4,
-      .mini-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .hero h1 {
-        line-height: 1.02;
-      }
-
-      .section {
-        padding: 72px 0;
-      }
-
-      .info-banner {
-        padding: 24px;
-      }
-
-      .info-banner img {
-        height: 240px;
+      .helper{
+        bottom:12px;
       }
     }
 
-    @media (max-width: 560px) {
-      .hero {
-        min-height: auto;
-        padding-bottom: 60px;
+    @media (max-width: 640px){
+      .panel-header,
+      .panel-scroll{
+        padding:14px;
       }
-
-      .hero-card,
-      .card {
-        border-radius: 22px;
+      .map-wrap{
+        padding:120px 8px 8px;
       }
-
-      .btn {
-        width: 100%;
+      .topbar-card{
+        flex-direction:column;
+        align-items:flex-start;
       }
-
-      .hero-actions {
-        flex-direction: column;
+      .search-box{
+        flex-direction:column;
       }
-
-      .section-title {
-        font-size: 2rem;
+      .search-btn{
+        padding:12px 16px;
       }
+      .continent-label{font-size:14px;}
+      .country-label{font-size:11px;}
     }
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="container nav-wrap">
-      <a href="#inicio" class="brand">
-        <span class="brand-badge">🌍</span>
-        <span>Traveling</span>
-      </a>
-
-      <nav class="nav-menu" id="navMenu">
-        <a href="#america">América do Norte</a>
-        <a href="#cartoes">Cartões</a>
-        <a href="#destinos">Destinos</a>
-        <a href="#culinaria">Culinária</a>
-        <a href="#clima">Clima</a>
-        <a href="#epoca">Melhor época</a>
-        <a href="#documentos">Documentos</a>
-        <a href="#curiosidades">Curiosidades</a>
-      </nav>
-
-      <button class="menu-toggle" id="menuToggle">☰</button>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero" id="inicio">
-      <div class="container hero-grid">
-        <div class="hero-content reveal">
-          <div class="hero-badge">✈️ Projeto escolar de turismo, cultura e descobertas</div>
-          <h1>Traveling<br />América do Norte</h1>
-          <p>
-            Um site criado para apresentar a América do Norte de um jeito mais visual,
-            interessante e fácil de entender. Aqui você vai encontrar destinos famosos,
-            cartões postais, culinária típica, clima, melhor época para viajar,
-            documentos de viagem e curiosidades marcantes sobre Canadá, Estados Unidos e México.
-          </p>
-
-          <div class="hero-actions">
-            <a href="#america" class="btn btn-primary">🌎 Explorar o projeto</a>
-            <a href="#destinos" class="btn btn-secondary">📍 Ver destinos</a>
-          </div>
-
-          <div class="hero-stats">
-            <div class="stat">
-              <h3>3</h3>
-              <p>países em destaque</p>
-            </div>
-            <div class="stat">
-              <h3>5+</h3>
-              <p>temas principais</p>
-            </div>
-            <div class="stat">
-              <h3>100%</h3>
-              <p>pronto para apresentação</p>
-            </div>
-          </div>
-        </div>
-
-        <aside class="hero-card reveal">
-          <img
-            src="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=1200&q=80"
-            alt="Paisagem da América do Norte com montanhas e lago"
-          />
-          <h3>O que você vai encontrar aqui</h3>
-          <p>
-            Um passeio pelas belezas, culturas e curiosidades da América do Norte,
-            com linguagem simples, visual bonito e informações organizadas.
-          </p>
-          <ul>
-            <li><span>📬</span> Cartões de viagem e ideias de mensagem</li>
-            <li><span>🍔</span> Comidas típicas e sabores marcantes</li>
-            <li><span>🌦️</span> Clima, estações e melhor época</li>
-            <li><span>🛂</span> Passaporte, visto e aeroporto</li>
-          </ul>
-        </aside>
-      </div>
-    </section>
-
-    <section class="section" id="america">
-      <div class="container">
-        <div class="section-header reveal">
-          <span class="eyebrow">🌎 Região em foco</span>
-          <h2 class="section-title">América do Norte</h2>
-          <p class="section-text">
-            A América do Norte reúne cidades super conhecidas, paisagens naturais incríveis,
-            climas bem diferentes, muita diversidade cultural e destinos turísticos famosos no mundo todo.
-            Nessa região, três países ganham destaque no nosso projeto: Canadá, Estados Unidos e México.
-          </p>
-        </div>
-
-        <div class="grid-3">
-          <article class="card country-card reveal">
-            <img
-              src="https://images.unsplash.com/photo-1517935706615-2717063c2225?auto=format&fit=crop&w=1200&q=80"
-              alt="Vista urbana do Canadá"
-            />
-            <span class="country-chip">🇨🇦 Canadá</span>
-            <h3>Natureza, organização e inverno marcante</h3>
-            <p>
-              O Canadá chama atenção pelas cidades modernas, qualidade de vida e paisagens naturais
-              impressionantes, com neve, montanhas, lagos e florestas.
-            </p>
-            <ul class="list">
-              <li>Toronto e Vancouver entre as cidades mais conhecidas</li>
-              <li>Banff e Cataratas do Niágara como destaques naturais</li>
-              <li>Clima frio em boa parte do ano</li>
-            </ul>
-          </article>
-
-          <article class="card country-card reveal">
-            <img
-              src="https://images.unsplash.com/photo-1499092346589-b9b6be3e94b2?auto=format&fit=crop&w=1200&q=80"
-              alt="Vista de Nova York nos Estados Unidos"
-            />
-            <span class="country-chip">🇺🇸 Estados Unidos</span>
-            <h3>Cidades famosas, entretenimento e variedade</h3>
-            <p>
-              Os Estados Unidos têm uma grande mistura de culturas, paisagens e estilos de vida.
-              É um país muito conhecido pelo cinema, pela música, pelos parques temáticos e por grandes metrópoles.
-            </p>
-            <ul class="list">
-              <li>Nova York, Los Angeles, Orlando e Las Vegas</li>
-              <li>Grand Canyon e Yellowstone como ícones da natureza</li>
-              <li>Forte influência cultural no mundo inteiro</li>
-            </ul>
-          </article>
-
-          <article class="card country-card reveal">
-            <img
-              src="https://images.unsplash.com/photo-1512813195386-6cf811ad3542?auto=format&fit=crop&w=1200&q=80"
-              alt="Paisagem do México com arquitetura histórica"
-            />
-            <span class="country-chip">🇲🇽 México</span>
-            <h3>Cores, história, praias e tradição</h3>
-            <p>
-              O México é conhecido pela riqueza histórica, pelas praias famosas, pela culinária marcante
-              e por suas tradições culturais cheias de identidade.
-            </p>
-            <ul class="list">
-              <li>Cidade do México, Cancún e Chichén Itzá</li>
-              <li>Comidas bem temperadas e festas tradicionais</li>
-              <li>Clima mais quente em muitas regiões</li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="cartoes">
-      <div class="container">
-        <div class="section-header reveal">
-          <span class="eyebrow">📬 Cartões de viagem</span>
-          <h2 class="section-title">Postais que contam uma viagem</h2>
-          <p class="section-text">
-            O cartão postal é uma forma simples e carinhosa de mandar uma mensagem curta pelo correio.
-            Além de servir como lembrança, ele também ajuda a compartilhar um pouco da experiência
-            vivida em outro país.
-          </p>
-        </div>
-
-        <div class="info-banner reveal">
+  <div class="app">
+    <!-- Painel esquerdo -->
+    <aside class="panel left-panel">
+      <div class="panel-header">
+        <div class="brand">
+          <div class="brand-badge">🌍</div>
           <div>
-            <h3>Como funciona um cartão postal?</h3>
-            <p>
-              Normalmente, de um lado fica a imagem do lugar visitado e, do outro, a mensagem e o endereço.
-              Para enviar para o Brasil, é importante escrever o endereço completo, colocar “BRASIL” em destaque
-              e comprar um selo internacional no correio local.
-            </p>
-            <ul>
-              <li>Mensagem curta e afetiva</li>
-              <li>Imagem de cidade, paisagem ou ponto turístico</li>
-              <li>Selo internacional obrigatório</li>
-              <li>Ótimo como lembrança de viagem</li>
-            </ul>
+            <h1>Traveling</h1>
+            <p>Exploração por mapa, países, cultura e viagens</p>
           </div>
-
-          <img
-            src="https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?auto=format&fit=crop&w=1400&q=80"
-            alt="Cartões postais e itens de viagem"
-          />
         </div>
 
-        <div class="grid-3" style="margin-top: 28px;">
-          <article class="card reveal">
-            <div class="card-icon">🇨🇦</div>
-            <h3>Canadá</h3>
-            <p>
-              No Canadá, o cartão pode ser enviado pelo Canada Post. A entrega para o Brasil costuma levar
-              de uma a três semanas.
-            </p>
-            <ul class="list">
-              <li>Fale da CN Tower, Toronto e Vancouver</li>
-              <li>Cite as Cataratas do Niágara e Banff</li>
-              <li>Comente o frio, a neve e as paisagens naturais</li>
-            </ul>
-            <div class="quote-box">
-              <p>“Oi! Estou no Canadá e fiquei impressionado com as paisagens e com o frio daqui.”</p>
-            </div>
-          </article>
-
-          <article class="card reveal">
-            <div class="card-icon">🇺🇸</div>
-            <h3>Estados Unidos</h3>
-            <p>
-              Nos Estados Unidos, o selo pode ser comprado no USPS. O cartão costuma chegar ao Brasil
-              em uma a três semanas.
-            </p>
-            <ul class="list">
-              <li>Fale de Nova York, Los Angeles ou Orlando</li>
-              <li>Cite a Estátua da Liberdade, Times Square e Grand Canyon</li>
-              <li>Comente filmes, música e estilo de vida americano</li>
-            </ul>
-            <div class="quote-box">
-              <p>“Estou nos EUA e aqui tudo lembra filmes, luzes, movimento e muita coisa famosa.”</p>
-            </div>
-          </article>
-
-          <article class="card reveal">
-            <div class="card-icon">🇲🇽</div>
-            <h3>México</h3>
-            <p>
-              No México, o envio pode ser feito pelos Correos de México. O prazo também costuma ser parecido:
-              de uma a três semanas.
-            </p>
-            <ul class="list">
-              <li>Fale de Cancún, Chichén Itzá e Cidade do México</li>
-              <li>Cite as cores, festas e tradições mexicanas</li>
-              <li>Comente a culinária e o clima quente</li>
-            </ul>
-            <div class="quote-box">
-              <p>“O México é cheio de cor, história e comida deliciosa. Estou adorando conhecer tudo.”</p>
-            </div>
-          </article>
+        <div class="tab-row">
+          <button class="tab-btn active" data-tab="milhas">✈️ Milhas</button>
+          <button class="tab-btn" data-tab="pais">📍 País</button>
         </div>
       </div>
-    </section>
 
-    <section class="section" id="destinos">
-      <div class="container">
-        <div class="section-header reveal">
-          <span class="eyebrow">📍 Principais destinos</span>
-          <h2 class="section-title">Lugares famosos e paisagens inesquecíveis</h2>
-          <p class="section-text">
-            A América do Norte oferece uma mistura incrível de cidades icônicas, parques nacionais,
-            praias, centros de entretenimento e lugares diferentes para quem gosta de natureza e aventura.
-          </p>
+      <div class="panel-scroll">
+        <section id="tab-milhas" class="tab-content">
+          <div class="card">
+            <span class="badge">✈️ Conscientização sobre milhas</span>
+            <h3 style="margin-top:12px;">O que são milhas aéreas?</h3>
+            <p>
+              Milhas são pontos acumulados em programas de fidelidade. Elas podem ser usadas
+              para comprar passagens, fazer upgrades, emitir trechos promocionais ou reduzir
+              bastante o custo de uma viagem.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Como funcionam?</h3>
+            <ul class="bullet-list">
+              <li>Você acumula pontos comprando passagens, usando cartão de crédito ou parceiros.</li>
+              <li>Esses pontos podem ser transferidos para programas de companhias aéreas.</li>
+              <li>Depois, podem virar trechos nacionais ou internacionais com menos gasto em dinheiro.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Como acumular no dia a dia</h3>
+            <ul class="bullet-list">
+              <li>Cartão de crédito com pontuação</li>
+              <li>Compras em lojas parceiras</li>
+              <li>Promoções de transferência bonificada</li>
+              <li>Assinaturas de clubes de pontos</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Benefícios em viagens</h3>
+            <ul class="bullet-list">
+              <li>Economia no valor da passagem</li>
+              <li>Possibilidade de viajar em datas promocionais</li>
+              <li>Uso para voos nacionais e internacionais</li>
+              <li>Maior flexibilidade em planejamentos de longo prazo</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Por que isso é importante?</h3>
+            <p>
+              Entender milhas ajuda a viajar melhor, gastando menos. No seu projeto, esse tema
+              combina muito com logística, planejamento e inteligência financeira em viagens.
+            </p>
+          </div>
+
+          <div class="legend">
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--accent);"></span>
+              Clique em um continente para aproximar
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--accent-2);"></span>
+              Clique em um país para ver detalhes
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--accent-3);"></span>
+              Use a busca para localizar sem saber a região
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-pais" class="tab-content" style="display:none;">
+          <div id="countryPanel" class="empty-state">
+            <div class="empty-hero">
+              <h2>Selecione um país no mapa</h2>
+              <p class="small">
+                Clique em um continente, aproxime a visualização e depois escolha um país.
+                As informações aparecerão aqui organizadas por tópicos.
+              </p>
+            </div>
+
+            <div class="card">
+              <h3>Estrutura preparada para expansão</h3>
+              <p>
+                Este painel já está pronto para receber textos maiores no futuro, como regras
+                detalhadas de visto, etiqueta local, feriados, costumes e mais exemplos de logística.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Mapa -->
+    <main class="map-stage">
+      <div class="topbar">
+        <div class="topbar-card">
+          <div style="font-size:1.35rem;">🗺️</div>
+          <div>
+            <h2>Mapa Mundi Interativo</h2>
+            <p>Explore continentes, encontre países e organize informações de viagem</p>
+          </div>
         </div>
 
-        <div class="destinations-grid">
-          <div class="stack">
-            <div class="card reveal">
-              <div class="card-icon">🏙️</div>
-              <h3>Grandes cidades</h3>
-              <div class="mini-grid">
-                <div class="mini-card">
-                  <h4>Nova York</h4>
-                  <p>Times Square, arranha-céus, museus e a famosa Estátua da Liberdade.</p>
-                </div>
-                <div class="mini-card">
-                  <h4>Los Angeles</h4>
-                  <p>Hollywood, praias, sol e uma forte relação com o cinema.</p>
-                </div>
-                <div class="mini-card">
-                  <h4>Toronto</h4>
-                  <p>Cidade moderna, organizada e multicultural, com destaque para a CN Tower.</p>
-                </div>
-                <div class="mini-card">
-                  <h4>Cidade do México</h4>
-                  <p>História, arte, cultura e uma das culinárias mais marcantes da região.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="card reveal">
-              <div class="card-icon">🌄</div>
-              <h3>Natureza e parques</h3>
-              <div class="mini-grid">
-                <div class="mini-card">
-                  <h4>Grand Canyon</h4>
-                  <p>Um dos cenários naturais mais impressionantes do planeta.</p>
-                </div>
-                <div class="mini-card">
-                  <h4>Yellowstone</h4>
-                  <p>Parque famoso por gêiseres, vida selvagem e fenômenos geotérmicos.</p>
-                </div>
-                <div class="mini-card">
-                  <h4>Banff</h4>
-                  <p>Montanhas, lagos azul-turquesa e paisagens muito fotografadas.</p>
-                </div>
-                <div class="mini-card">
-                  <h4>Cataratas do Niágara</h4>
-                  <p>Uma das quedas d’água mais conhecidas e visitadas do mundo.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="card reveal">
-              <div class="card-icon">🏖️</div>
-              <h3>Praias e descanso</h3>
-              <ul class="list">
-                <li>Cancún – praias paradisíacas, resorts e mar azul</li>
-                <li>Miami – praia, compras, música e vida noturna</li>
-                <li>Honolulu – natureza tropical e clima agradável</li>
-              </ul>
-            </div>
-
-            <div class="grid-2">
-              <div class="card reveal">
-                <div class="card-icon">🎢</div>
-                <h3>Entretenimento</h3>
-                <ul class="list">
-                  <li>Orlando – Disney, Universal e parques temáticos</li>
-                  <li>Las Vegas – shows, luzes e turismo noturno</li>
-                </ul>
-              </div>
-
-              <div class="card reveal">
-                <div class="card-icon">🧭</div>
-                <h3>Destinos diferentes</h3>
-                <ul class="list">
-                  <li>Alasca – geleiras e natureza selvagem</li>
-                  <li>Vancouver – cidade cercada por mar e montanhas</li>
-                  <li>Montreal – clima europeu e muito charme cultural</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div class="card photo-card reveal">
-            <img
-              src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80"
-              alt="Paisagem turística com montanhas e lago"
-            />
-          </div>
+        <div class="top-actions">
+          <button class="ghost-btn" id="resetViewBtn">↺ Mapa completo</button>
+          <button class="accent-btn" id="focusNorthAmericaBtn">🌎 Testar América do Norte</button>
         </div>
       </div>
-    </section>
 
-    <section class="section" id="culinaria">
-      <div class="container">
-        <div class="section-header reveal">
-          <span class="eyebrow">🍔 Culinária</span>
-          <h2 class="section-title">Sabores que também fazem parte da viagem</h2>
-          <p class="section-text">
-            Conhecer a culinária de um lugar é uma forma de entender melhor sua cultura.
-            Na América do Norte, os sabores variam bastante: dos pratos rápidos dos EUA
-            às receitas tradicionais do México, passando pelas combinações típicas do Canadá.
-          </p>
+      <div class="map-wrap">
+        <svg id="worldMap" viewBox="0 0 1200 700" aria-label="Mapa mundi interativo">
+          <defs>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="5" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          <g id="viewport" transform="translate(0,0) scale(1)">
+            <!-- Ocean grid décor -->
+            <g opacity=".08">
+              <path d="M0 100 H1200 M0 200 H1200 M0 300 H1200 M0 400 H1200 M0 500 H1200 M0 600 H1200" stroke="#9ed8ff"/>
+              <path d="M100 0 V700 M200 0 V700 M300 0 V700 M400 0 V700 M500 0 V700 M600 0 V700 M700 0 V700 M800 0 V700 M900 0 V700 M1000 0 V700 M1100 0 V700" stroke="#9ed8ff"/>
+            </g>
+
+            <!-- Continentes base -->
+            <g id="continentsLayer">
+              <path id="continent-north-america" class="continent" data-continent="north-america" d="M118 144 L182 102 L280 90 L358 108 L418 138 L430 182 L395 230 L330 258 L300 300 L256 312 L222 286 L198 236 L148 212 L120 170 Z"/>
+              <path id="continent-south-america" class="continent" data-continent="south-america" d="M320 344 L364 354 L398 384 L420 434 L408 500 L386 566 L356 624 L322 598 L304 538 L286 470 L294 404 Z"/>
+              <path id="continent-europe" class="continent" data-continent="europe" d="M600 132 L660 120 L712 130 L742 154 L738 184 L694 200 L658 194 L626 174 L604 154 Z"/>
+              <path id="continent-africa" class="continent" data-continent="africa" d="M616 234 L672 226 L718 252 L740 308 L736 392 L706 474 L660 516 L622 494 L604 426 L602 334 Z"/>
+              <path id="continent-asia" class="continent" data-continent="asia" d="M748 134 L836 108 L946 118 L1062 154 L1108 216 L1086 266 L1004 282 L936 252 L890 282 L832 258 L772 220 L748 184 Z"/>
+              <path id="continent-oceania" class="continent" data-continent="oceania" d="M942 454 L1008 444 L1070 466 L1092 506 L1064 536 L996 542 L944 518 L922 486 Z"/>
+
+              <text x="220" y="150" class="continent-label">América do Norte</text>
+              <text x="300" y="380" class="continent-label">América do Sul</text>
+              <text x="635" y="155" class="continent-label">Europa</text>
+              <text x="640" y="340" class="continent-label">África</text>
+              <text x="875" y="160" class="continent-label">Ásia</text>
+              <text x="972" y="482" class="continent-label">Oceania</text>
+            </g>
+
+            <!-- Países -->
+            <g id="countriesLayer">
+              <!-- América do Norte -->
+              <path class="country hidden" data-country="canada" data-continent="north-america" d="M168 126 L236 104 L310 104 L362 120 L388 152 L374 180 L318 196 L250 194 L198 176 L170 154 Z"/>
+              <path class="country hidden" data-country="usa" data-continent="north-america" d="M186 196 L250 196 L322 200 L368 218 L356 252 L314 270 L258 276 L214 262 L190 236 Z"/>
+              <path class="country hidden" data-country="mexico" data-continent="north-america" d="M206 266 L252 278 L276 302 L262 328 L232 334 L206 320 L190 290 Z"/>
+
+              <!-- América do Sul -->
+              <path class="country hidden" data-country="brazil" data-continent="south-america" d="M316 388 L366 382 L396 406 L398 452 L372 486 L336 484 L306 450 L300 416 Z"/>
+              <path class="country hidden" data-country="argentina" data-continent="south-america" d="M342 490 L364 510 L364 556 L346 600 L326 590 L320 548 L326 512 Z"/>
+
+              <!-- Europa -->
+              <path class="country hidden" data-country="france" data-continent="europe" d="M640 154 L666 152 L680 170 L670 188 L644 186 L632 170 Z"/>
+              <path class="country hidden" data-country="uk" data-continent="europe" d="M620 142 L634 142 L640 158 L632 170 L620 164 L616 150 Z"/>
+
+              <!-- África -->
+              <path class="country hidden" data-country="egypt" data-continent="africa" d="M672 250 L700 250 L706 278 L678 282 L666 266 Z"/>
+              <path class="country hidden" data-country="south-africa" data-continent="africa" d="M656 456 L692 454 L706 484 L680 502 L648 490 L644 470 Z"/>
+
+              <!-- Ásia -->
+              <path class="country hidden" data-country="japan" data-continent="asia" d="M1034 208 L1044 214 L1048 230 L1038 240 L1028 230 Z"/>
+              <path class="country hidden" data-country="china" data-continent="asia" d="M860 180 L920 174 L966 194 L958 236 L904 244 L862 224 L846 202 Z"/>
+              <path class="country hidden" data-country="india" data-continent="asia" d="M824 246 L852 248 L866 278 L850 306 L824 296 L812 268 Z"/>
+
+              <!-- Oceania -->
+              <path class="country hidden" data-country="australia" data-continent="oceania" d="M974 470 L1042 468 L1074 498 L1050 526 L984 526 L956 500 Z"/>
+
+              <!-- Labels -->
+              <text class="country-label" x="246" y="154">Canadá</text>
+              <text class="country-label" x="252" y="236">Estados Unidos</text>
+              <text class="country-label" x="210" y="307">México</text>
+
+              <text class="country-label" x="334" y="436">Brasil</text>
+              <text class="country-label" x="320" y="556">Argentina</text>
+
+              <text class="country-label" x="646" y="174">França</text>
+              <text class="country-label" x="604" y="140">Reino Unido</text>
+
+              <text class="country-label" x="672" y="246">Egito</text>
+              <text class="country-label" x="642" y="520">África do Sul</text>
+
+              <text class="country-label" x="878" y="212">China</text>
+              <text class="country-label" x="812" y="322">Índia</text>
+              <text class="country-label" x="1020" y="204">Japão</text>
+
+              <text class="country-label" x="985" y="506">Austrália</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <div class="helper">
+        Clique em um continente para aproximar • Depois clique em um país • Ou use a pesquisa ao lado
+      </div>
+    </main>
+
+    <!-- Painel direito -->
+    <aside class="panel right-panel">
+      <div class="panel-header">
+        <div class="brand" style="margin-bottom:10px;">
+          <div class="brand-badge" style="background:linear-gradient(135deg,var(--accent-3), #ff9f6e); color:#2a1600;">🔎</div>
+          <div>
+            <h1>Pesquisa de país</h1>
+            <p>Encontre mesmo sem saber onde fica</p>
+          </div>
         </div>
 
-        <div class="grid-3">
-          <article class="card food-card reveal">
-            <img
-              src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80"
-              alt="Hambúrguer típico dos Estados Unidos"
-            />
-            <h3>🇺🇸 Estados Unidos</h3>
-            <p>
-              A culinária americana é muito conhecida pelos hambúrgueres, hot dogs, panquecas,
-              donuts e pelo famoso fast food. Ao mesmo tempo, como o país recebe influência de muitos povos,
-              também existem pratos de várias partes do mundo.
-            </p>
-            <div class="tag-row">
-              <span class="tag">hambúrguer</span>
-              <span class="tag">panquecas</span>
-              <span class="tag">fast food</span>
-            </div>
-          </article>
+        <div class="search-box">
+          <input id="countrySearch" class="search-input" type="text" placeholder="Ex.: Canadá, Japão, México" />
+          <button id="searchBtn" class="search-btn">Buscar</button>
+        </div>
+      </div>
 
-          <article class="card food-card reveal">
-            <img
-              src="https://images.unsplash.com/photo-1514996937319-344454492b37?auto=format&fit=crop&w=1200&q=80"
-              alt="Prato típico do Canadá"
-            />
-            <h3>🇨🇦 Canadá</h3>
-            <p>
-              Um dos pratos mais famosos do Canadá é a poutine, feita com batata frita, queijo e molho.
-              Também há grande presença de pratos quentes, sopas e comidas reconfortantes, muito ligadas ao clima frio.
-            </p>
-            <div class="tag-row">
-              <span class="tag">poutine</span>
-              <span class="tag">pratos quentes</span>
-              <span class="tag">inverno</span>
-            </div>
-          </article>
-
-          <article class="card food-card reveal">
-            <img
-              src="https://images.unsplash.com/photo-1613514785940-daed07799d9b?auto=format&fit=crop&w=1200&q=80"
-              alt="Tacos típicos do México"
-            />
-            <h3>🇲🇽 México</h3>
-            <p>
-              A culinária mexicana é uma das mais marcantes do mundo. Ela mistura sabores fortes,
-              temperos, molhos, tortilhas e receitas famosas como tacos, burritos, nachos, quesadillas e guacamole.
-            </p>
-            <div class="tag-row">
-              <span class="tag">tacos</span>
-              <span class="tag">burritos</span>
-              <span class="tag">temperos</span>
-            </div>
-          </article>
+      <div class="panel-scroll">
+        <div class="card">
+          <h3>Como usar</h3>
+          <ul class="bullet-list">
+            <li>Digite o nome de um país</li>
+            <li>Selecione o resultado</li>
+            <li>O mapa vai localizar e destacar a região</li>
+            <li>As informações do país aparecem no painel esquerdo</li>
+          </ul>
         </div>
 
-        <div class="quote-box reveal">
+        <div class="card">
+          <h3>Resultados</h3>
+          <div id="searchResults" class="search-results">
+            <div class="search-item" data-country="canada">
+              <strong>Canadá</strong>
+              <span class="small">América do Norte</span>
+            </div>
+            <div class="search-item" data-country="usa">
+              <strong>Estados Unidos</strong>
+              <span class="small">América do Norte</span>
+            </div>
+            <div class="search-item" data-country="mexico">
+              <strong>México</strong>
+              <span class="small">América do Norte</span>
+            </div>
+            <div class="search-item" data-country="japan">
+              <strong>Japão</strong>
+              <span class="small">Ásia</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Observação</h3>
           <p>
-            Mais do que matar a fome, a culinária mostra hábitos, tradições e até o clima de cada país.
-            Comer também é uma forma de viajar.
+            Os textos dos países abaixo são exemplos e placeholders. A estrutura foi pensada
+            para você substituir e expandir depois com suas pesquisas completas.
           </p>
         </div>
       </div>
-    </section>
-
-    <section class="section" id="clima">
-      <div class="container">
-        <div class="section-header reveal">
-          <span class="eyebrow">🌦️ Época e clima</span>
-          <h2 class="section-title">Estações, temperaturas e fenômenos naturais</h2>
-          <p class="section-text">
-            Como a América do Norte está no hemisfério norte, as estações do ano são opostas às do Brasil.
-            Além disso, a região tem climas muito diferentes: do frio intenso do Canadá ao calor do México.
-          </p>
-        </div>
-
-        <div class="climate-wrap">
-          <article class="card season-card reveal">
-            <div class="card-icon">🗓️</div>
-            <h3>Estações do ano</h3>
-
-            <div class="season-item">
-              <div class="season-badge">🌸</div>
-              <div>
-                <h4>Primavera</h4>
-                <p>Março a junho – temperaturas mais agradáveis e paisagens floridas.</p>
-              </div>
-            </div>
-
-            <div class="season-item">
-              <div class="season-badge">☀️</div>
-              <div>
-                <h4>Verão</h4>
-                <p>Junho a setembro – calor forte em várias regiões e alta temporada turística.</p>
-              </div>
-            </div>
-
-            <div class="season-item">
-              <div class="season-badge">🍂</div>
-              <div>
-                <h4>Outono</h4>
-                <p>Setembro a dezembro – clima agradável e paisagens com folhas alaranjadas.</p>
-              </div>
-            </div>
-
-            <div class="season-item">
-              <div class="season-badge">❄️</div>
-              <div>
-                <h4>Inverno</h4>
-                <p>Dezembro a março – neve e temperaturas muito baixas em áreas do norte.</p>
-              </div>
-            </div>
-          </article>
-
-          <article class="card reveal">
-            <div class="card-icon">🌍</div>
-            <h3>Clima por região</h3>
-
-            <div class="timeline">
-              <div class="timeline-card">
-                <h4>❄️ Norte (Canadá e norte dos EUA)</h4>
-                <p>Invernos muito frios, neve intensa e temperaturas que podem chegar a -20 °C ou menos.</p>
-              </div>
-
-              <div class="timeline-card">
-                <h4>🌤️ Centro dos EUA</h4>
-                <p>Clima temperado, com bastante variação entre inverno frio e verão quente.</p>
-              </div>
-
-              <div class="timeline-card">
-                <h4>🌴 Sul dos EUA e México</h4>
-                <p>Regiões mais quentes, com verões úmidos, calor forte e invernos mais leves.</p>
-              </div>
-
-              <div class="timeline-card">
-                <h4>🏜️ Oeste</h4>
-                <p>Califórnia com clima mais ameno em algumas áreas e regiões desérticas com calor extremo.</p>
-              </div>
-
-              <div class="timeline-card">
-                <h4>🌪️ Fenômenos importantes</h4>
-                <p>Furacões no sul dos EUA e no México, nevascas no norte e tornados no centro dos Estados Unidos.</p>
-              </div>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="epoca">
-      <div class="container">
-        <div class="section-header reveal">
-          <span class="eyebrow">🧳 Melhor época para viajar</span>
-          <h2 class="section-title">Quando aproveitar melhor cada país</h2>
-          <p class="section-text">
-            A melhor época depende do destino e do tipo de passeio. Em geral, primavera e outono são ótimos
-            nos Estados Unidos, o verão é melhor no Canadá e os meses mais secos são ideais no México.
-          </p>
-        </div>
-
-        <div class="grid-3">
-          <article class="card reveal">
-            <div class="card-icon">🇺🇸</div>
-            <h3>Estados Unidos</h3>
-            <p>
-              A melhor época costuma ser a primavera e o outono, quando o clima fica mais agradável,
-              há menos filas e os preços costumam ser mais equilibrados.
-            </p>
-            <ul class="list">
-              <li>Nova York – abril a junho / setembro a outubro</li>
-              <li>Orlando – março a maio</li>
-              <li>Miami – dezembro a abril</li>
-            </ul>
-          </article>
-
-          <article class="card reveal">
-            <div class="card-icon">🇨🇦</div>
-            <h3>Canadá</h3>
-            <p>
-              O verão, entre junho e setembro, costuma ser a melhor escolha para visitar cidades e fazer passeios
-              ao ar livre, já que o frio diminui bastante.
-            </p>
-            <ul class="list">
-              <li>Toronto – junho a setembro</li>
-              <li>Vancouver – maio a setembro</li>
-              <li>Inverno é melhor só para neve e esportes</li>
-            </ul>
-          </article>
-
-          <article class="card reveal">
-            <div class="card-icon">🇲🇽</div>
-            <h3>México</h3>
-            <p>
-              O período entre dezembro e abril é muito indicado, porque o clima costuma ficar mais seco
-              e ensolarado, ideal para praias e turismo.
-            </p>
-            <ul class="list">
-              <li>Cancún – dezembro a abril</li>
-              <li>Cidade do México – março a maio</li>
-              <li>Maio a outubro costuma ter mais chuva</li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="documentos">
-      <div class="container">
-        <div class="section-header reveal">
-          <span class="eyebrow">🛂 Passaporte, visto e aeroporto</span>
-          <h2 class="section-title">O que é preciso para viajar</h2>
-          <p class="section-text">
-            Em viagens internacionais, alguns documentos e etapas são essenciais. Entender isso ajuda a planejar
-            melhor a viagem e evita problemas na hora do embarque.
-          </p>
-        </div>
-
-        <div class="documents-grid">
-          <article class="card reveal">
-            <div class="card-icon">📘</div>
-            <h3>Passaporte</h3>
-            <p>
-              O passaporte é o documento oficial usado para viajar para fora do país. Ele funciona como
-              uma identificação internacional.
-            </p>
-            <ul class="steps">
-              <li><span>1</span> Identifica o viajante em outro país</li>
-              <li><span>2</span> Registra entradas e saídas</li>
-              <li><span>3</span> Permite embarque em voos internacionais</li>
-            </ul>
-          </article>
-
-          <article class="card reveal">
-            <div class="card-icon">📄</div>
-            <h3>Visto</h3>
-            <p>
-              O visto é uma autorização dada por alguns países para permitir a entrada de estrangeiros.
-            </p>
-            <ul class="steps">
-              <li><span>1</span> EUA exigem visto para brasileiros</li>
-              <li><span>2</span> Canadá pode exigir visto ou eTA</li>
-              <li><span>3</span> México depende da situação do viajante</li>
-            </ul>
-          </article>
-
-          <article class="card reveal">
-            <div class="card-icon">🛫</div>
-            <h3>Aeroporto</h3>
-            <p>
-              No aeroporto, a viagem passa por algumas etapas importantes antes do embarque internacional.
-            </p>
-            <ul class="steps">
-              <li><span>1</span> Check-in e bagagem</li>
-              <li><span>2</span> Segurança e inspeção</li>
-              <li><span>3</span> Imigração e embarque</li>
-            </ul>
-          </article>
-        </div>
-
-        <div class="quote-box reveal">
-          <p>
-            Para viajar para a América do Norte, o ideal é ter passaporte válido, verificar a necessidade de visto
-            e seguir corretamente os procedimentos do aeroporto.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="curiosidades">
-      <div class="container">
-        <div class="section-header reveal">
-          <span class="eyebrow">✨ Curiosidades</span>
-          <h2 class="section-title">Fatos interessantes sobre a América do Norte</h2>
-          <p class="section-text">
-            Além do turismo, a América do Norte também chama atenção pela diversidade de culturas,
-            pela força do cinema, dos esportes e pela variedade de paisagens e estilos de vida.
-          </p>
-        </div>
-
-        <div class="curiosities-grid">
-          <div class="stack">
-            <article class="card reveal">
-              <div class="card-icon">🎬</div>
-              <h3>Cinema e entretenimento</h3>
-              <p>
-                Hollywood, nos Estados Unidos, é uma das maiores referências mundiais em cinema e televisão,
-                influenciando a cultura global há muitos anos.
-              </p>
-            </article>
-
-            <article class="card reveal">
-              <div class="card-icon">⚽</div>
-              <h3>Esportes e competições</h3>
-              <p>
-                Na região, esportes como basquete, beisebol, futebol americano, hóquei no gelo e futebol
-                fazem parte do cotidiano e da identidade cultural de muitos lugares.
-              </p>
-            </article>
-
-            <article class="card reveal">
-              <div class="card-icon">🌐</div>
-              <h3>Diversidade cultural</h3>
-              <p>
-                A América do Norte recebe pessoas do mundo todo. Isso faz com que suas cidades tenham
-                línguas, comidas, festas e tradições muito variadas.
-              </p>
-            </article>
-
-            <article class="card reveal">
-              <div class="card-icon">🏔️</div>
-              <h3>Paisagens contrastantes</h3>
-              <p>
-                É possível encontrar neve, desertos, florestas, praias, grandes metrópoles e montanhas
-                na mesma região, o que torna a experiência de viagem ainda mais rica.
-              </p>
-            </article>
-          </div>
-
-          <div class="card wide-image reveal">
-            <img
-              src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1400&q=80"
-              alt="Paisagem ampla representando viagem e natureza"
-            />
-          </div>
-        </div>
-
-        <div class="quote-box reveal">
-          <p>
-            Viajar pela América do Norte é conhecer lugares muito diferentes entre si, mas todos cheios de cultura,
-            história, movimento e paisagens marcantes.
-          </p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="container footer-wrap">
-      <div>
-        <h3>🌍 Traveling</h3>
-        <p>Projeto escolar sobre viagens, culturas e descobertas pelo mundo.</p>
-      </div>
-      <p>“Viajar também é aprender, observar e enxergar o mundo de um jeito novo.”</p>
-    </div>
-  </footer>
+    </aside>
+  </div>
 
   <script>
-    const menuToggle = document.getElementById("menuToggle");
-    const navMenu = document.getElementById("navMenu");
-    const navLinks = navMenu.querySelectorAll("a");
+    const tabs = document.querySelectorAll('.tab-btn');
+    const tabContents = {
+      milhas: document.getElementById('tab-milhas'),
+      pais: document.getElementById('tab-pais')
+    };
 
-    menuToggle.addEventListener("click", () => {
-      navMenu.classList.toggle("show");
-    });
-
-    navLinks.forEach(link => {
-      link.addEventListener("click", () => {
-        navMenu.classList.remove("show");
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        Object.values(tabContents).forEach(el => el.style.display = 'none');
+        tabContents[btn.dataset.tab].style.display = 'block';
       });
     });
 
-    const reveals = document.querySelectorAll(".reveal");
+    const countryData = {
+      canada: {
+        name: 'Canadá',
+        continent: 'América do Norte',
+        moeda: 'Dólar canadense (CAD)',
+        lingua: 'Inglês e francês',
+        visto: 'Para brasileiros, a regra pode variar conforme o perfil da viagem. Use este campo como espaço para completar depois com sua pesquisa oficial.',
+        comportamento: 'Pontualidade, educação e respeito ao espaço pessoal são muito valorizados.',
+        costume: 'O inverno marca bastante a vida local. Em várias regiões, festivais de neve e atividades ao ar livre são comuns.',
+        gastronomia: 'Poutine, maple syrup, pratos quentes e culinária multicultural.',
+        logisticaDinheiro: 'Exemplo: passagens a partir de R$ 3.200 a R$ 5.500, dependendo da época e origem.',
+        logisticaMilhas: 'Exemplo: de 45.000 a 95.000 milhas por trecho/promocional, variando conforme programa.',
+      },
+      usa: {
+        name: 'Estados Unidos',
+        continent: 'América do Norte',
+        moeda: 'Dólar americano (USD)',
+        lingua: 'Inglês',
+        visto: 'Brasileiros normalmente precisam de visto para turismo. Você pode detalhar aqui tipo, validade e permanência máxima.',
+        comportamento: 'Valorização de fila organizada, pontualidade e objetividade na comunicação.',
+        costume: 'Datas como Thanksgiving e Halloween têm grande presença cultural e comercial.',
+        gastronomia: 'Hambúrgueres, panquecas, barbecue, fast food e culinária influenciada por muitos povos.',
+        logisticaDinheiro: 'Exemplo: R$ 2.700 a R$ 6.000, dependendo da cidade e do período.',
+        logisticaMilhas: 'Exemplo: 35.000 a 100.000 milhas, conforme rota e antecedência.',
+      },
+      mexico: {
+        name: 'México',
+        continent: 'América do Norte',
+        moeda: 'Peso mexicano (MXN)',
+        lingua: 'Espanhol',
+        visto: 'Esse campo pode ser editado depois com a regra exata para brasileiros e tempo máximo de permanência.',
+        comportamento: 'Cumprimentos cordiais e forte valorização de convivência familiar e social.',
+        costume: 'O Día de los Muertos é uma das celebrações culturais mais conhecidas do país.',
+        gastronomia: 'Tacos, burritos, nachos, molhos, milho, pimentas e sabores intensos.',
+        logisticaDinheiro: 'Exemplo: R$ 2.400 a R$ 4.800, variando entre Cidade do México, Cancún e outras rotas.',
+        logisticaMilhas: 'Exemplo: 30.000 a 80.000 milhas em trechos promocionais.',
+      },
+      brazil: {
+        name: 'Brasil',
+        continent: 'América do Sul',
+        moeda: 'Real (BRL)',
+        lingua: 'Português',
+        visto: 'Campo pronto para preenchimento posterior conforme o público do seu site.',
+        comportamento: 'Contato social próximo e comunicação geralmente calorosa e informal.',
+        costume: 'Carnaval, festas juninas e diversidade cultural regional.',
+        gastronomia: 'Feijoada, pão de queijo, acarajé, churrasco e culinária regional variada.',
+        logisticaDinheiro: 'Exemplo: ajuste depois conforme origem e destino.',
+        logisticaMilhas: 'Exemplo: ajuste depois conforme programa e sazonalidade.',
+      },
+      argentina: {
+        name: 'Argentina',
+        continent: 'América do Sul',
+        moeda: 'Peso argentino (ARS)',
+        lingua: 'Espanhol',
+        visto: 'Campo editável para regra exata e permanência.',
+        comportamento: 'Forte cultura de convivência social, cafés e encontros.',
+        costume: 'O mate é muito presente no cotidiano.',
+        gastronomia: 'Empanadas, carnes, medialunas e doce de leite.',
+        logisticaDinheiro: 'Exemplo de valor médio para completar depois.',
+        logisticaMilhas: 'Exemplo de valor em milhas para completar depois.',
+      },
+      france: {
+        name: 'França',
+        continent: 'Europa',
+        moeda: 'Euro (EUR)',
+        lingua: 'Francês',
+        visto: 'Campo para completar com regra de entrada e tempo permitido.',
+        comportamento: 'Boas maneiras e cordialidade são bem vistas.',
+        costume: 'Feriados, cafés, arte e tradição gastronômica são marcantes.',
+        gastronomia: 'Croissant, queijos, massas, sobremesas e alta culinária.',
+        logisticaDinheiro: 'Exemplo de faixa de preço a ser substituída.',
+        logisticaMilhas: 'Exemplo de faixa em milhas a ser substituída.',
+      },
+      uk: {
+        name: 'Reino Unido',
+        continent: 'Europa',
+        moeda: 'Libra esterlina (GBP)',
+        lingua: 'Inglês',
+        visto: 'Campo para detalhar regras de entrada e permanência.',
+        comportamento: 'Fila, pontualidade e educação costumam ser valorizadas.',
+        costume: 'Chá, pubs e tradições históricas fazem parte da identidade local.',
+        gastronomia: 'Fish and chips, cafés, tortas e culinária multicultural.',
+        logisticaDinheiro: 'Exemplo para edição posterior.',
+        logisticaMilhas: 'Exemplo para edição posterior.',
+      },
+      egypt: {
+        name: 'Egito',
+        continent: 'África',
+        moeda: 'Libra egípcia (EGP)',
+        lingua: 'Árabe',
+        visto: 'Campo preparado para sua pesquisa completa.',
+        comportamento: 'Respeito à cultura local e a locais religiosos é muito importante.',
+        costume: 'Grandes referências históricas e culturais ligadas ao passado antigo.',
+        gastronomia: 'Pratos com grãos, temperos, pães e receitas tradicionais.',
+        logisticaDinheiro: 'Exemplo para edição posterior.',
+        logisticaMilhas: 'Exemplo para edição posterior.',
+      },
+      'south-africa': {
+        name: 'África do Sul',
+        continent: 'África',
+        moeda: 'Rand sul-africano (ZAR)',
+        lingua: 'Múltiplas línguas oficiais',
+        visto: 'Campo pronto para detalhamento futuro.',
+        comportamento: 'Diversidade cultural forte e costumes variados.',
+        costume: 'Safáris, esportes e convivência multicultural chamam atenção.',
+        gastronomia: 'Carnes, grelhados e culinária diversa.',
+        logisticaDinheiro: 'Exemplo para editar depois.',
+        logisticaMilhas: 'Exemplo para editar depois.',
+      },
+      china: {
+        name: 'China',
+        continent: 'Ásia',
+        moeda: 'Renminbi / Yuan (CNY)',
+        lingua: 'Mandarim',
+        visto: 'Campo para regras específicas e prazo de permanência.',
+        comportamento: 'Respeito à formalidade e etiqueta pode ser importante em vários contextos.',
+        costume: 'Ano Novo Chinês e tradições milenares têm grande destaque.',
+        gastronomia: 'Macarrão, arroz, dumplings, chás e muita variedade regional.',
+        logisticaDinheiro: 'Exemplo para substituir depois.',
+        logisticaMilhas: 'Exemplo para substituir depois.',
+      },
+      india: {
+        name: 'Índia',
+        continent: 'Ásia',
+        moeda: 'Rupia indiana (INR)',
+        lingua: 'Hindi e inglês em muitos contextos, além de outras línguas',
+        visto: 'Campo pronto para completar depois com as exigências específicas.',
+        comportamento: 'Há forte diversidade regional e religiosa; respeito cultural é essencial.',
+        costume: 'Festivais coloridos como Holi e Diwali são muito conhecidos.',
+        gastronomia: 'Curries, especiarias, arroz, pães e pratos vegetarianos.',
+        logisticaDinheiro: 'Exemplo para edição futura.',
+        logisticaMilhas: 'Exemplo para edição futura.',
+      },
+      japan: {
+        name: 'Japão',
+        continent: 'Ásia',
+        moeda: 'Iene (JPY)',
+        lingua: 'Japonês',
+        visto: 'Campo pronto para preencher com regra atualizada.',
+        comportamento: 'Respeito, silêncio em espaços públicos e organização são muito valorizados.',
+        costume: 'Hanami, festivais sazonais e etiqueta social são marcantes.',
+        gastronomia: 'Sushi, ramen, tempurá, bentô e culinária muito valorizada esteticamente.',
+        logisticaDinheiro: 'Exemplo: faixa a completar conforme origem e temporada.',
+        logisticaMilhas: 'Exemplo: faixa em milhas para completar depois.',
+      },
+      australia: {
+        name: 'Austrália',
+        continent: 'Oceania',
+        moeda: 'Dólar australiano (AUD)',
+        lingua: 'Inglês',
+        visto: 'Campo preparado para informar exigência e tempo de permanência.',
+        comportamento: 'Estilo mais descontraído, mas respeitoso.',
+        costume: 'Praias, esportes ao ar livre e vida urbana misturados com natureza.',
+        gastronomia: 'Carnes, frutos do mar, tortas salgadas e culinária multicultural.',
+        logisticaDinheiro: 'Exemplo para editar posteriormente.',
+        logisticaMilhas: 'Exemplo para editar posteriormente.',
+      }
+    };
 
-    const revealOnScroll = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          revealOnScroll.unobserve(entry.target);
+    const continentViews = {
+      world: { scale: 1, x: 0, y: 0 },
+      'north-america': { scale: 2.2, x: -170, y: -95 },
+      'south-america': { scale: 2.45, x: -280, y: -290 },
+      europe: { scale: 3.1, x: -1240, y: -305 },
+      africa: { scale: 2.4, x: -900, y: -240 },
+      asia: { scale: 1.9, x: -810, y: -80 },
+      oceania: { scale: 2.75, x: -1640, y: -620 }
+    };
+
+    const countryToContinent = {
+      canada: 'north-america',
+      usa: 'north-america',
+      mexico: 'north-america',
+      brazil: 'south-america',
+      argentina: 'south-america',
+      france: 'europe',
+      uk: 'europe',
+      egypt: 'africa',
+      'south-africa': 'africa',
+      china: 'asia',
+      india: 'asia',
+      japan: 'asia',
+      australia: 'oceania'
+    };
+
+    const viewport = document.getElementById('viewport');
+    const continents = document.querySelectorAll('.continent');
+    const countries = document.querySelectorAll('.country');
+    const countryPanel = document.getElementById('countryPanel');
+    const searchInput = document.getElementById('countrySearch');
+    const searchBtn = document.getElementById('searchBtn');
+    const searchResults = document.getElementById('searchResults');
+    const resetViewBtn = document.getElementById('resetViewBtn');
+    const focusNorthAmericaBtn = document.getElementById('focusNorthAmericaBtn');
+
+    let activeContinent = null;
+    let activeCountry = null;
+
+    function setView(view) {
+      viewport.style.transition = 'transform 900ms cubic-bezier(.22,1,.36,1)';
+      viewport.setAttribute('transform', `translate(${view.x}, ${view.y}) scale(${view.scale})`);
+    }
+
+    function resetCountries() {
+      countries.forEach(c => c.classList.add('hidden'));
+      countries.forEach(c => c.classList.remove('showing'));
+      document.querySelectorAll('.country-label').forEach(label => label.style.display = 'none');
+    }
+
+    function showCountriesForContinent(continentKey) {
+      resetCountries();
+      countries.forEach(country => {
+        if (country.dataset.continent === continentKey) {
+          country.classList.remove('hidden');
+          country.classList.add('showing');
         }
       });
-    }, {
-      threshold: 0.12
+
+      document.querySelectorAll('.country-label').forEach(label => {
+        label.style.display = 'none';
+      });
+
+      document.querySelectorAll(`#countriesLayer .country-label`).forEach(label => {
+        const text = label.textContent.trim().toLowerCase();
+        const mapping = {
+          'canadá':'canada',
+          'estados unidos':'usa',
+          'méxico':'mexico',
+          'brasil':'brazil',
+          'argentina':'argentina',
+          'frança':'france',
+          'reino unido':'uk',
+          'egito':'egypt',
+          'áfrica do sul':'south-africa',
+          'china':'china',
+          'índia':'india',
+          'japão':'japan',
+          'austrália':'australia'
+        };
+        if (mapping[text] && countryToContinent[mapping[text]] === continentKey) {
+          label.style.display = 'block';
+        }
+      });
+    }
+
+    function focusContinent(continentKey) {
+      activeContinent = continentKey;
+      setView(continentViews[continentKey]);
+      continents.forEach(cont => {
+        cont.classList.remove('selected');
+        cont.classList.remove('hidden');
+        if (cont.dataset.continent !== continentKey) cont.classList.add('hidden');
+        else cont.classList.add('selected');
+      });
+      showCountriesForContinent(continentKey);
+      clearCountrySelection();
+    }
+
+    function clearCountrySelection() {
+      activeCountry = null;
+      countries.forEach(c => c.classList.remove('selected'));
+    }
+
+    function resetMap() {
+      activeContinent = null;
+      activeCountry = null;
+      setView(continentViews.world);
+      continents.forEach(cont => {
+        cont.classList.remove('hidden', 'selected');
+      });
+      countries.forEach(c => c.classList.remove('selected'));
+      resetCountries();
+      document.querySelectorAll('.country-label').forEach(label => label.style.display = 'none');
+    }
+
+    function renderCountryPanel(key) {
+      const data = countryData[key];
+      if (!data) return;
+
+      tabs.forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-tab="pais"]').classList.add('active');
+      tabContents.milhas.style.display = 'none';
+      tabContents.pais.style.display = 'block';
+
+      countryPanel.innerHTML = `
+        <div class="country-title">
+          <div>
+            <h2>${data.name}</h2>
+            <p class="small">${data.continent}</p>
+          </div>
+          <span class="badge">📍 Selecionado</span>
+        </div>
+
+        <div class="grid-info">
+          <div class="info-box">
+            <h4>Nome do país</h4>
+            <p>${data.name}</p>
+          </div>
+
+          <div class="info-box">
+            <h4>Moeda</h4>
+            <p>${data.moeda}</p>
+          </div>
+
+          <div class="info-box">
+            <h4>Língua oficial</h4>
+            <p>${data.lingua}</p>
+          </div>
+
+          <div class="info-box">
+            <h4>Visto</h4>
+            <p>${data.visto}</p>
+          </div>
+
+          <div class="info-box">
+            <h4>Tradições de comportamento</h4>
+            <p>${data.comportamento}</p>
+          </div>
+
+          <div class="info-box">
+            <h4>Feriado ou costume cultural</h4>
+            <p>${data.costume}</p>
+          </div>
+
+          <div class="info-box">
+            <h4>Gastronomia</h4>
+            <p>${data.gastronomia}</p>
+          </div>
+
+          <div class="info-box">
+            <h4>Logística de viagem</h4>
+            <p><strong style="color:#fff;">Preço médio em dinheiro:</strong><br>${data.logisticaDinheiro}</p>
+            <p style="margin-top:10px;"><strong style="color:#fff;">Preço médio em milhas:</strong><br>${data.logisticaMilhas}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectCountry(key) {
+      const continent = countryToContinent[key];
+      if (!continent) return;
+
+      if (activeContinent !== continent) {
+        focusContinent(continent);
+      }
+
+      activeCountry = key;
+      countries.forEach(c => c.classList.remove('selected'));
+      const target = document.querySelector(`.country[data-country="${key}"]`);
+      if (target) target.classList.add('selected');
+
+      renderCountryPanel(key);
+    }
+
+    continents.forEach(cont => {
+      cont.addEventListener('click', () => {
+        focusContinent(cont.dataset.continent);
+      });
     });
 
-    reveals.forEach(item => revealOnScroll.observe(item));
+    countries.forEach(country => {
+      country.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectCountry(country.dataset.country);
+      });
+    });
+
+    resetViewBtn.addEventListener('click', resetMap);
+    focusNorthAmericaBtn.addEventListener('click', () => focusContinent('north-america'));
+
+    function buildSearchResults(filter = '') {
+      const query = filter.trim().toLowerCase();
+      const entries = Object.entries(countryData).filter(([key, value]) => {
+        return value.name.toLowerCase().includes(query);
+      });
+
+      if (!entries.length) {
+        searchResults.innerHTML = `
+          <div class="card" style="margin:0;">
+            <h3>Nenhum país encontrado</h3>
+            <p>Tente pesquisar por outro nome. Ex.: Canadá, México, Japão.</p>
+          </div>
+        `;
+        return;
+      }
+
+      searchResults.innerHTML = entries.map(([key, value]) => `
+        <div class="search-item" data-country="${key}">
+          <strong>${value.name}</strong>
+          <span class="small">${value.continent}</span>
+        </div>
+      `).join('');
+
+      searchResults.querySelectorAll('.search-item').forEach(item => {
+        item.addEventListener('click', () => {
+          selectCountry(item.dataset.country);
+        });
+      });
+    }
+
+    searchBtn.addEventListener('click', () => buildSearchResults(searchInput.value));
+    searchInput.addEventListener('input', () => buildSearchResults(searchInput.value));
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') buildSearchResults(searchInput.value);
+    });
+
+    searchResults.querySelectorAll('.search-item').forEach(item => {
+      item.addEventListener('click', () => {
+        selectCountry(item.dataset.country);
+      });
+    });
+
+    // estado inicial
+    resetMap();
   </script>
 </body>
 </html>
