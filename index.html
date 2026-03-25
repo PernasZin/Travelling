@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Traveling | América do Norte</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: #f4f9ff;
+      color: #1f2a44;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e88e5, #43a047);
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 1.1rem;
+    }
+
+    nav {
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    nav ul {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      list-style: none;
+      padding: 15px;
+      gap: 20px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #1e88e5;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      color: #43a047;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 40px auto;
+    }
+
+    section {
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #1565c0;
+      border-left: 6px solid #43a047;
+      padding-left: 12px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card h3 {
+      color: #2e7d32;
+      margin-bottom: 10px;
+    }
+
+    .highlight {
+      background: #e3f2fd;
+      border-left: 5px solid #1e88e5;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    ul {
+      margin-left: 20px;
+      margin-top: 10px;
+    }
+
+    .hero-box {
+      background: white;
+      margin-top: -30px;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+    }
+
+    footer {
+      text-align: center;
+      background: #1f2a44;
+      color: white;
+      padding: 20px;
+      margin-top: 50px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #43a047;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2.2rem;
+      }
+
+      .section-title {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🌍 Traveling</h1>
+    <p>
+      Um projeto escolar para explorar culturas, destinos, comidas, costumes e curiosidades
+      de diferentes partes do mundo. Nesta página, vamos conhecer a América do Norte.
+    </p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#cartoes">Cartões de Viagem</a></li>
+      <li><a href="#destinos">Destinos</a></li>
+      <li><a href="#culinaria">Culinária</a></li>
+      <li><a href="#clima">Clima</a></li>
+      <li><a href="#epoca">Melhor Época</a></li>
+      <li><a href="#documentos">Passaporte e Visto</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="hero-box">
+      <span class="tag">América do Norte</span>
+      <h2>Conhecendo Estados Unidos, Canadá e México</h2>
+      <p>
+        A América do Norte reúne cidades famosas, paisagens naturais incríveis,
+        culinárias marcantes e culturas muito diferentes entre si. Neste espaço,
+        você vai encontrar informações sobre cartões postais, destinos turísticos,
+        clima, documentos e muito mais.
+      </p>
+    </div>
+
+    <section id="cartoes">
+      <h2 class="section-title">📬 Cartões de Viagem</h2>
+      <p>
+        O cartão postal é uma forma simples de enviar mensagens curtas pelo correio.
+        Normalmente, ele traz imagens de pontos turísticos, paisagens e cidades famosas,
+        sendo uma lembrança muito especial de uma viagem.
+      </p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>🇨🇦 Canadá</h3>
+          <p>
+            Para enviar um cartão postal do Canadá, basta escrever a mensagem de um lado
+            e o endereço do destinatário do outro, incluindo “BRASIL”.
+            Depois, é preciso comprar um selo internacional no Canada Post e enviá-lo pelo correio.
+          </p>
+          <p>
+            No cartão, você pode falar sobre a CN Tower, as Cataratas do Niágara,
+            Banff National Park, Toronto, Vancouver, o frio e a neve.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>🇺🇸 Estados Unidos</h3>
+          <p>
+            Nos Estados Unidos, a mensagem vai de um lado e o endereço no outro.
+            O selo internacional pode ser comprado no United States Postal Service (USPS).
+          </p>
+          <p>
+            Você pode mencionar a Estátua da Liberdade, o Grand Canyon,
+            a Times Square, Nova York, Los Angeles e até a cultura do cinema.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>🇲🇽 México</h3>
+          <p>
+            No México, o processo é parecido: escreva a mensagem, coloque o endereço
+            completo com “BRASIL”, compre o selo no Correos de México e envie.
+          </p>
+          <p>
+            No texto, vale citar Chichén Itzá, Cancún, a Cidade do México,
+            as comidas típicas, as cores e as tradições mexicanas.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="destinos">
+      <h2 class="section-title">📍 Principais Destinos</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>🏙️ Grandes cidades</h3>
+          <ul>
+            <li>Nova York</li>
+            <li>Los Angeles</li>
+            <li>Toronto</li>
+            <li>Cidade do México</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🌄 Natureza e parques</h3>
+          <ul>
+            <li>Grand Canyon</li>
+            <li>Yellowstone</li>
+            <li>Banff National Park</li>
+            <li>Cataratas do Niágara</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🏖️ Praias e descanso</h3>
+          <ul>
+            <li>Cancún</li>
+            <li>Miami</li>
+            <li>Honolulu</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🎡 Entretenimento</h3>
+          <ul>
+            <li>Orlando</li>
+            <li>Las Vegas</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🌎 Destinos diferentes</h3>
+          <ul>
+            <li>Alasca</li>
+            <li>Vancouver</li>
+            <li>Montreal</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="culinaria">
+      <h2 class="section-title">🍔 Culinária</h2>
+      <div class="highlight">
+        <p>
+          A culinária da América do Norte é bastante variada.
+          Nos Estados Unidos, são comuns hambúrgueres, fast food e comidas práticas.
+          No Canadá, um prato muito conhecido é a poutine.
+          Já no México, a culinária é marcada por sabores fortes, com tacos,
+          burritos, nachos e diferentes tipos de tempero.
+        </p>
+      </div>
+    </section>
+
+    <section id="clima">
+      <h2 class="section-title">🌦️ Época e Clima</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>🌎 Estações do ano</h3>
+          <ul>
+            <li>Primavera: março a junho</li>
+            <li>Verão: junho a setembro</li>
+            <li>Outono: setembro a dezembro</li>
+            <li>Inverno: dezembro a março</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>❄️ Norte</h3>
+          <p>Canadá e norte dos EUA têm invernos muito frios, com neve intensa e temperaturas abaixo de zero.</p>
+        </div>
+
+        <div class="card">
+          <h3>🌤️ Centro</h3>
+          <p>Nos EUA centrais, o clima é temperado, com invernos frios e verões bem quentes.</p>
+        </div>
+
+        <div class="card">
+          <h3>🌴 Sul</h3>
+          <p>O sul dos EUA e o México têm clima quente, com verões fortes e úmidos.</p>
+        </div>
+
+        <div class="card">
+          <h3>🏜️ Oeste</h3>
+          <p>Na Califórnia, o clima é mais ameno. Já áreas desérticas têm muito calor e pouca chuva.</p>
+        </div>
+
+        <div class="card">
+          <h3>🌪️ Fenômenos naturais</h3>
+          <ul>
+            <li>Furacões</li>
+            <li>Nevascas</li>
+            <li>Tornados</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="epoca">
+      <h2 class="section-title">✈️ Melhor Época para Viajar</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>🇺🇸 Estados Unidos</h3>
+          <p>
+            A melhor época geralmente é na primavera e no outono,
+            quando o clima está mais agradável e os lugares costumam estar menos cheios.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>🇨🇦 Canadá</h3>
+          <p>
+            O verão é a melhor época para visitar, porque as temperaturas ficam mais agradáveis
+            e as cidades mais movimentadas.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>🇲🇽 México</h3>
+          <p>
+            De dezembro a abril costuma ser o melhor período,
+            com clima mais seco e ótimo para praia e passeios.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="documentos">
+      <h2 class="section-title">🛂 Passaporte, Visto e Aeroporto</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>📘 Passaporte</h3>
+          <p>
+            É o documento oficial usado para viagens internacionais.
+            Ele identifica o viajante e permite a entrada e saída de países.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>📄 Visto</h3>
+          <p>
+            O visto é uma autorização para entrar em outro país.
+            Os EUA exigem visto para brasileiros, o Canadá pode exigir visto ou eTA,
+            e o México depende da situação do viajante.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>🛫 Aeroporto</h3>
+          <p>
+            No aeroporto, o passageiro passa por etapas como check-in,
+            segurança, imigração e embarque.
+          </p>
+        </div>
+      </div>
+
+      <div class="highlight">
+        <p>
+          Para viajar para a América do Norte, é importante ter um passaporte válido,
+          verificar a necessidade de visto e seguir corretamente os procedimentos exigidos nos aeroportos.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>Projeto Traveling 🌍 | Site criado para apresentação escolar</p>
+  </footer>
+
+</body>
+</html>
