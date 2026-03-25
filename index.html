@@ -1,1270 +1,1068 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Traveling | Mapa Mundi Interativo</title>
-  <style>
-    :root{
-      --bg:#07111f;
-      --bg-2:#0d1b2f;
-      --panel:rgba(10,20,36,.82);
-      --panel-2:rgba(255,255,255,.06);
-      --line:rgba(255,255,255,.1);
-      --text:#eef6ff;
-      --muted:#aac0d8;
-      --accent:#4fd1c5;
-      --accent-2:#5da9ff;
-      --accent-3:#ffd166;
-      --danger:#ff7b7b;
-      --shadow:0 20px 45px rgba(0,0,0,.35);
-      --radius:22px;
-      --radius-sm:16px;
-      --left-width:360px;
-      --right-width:320px;
-    }
-
-    *{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-    }
-
-    html,body{
-      height:100%;
-      scroll-behavior:smooth;
-      font-family:Arial, Helvetica, sans-serif;
-      background:
-        radial-gradient(circle at 10% 20%, rgba(93,169,255,.18), transparent 22%),
-        radial-gradient(circle at 90% 10%, rgba(79,209,197,.16), transparent 20%),
-        radial-gradient(circle at 80% 80%, rgba(255,209,102,.10), transparent 18%),
-        linear-gradient(180deg,#081321 0%, #091728 100%);
-      color:var(--text);
-      overflow:hidden;
-    }
-
-    button, input{
-      font:inherit;
-    }
-
-    .app{
-      height:100%;
-      display:grid;
-      grid-template-columns: var(--left-width) 1fr var(--right-width);
-      gap:18px;
-      padding:18px;
-    }
-
-    .panel{
-      background:var(--panel);
-      border:1px solid var(--line);
-      box-shadow:var(--shadow);
-      border-radius:var(--radius);
-      backdrop-filter: blur(18px);
-      overflow:hidden;
-      min-height:0;
-    }
-
-    .left-panel, .right-panel{
-      display:flex;
-      flex-direction:column;
-    }
-
-    .panel-header{
-      padding:20px 20px 14px;
-      border-bottom:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,.05), transparent);
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin-bottom:8px;
-    }
-
-    .brand-badge{
-      width:44px;
-      height:44px;
-      border-radius:14px;
-      display:grid;
-      place-items:center;
-      font-size:1.2rem;
-      background:linear-gradient(135deg, var(--accent-2), var(--accent));
-      box-shadow:0 10px 22px rgba(77,180,255,.28);
-    }
-
-    .brand h1{
-      font-size:1.35rem;
-      line-height:1.05;
-    }
-
-    .panel-header p{
-      color:var(--muted);
-      font-size:.95rem;
-      line-height:1.45;
-    }
-
-    .tab-row{
-      display:flex;
-      gap:8px;
-      margin-top:16px;
-      flex-wrap:wrap;
-    }
-
-    .tab-btn{
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      border:1px solid transparent;
-      padding:9px 12px;
-      border-radius:999px;
-      cursor:pointer;
-      transition:.25s;
-      font-weight:700;
-      font-size:.92rem;
-    }
-
-    .tab-btn.active,
-    .tab-btn:hover{
-      background:rgba(79,209,197,.14);
-      border-color:rgba(79,209,197,.35);
-      color:#dbfffb;
-    }
-
-    .panel-scroll{
-      padding:18px;
-      overflow:auto;
-      min-height:0;
-      scrollbar-width:thin;
-    }
-
-    .card{
-      background:var(--panel-2);
-      border:1px solid var(--line);
-      border-radius:var(--radius-sm);
-      padding:16px;
-      margin-bottom:14px;
-    }
-
-    .card h3{
-      font-size:1rem;
-      margin-bottom:8px;
-    }
-
-    .card p, .card li, .small{
-      color:var(--muted);
-      line-height:1.55;
-      font-size:.95rem;
-    }
-
-    .bullet-list{
-      list-style:none;
-      display:grid;
-      gap:10px;
-      margin-top:10px;
-    }
-
-    .bullet-list li{
-      padding-left:22px;
-      position:relative;
-    }
-
-    .bullet-list li::before{
-      content:"✦";
-      position:absolute;
-      left:0;
-      top:0;
-      color:var(--accent);
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:rgba(93,169,255,.12);
-      border:1px solid rgba(93,169,255,.25);
-      color:#dcecff;
-      font-size:.87rem;
-      font-weight:700;
-    }
-
-    .map-stage{
-      position:relative;
-      min-width:0;
-      overflow:hidden;
-      border-radius:var(--radius);
-      border:1px solid var(--line);
-      background:
-        radial-gradient(circle at 50% 40%, rgba(93,169,255,.08), transparent 30%),
-        linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      box-shadow:var(--shadow);
-    }
-
-    .topbar{
-      position:absolute;
-      left:18px;
-      right:18px;
-      top:18px;
-      z-index:10;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      pointer-events:none;
-    }
-
-    .topbar-card{
-      pointer-events:auto;
-      background:rgba(7,17,31,.76);
-      border:1px solid var(--line);
-      backdrop-filter: blur(14px);
-      border-radius:18px;
-      padding:12px 14px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      color:var(--text);
-    }
-
-    .topbar h2{
-      font-size:1rem;
-      margin-bottom:2px;
-    }
-
-    .topbar p{
-      color:var(--muted);
-      font-size:.85rem;
-    }
-
-    .top-actions{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .ghost-btn, .accent-btn{
-      border:none;
-      border-radius:999px;
-      padding:10px 14px;
-      cursor:pointer;
-      transition:.25s;
-      font-weight:700;
-    }
-
-    .ghost-btn{
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      border:1px solid var(--line);
-    }
-
-    .accent-btn{
-      background:linear-gradient(135deg,var(--accent-2),var(--accent));
-      color:#031420;
-      box-shadow:0 10px 25px rgba(77,180,255,.25);
-    }
-
-    .ghost-btn:hover, .accent-btn:hover{
-      transform:translateY(-2px);
-    }
-
-    .map-wrap{
-      position:absolute;
-      inset:0;
-      padding:88px 16px 16px;
-    }
-
-    #worldMap{
-      width:100%;
-      height:100%;
-      display:block;
-      border-radius:24px;
-      background:
-        radial-gradient(circle at 35% 30%, rgba(93,169,255,.08), transparent 22%),
-        linear-gradient(180deg, rgba(10,24,42,.94), rgba(5,12,22,.98));
-    }
-
-    .continent,
-    .country{
-      cursor:pointer;
-      transition:fill .25s, stroke .25s, opacity .25s, transform .25s;
-    }
-
-    .continent{
-      fill:#153250;
-      stroke:#7cc5ff55;
-      stroke-width:2;
-    }
-
-    .continent:hover{
-      fill:#1d466d;
-      stroke:#7ce4dd;
-    }
-
-    .country{
-      fill:#1f4b6f;
-      stroke:#b5edff55;
-      stroke-width:1.5;
-      opacity:.96;
-    }
-
-    .country:hover{
-      fill:#2f6e99;
-      stroke:#cfffff;
-    }
-
-    .continent-label,
-    .country-label{
-      fill:#eaf5ff;
-      font-size:18px;
-      font-weight:700;
-      pointer-events:none;
-      text-shadow:0 3px 12px rgba(0,0,0,.45);
-    }
-
-    .country-label{
-      font-size:13px;
-      opacity:.94;
-    }
-
-    .continent.hidden{
-      opacity:.12;
-      pointer-events:none;
-    }
-
-    .country.hidden{
-      opacity:.12;
-      pointer-events:none;
-    }
-
-    .country.showing{
-      opacity:1;
-    }
-
-    .selected{
-      fill:#4fd1c5 !important;
-      stroke:#f4ffb5 !important;
-      stroke-width:2.5 !important;
-      filter: drop-shadow(0 0 12px rgba(79,209,197,.7));
-    }
-
-    .search-box{
-      display:flex;
-      gap:10px;
-      margin-top:14px;
-    }
-
-    .search-input{
-      flex:1;
-      padding:13px 14px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      outline:none;
-    }
-
-    .search-input::placeholder{
-      color:#8ea9c2;
-    }
-
-    .search-btn{
-      padding:0 16px;
-      border:none;
-      border-radius:14px;
-      background:linear-gradient(135deg,var(--accent-2),var(--accent));
-      color:#031420;
-      font-weight:800;
-      cursor:pointer;
-    }
-
-    .search-results{
-      margin-top:14px;
-      display:grid;
-      gap:10px;
-    }
-
-    .search-item{
-      background:rgba(255,255,255,.05);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px 14px;
-      cursor:pointer;
-      transition:.25s;
-    }
-
-    .search-item:hover{
-      border-color:rgba(79,209,197,.35);
-      background:rgba(79,209,197,.08);
-    }
-
-    .search-item strong{
-      display:block;
-      margin-bottom:2px;
-    }
-
-    .country-title{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:14px;
-    }
-
-    .country-title h2{
-      font-size:1.25rem;
-    }
-
-    .grid-info{
-      display:grid;
-      gap:12px;
-    }
-
-    .info-box{
-      background:rgba(255,255,255,.045);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-    }
-
-    .info-box h4{
-      font-size:.95rem;
-      margin-bottom:6px;
-      color:#f3fbff;
-    }
-
-    .info-box p{
-      color:var(--muted);
-      font-size:.94rem;
-      line-height:1.5;
-    }
-
-    .empty-state{
-      display:grid;
-      gap:14px;
-    }
-
-    .empty-hero{
-      background:linear-gradient(145deg, rgba(93,169,255,.12), rgba(79,209,197,.08));
-      border:1px solid rgba(93,169,255,.22);
-      border-radius:20px;
-      padding:18px;
-    }
-
-    .empty-hero h2{
-      font-size:1.18rem;
-      margin-bottom:8px;
-    }
-
-    .helper{
-      position:absolute;
-      bottom:18px;
-      left:50%;
-      transform:translateX(-50%);
-      z-index:9;
-      background:rgba(7,17,31,.74);
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:10px 16px;
-      color:var(--muted);
-      font-size:.9rem;
-      backdrop-filter: blur(14px);
-      text-align:center;
-      max-width:90%;
-    }
-
-    .legend{
-      display:grid;
-      gap:10px;
-      margin-top:14px;
-    }
-
-    .legend-item{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      color:var(--muted);
-      font-size:.92rem;
-    }
-
-    .legend-dot{
-      width:14px;
-      height:14px;
-      border-radius:999px;
-      flex-shrink:0;
-    }
-
-    .mobile-toggle{
-      display:none;
-    }
-
-    @media (max-width: 1200px){
-      .app{
-        grid-template-columns: 320px 1fr 290px;
-      }
-    }
-
-    @media (max-width: 980px){
-      body{
-        overflow:auto;
-      }
-      .app{
-        height:auto;
-        min-height:100%;
-        grid-template-columns: 1fr;
-        padding:12px;
-      }
-      .left-panel, .right-panel{
-        min-height:unset;
-      }
-      .map-stage{
-        min-height:72vh;
-      }
-      .topbar{
-        top:14px;
-        left:14px;
-        right:14px;
-        flex-direction:column;
-        align-items:stretch;
-      }
-      .top-actions{
-        justify-content:flex-end;
-      }
-      .helper{
-        bottom:12px;
-      }
-    }
-
-    @media (max-width: 640px){
-      .panel-header,
-      .panel-scroll{
-        padding:14px;
-      }
-      .map-wrap{
-        padding:120px 8px 8px;
-      }
-      .topbar-card{
-        flex-direction:column;
-        align-items:flex-start;
-      }
-      .search-box{
-        flex-direction:column;
-      }
-      .search-btn{
-        padding:12px 16px;
-      }
-      .continent-label{font-size:14px;}
-      .country-label{font-size:11px;}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traveling — Explore o Mundo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root {
+  --bg: #080f1a;
+  --surface: #0d1826;
+  --surface2: #111f30;
+  --border: rgba(100,180,255,0.1);
+  --accent: #00c9ff;
+  --accent2: #00ff9d;
+  --gold: #f5c842;
+  --text: #e8f4ff;
+  --text-dim: #7a9bb5;
+  --panel-w: 340px;
+  --radius: 16px;
+  --glow: 0 0 30px rgba(0,201,255,0.15);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; opacity: .4; }
+
+/* ── LAYOUT ── */
+#app { display: flex; height: 100vh; position: relative; }
+
+/* ── MAP ── */
+#map {
+  flex: 1;
+  z-index: 1;
+  background: #040b15;
+  cursor: crosshair;
+  transition: filter .4s ease;
+}
+#map.dimmed { filter: brightness(0.4); }
+
+/* ── LEAFLET OVERRIDES ── */
+.leaflet-container { background: #040b15 !important; }
+.leaflet-control-zoom { border: 1px solid var(--border) !important; background: var(--surface) !important; border-radius: 10px !important; overflow: hidden; }
+.leaflet-control-zoom a { background: var(--surface) !important; color: var(--accent) !important; border-color: var(--border) !important; font-size: 18px !important; width: 34px !important; height: 34px !important; line-height: 34px !important; }
+.leaflet-control-zoom a:hover { background: var(--surface2) !important; }
+.leaflet-control-attribution { display: none; }
+
+/* ── LEFT PANEL ── */
+#panel-left {
+  width: var(--panel-w);
+  height: 100%;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  transition: transform .4s cubic-bezier(.4,0,.2,1);
+  backdrop-filter: blur(20px);
+}
+#panel-left.hidden { transform: translateX(calc(-1 * var(--panel-w))); }
+
+.panel-header {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(160deg, var(--surface2), var(--surface));
+}
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+.logo-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-family: 'Space Mono', monospace;
+}
+
+.panel-content { flex: 1; overflow-y: auto; padding: 20px; }
+
+.section-title {
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-family: 'Space Mono', monospace;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.miles-hero {
+  background: linear-gradient(135deg, rgba(0,201,255,.12), rgba(0,255,157,.08));
+  border: 1px solid rgba(0,201,255,.2);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.miles-hero .icon { font-size: 36px; margin-bottom: 8px; }
+.miles-hero h3 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 6px; }
+.miles-hero p { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+.card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  transition: all .25s ease;
+  cursor: default;
+}
+.card:hover { border-color: rgba(0,201,255,.3); transform: translateY(-1px); box-shadow: var(--glow); }
+.card-icon { font-size: 22px; margin-bottom: 8px; }
+.card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+.card p { font-size: 12px; color: var(--text-dim); line-height: 1.65; }
+
+.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+.stat {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-val { font-family: 'Space Mono', monospace; font-size: 20px; color: var(--accent2); font-weight: 700; }
+.stat-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+/* ── RIGHT PANEL ── */
+#panel-right {
+  width: var(--panel-w);
+  height: 100%;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  transition: transform .4s cubic-bezier(.4,0,.2,1);
+}
+#panel-right.hidden { transform: translateX(var(--panel-w)); }
+
+#search-box {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+#search-box h2 { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 14px; }
+.search-wrap { position: relative; }
+.search-wrap input {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.search-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,201,255,.1); }
+.search-wrap input::placeholder { color: var(--text-dim); }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 16px; }
+
+#search-results { flex: 1; overflow-y: auto; padding: 12px; }
+.result-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all .2s;
+  border: 1px solid transparent;
+}
+.result-item:hover { background: var(--surface2); border-color: var(--border); }
+.result-item .flag { font-size: 20px; }
+.result-item .name { font-size: 14px; font-weight: 500; }
+.result-item .continent { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+.no-results { text-align: center; color: var(--text-dim); font-size: 13px; padding: 30px 0; }
+
+/* ── COUNTRY PANEL (overlay) ── */
+#country-panel {
+  position: fixed;
+  top: 0; right: 0;
+  width: 420px;
+  height: 100%;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(420px);
+  transition: transform .45s cubic-bezier(.4,0,.2,1);
+  box-shadow: -20px 0 60px rgba(0,0,0,.5);
+}
+#country-panel.open { transform: translateX(0); }
+
+.cp-header {
+  padding: 24px 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.cp-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: color .2s;
+  width: fit-content;
+}
+.cp-back:hover { color: var(--accent); }
+.cp-flag { font-size: 48px; margin-bottom: 6px; }
+.cp-name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; }
+.cp-region { font-size: 12px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; font-family: 'Space Mono', monospace; margin: 4px 0 20px; }
+
+.cp-tabs { display: flex; gap: 4px; padding: 0 20px; border-bottom: 1px solid var(--border); }
+.cp-tab {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  transition: all .2s;
+  white-space: nowrap;
+}
+.cp-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.cp-tab:hover:not(.active) { color: var(--text); }
+
+.cp-body { flex: 1; overflow-y: auto; padding: 20px; }
+.cp-section { display: none; }
+.cp-section.active { display: block; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.info-tile {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.info-tile .label { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; font-family: 'Space Mono', monospace; }
+.info-tile .value { font-size: 15px; font-weight: 600; }
+.info-tile .value.small { font-size: 13px; }
+
+.visa-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 4px 0;
+}
+.visa-badge.free { background: rgba(0,255,157,.15); color: var(--accent2); border: 1px solid rgba(0,255,157,.3); }
+.visa-badge.required { background: rgba(245,200,66,.15); color: var(--gold); border: 1px solid rgba(245,200,66,.3); }
+
+.culture-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+.culture-icon { font-size: 24px; flex-shrink: 0; }
+.culture-text h4 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.culture-text p { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+.food-chip {
+  display: inline-block;
+  padding: 6px 14px;
+  background: rgba(0,201,255,.08);
+  border: 1px solid rgba(0,201,255,.2);
+  border-radius: 20px;
+  font-size: 12px;
+  margin: 3px;
+  cursor: default;
+  transition: all .2s;
+}
+.food-chip:hover { background: rgba(0,201,255,.16); }
+
+.flight-card {
+  background: linear-gradient(135deg, rgba(0,201,255,.1), rgba(0,255,157,.06));
+  border: 1px solid rgba(0,201,255,.25);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.flight-route { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.flight-city { font-size: 13px; font-weight: 600; }
+.flight-arrow { color: var(--accent); font-size: 18px; flex: 1; text-align: center; }
+.flight-prices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.price-box { background: var(--surface); border-radius: 10px; padding: 12px; text-align: center; border: 1px solid var(--border); }
+.price-val { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; color: var(--accent2); }
+.price-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+/* ── TOGGLE BUTTONS ── */
+.toggle-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  width: 28px; height: 56px;
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  transition: all .25s;
+  backdrop-filter: blur(10px);
+}
+.toggle-btn:hover { background: var(--surface2); box-shadow: var(--glow); }
+#toggle-left { left: var(--panel-w); border-left: none; }
+#toggle-right { right: var(--panel-w); border-right: none; border-radius: 8px 0 0 8px; }
+#toggle-left.panel-hidden { left: 0; }
+#toggle-right.panel-hidden { right: 0; }
+
+/* ── CONTINENT TOAST ── */
+#continent-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex; align-items: center; gap: 10px;
+  z-index: 50;
+  transition: transform .4s cubic-bezier(.4,0,.2,1), opacity .4s;
+  opacity: 0;
+  box-shadow: 0 8px 40px rgba(0,0,0,.4);
+  white-space: nowrap;
+}
+#continent-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+#continent-toast .ct-name { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--accent); }
+
+/* ── MINIMAP BREADCRUMB ── */
+#breadcrumb {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13,24,38,.85);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 8px 20px;
+  font-size: 12px;
+  color: var(--text-dim);
+  z-index: 30;
+  display: flex; align-items: center; gap: 8px;
+  backdrop-filter: blur(10px);
+  transition: all .3s;
+  pointer-events: none;
+  font-family: 'Space Mono', monospace;
+}
+#breadcrumb span { color: var(--accent); }
+
+/* ── LOADING SCREEN ── */
+#loader {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  transition: opacity .8s ease;
+}
+#loader.fade { opacity: 0; pointer-events: none; }
+.loader-logo { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.loader-bar { width: 200px; height: 2px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.loader-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); width: 0; animation: load 1.8s ease forwards; }
+@keyframes load { to { width: 100%; } }
+.loader-sub { font-size: 12px; color: var(--text-dim); letter-spacing: 3px; font-family: 'Space Mono', monospace; }
+
+/* ── GLOBE OVERLAY HINT ── */
+.map-hint {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 1px;
+  pointer-events: none;
+  transition: opacity .5s;
+}
+
+@media (max-width: 900px) {
+  :root { --panel-w: 280px; }
+  #panel-left, #panel-right { position: fixed; top: 0; height: 100%; }
+  #panel-left { left: 0; }
+  #panel-right { right: 0; }
+  #panel-left.hidden { transform: translateX(-280px); }
+  #panel-right.hidden { transform: translateX(280px); }
+  #country-panel { width: 100%; }
+  #country-panel.open { transform: none; }
+}
+</style>
 </head>
 <body>
-  <div class="app">
-    <!-- Painel esquerdo -->
-    <aside class="panel left-panel">
-      <div class="panel-header">
-        <div class="brand">
-          <div class="brand-badge">🌍</div>
-          <div>
-            <h1>Traveling</h1>
-            <p>Exploração por mapa, países, cultura e viagens</p>
-          </div>
-        </div>
 
-        <div class="tab-row">
-          <button class="tab-btn active" data-tab="milhas">✈️ Milhas</button>
-          <button class="tab-btn" data-tab="pais">📍 País</button>
+<div id="loader">
+  <div class="loader-logo">Traveling</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+  <div class="loader-sub">Carregando o mundo...</div>
+</div>
+
+<div id="app">
+
+  <!-- LEFT PANEL: MILHAS -->
+  <div id="panel-left">
+    <div class="panel-header">
+      <div class="logo">✈ Traveling</div>
+      <div class="logo-sub">Explore o Mundo</div>
+    </div>
+    <div class="panel-content">
+      <div class="section-title">Milhas Aéreas</div>
+
+      <div class="miles-hero">
+        <div class="icon">🎯</div>
+        <h3>O que são Milhas?</h3>
+        <p>Milhas aéreas são pontos acumulados em programas de fidelidade de companhias aéreas. Cada compra ou voo gera milhas que podem ser trocadas por passagens, upgrades e benefícios.</p>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-val">R$0,03</div>
+          <div class="stat-label">Valor médio/milha</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">70%</div>
+          <div class="stat-label">Economia possível</div>
         </div>
       </div>
 
-      <div class="panel-scroll">
-        <section id="tab-milhas" class="tab-content">
-          <div class="card">
-            <span class="badge">✈️ Conscientização sobre milhas</span>
-            <h3 style="margin-top:12px;">O que são milhas aéreas?</h3>
-            <p>
-              Milhas são pontos acumulados em programas de fidelidade. Elas podem ser usadas
-              para comprar passagens, fazer upgrades, emitir trechos promocionais ou reduzir
-              bastante o custo de uma viagem.
-            </p>
-          </div>
+      <div class="section-title" style="margin-top:20px">Como Acumular</div>
 
-          <div class="card">
-            <h3>Como funcionam?</h3>
-            <ul class="bullet-list">
-              <li>Você acumula pontos comprando passagens, usando cartão de crédito ou parceiros.</li>
-              <li>Esses pontos podem ser transferidos para programas de companhias aéreas.</li>
-              <li>Depois, podem virar trechos nacionais ou internacionais com menos gasto em dinheiro.</li>
-            </ul>
-          </div>
-
-          <div class="card">
-            <h3>Como acumular no dia a dia</h3>
-            <ul class="bullet-list">
-              <li>Cartão de crédito com pontuação</li>
-              <li>Compras em lojas parceiras</li>
-              <li>Promoções de transferência bonificada</li>
-              <li>Assinaturas de clubes de pontos</li>
-            </ul>
-          </div>
-
-          <div class="card">
-            <h3>Benefícios em viagens</h3>
-            <ul class="bullet-list">
-              <li>Economia no valor da passagem</li>
-              <li>Possibilidade de viajar em datas promocionais</li>
-              <li>Uso para voos nacionais e internacionais</li>
-              <li>Maior flexibilidade em planejamentos de longo prazo</li>
-            </ul>
-          </div>
-
-          <div class="card">
-            <h3>Por que isso é importante?</h3>
-            <p>
-              Entender milhas ajuda a viajar melhor, gastando menos. No seu projeto, esse tema
-              combina muito com logística, planejamento e inteligência financeira em viagens.
-            </p>
-          </div>
-
-          <div class="legend">
-            <div class="legend-item">
-              <span class="legend-dot" style="background:var(--accent);"></span>
-              Clique em um continente para aproximar
-            </div>
-            <div class="legend-item">
-              <span class="legend-dot" style="background:var(--accent-2);"></span>
-              Clique em um país para ver detalhes
-            </div>
-            <div class="legend-item">
-              <span class="legend-dot" style="background:var(--accent-3);"></span>
-              Use a busca para localizar sem saber a região
-            </div>
-          </div>
-        </section>
-
-        <section id="tab-pais" class="tab-content" style="display:none;">
-          <div id="countryPanel" class="empty-state">
-            <div class="empty-hero">
-              <h2>Selecione um país no mapa</h2>
-              <p class="small">
-                Clique em um continente, aproxime a visualização e depois escolha um país.
-                As informações aparecerão aqui organizadas por tópicos.
-              </p>
-            </div>
-
-            <div class="card">
-              <h3>Estrutura preparada para expansão</h3>
-              <p>
-                Este painel já está pronto para receber textos maiores no futuro, como regras
-                detalhadas de visto, etiqueta local, feriados, costumes e mais exemplos de logística.
-              </p>
-            </div>
-          </div>
-        </section>
+      <div class="card">
+        <div class="card-icon">💳</div>
+        <h4>Cartão de Crédito</h4>
+        <p>Use cartões co-branded de companhias aéreas. Cada real gasto gera pontos. Cartões premium chegam a 2,5 milhas por real.</p>
       </div>
-    </aside>
-
-    <!-- Mapa -->
-    <main class="map-stage">
-      <div class="topbar">
-        <div class="topbar-card">
-          <div style="font-size:1.35rem;">🗺️</div>
-          <div>
-            <h2>Mapa Mundi Interativo</h2>
-            <p>Explore continentes, encontre países e organize informações de viagem</p>
-          </div>
-        </div>
-
-        <div class="top-actions">
-          <button class="ghost-btn" id="resetViewBtn">↺ Mapa completo</button>
-          <button class="accent-btn" id="focusNorthAmericaBtn">🌎 Testar América do Norte</button>
-        </div>
+      <div class="card">
+        <div class="card-icon">✈️</div>
+        <h4>Voos e Parceiros</h4>
+        <p>Voos da companhia e parceiras da aliança acumulam milhas automaticamente. Quanto maior a classe tarifária, mais milhas.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏨</div>
+        <h4>Hotéis e Compras</h4>
+        <p>Programas como Livelo e Esfera convertem compras do dia a dia em milhas. Supermercados, postos e farmácias participam.</p>
       </div>
 
-      <div class="map-wrap">
-        <svg id="worldMap" viewBox="0 0 1200 700" aria-label="Mapa mundi interativo">
-          <defs>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="5" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
+      <div class="section-title" style="margin-top:20px">Benefícios</div>
 
-          <g id="viewport" transform="translate(0,0) scale(1)">
-            <!-- Ocean grid décor -->
-            <g opacity=".08">
-              <path d="M0 100 H1200 M0 200 H1200 M0 300 H1200 M0 400 H1200 M0 500 H1200 M0 600 H1200" stroke="#9ed8ff"/>
-              <path d="M100 0 V700 M200 0 V700 M300 0 V700 M400 0 V700 M500 0 V700 M600 0 V700 M700 0 V700 M800 0 V700 M900 0 V700 M1000 0 V700 M1100 0 V700" stroke="#9ed8ff"/>
-            </g>
-
-            <!-- Continentes base -->
-            <g id="continentsLayer">
-              <path id="continent-north-america" class="continent" data-continent="north-america" d="M118 144 L182 102 L280 90 L358 108 L418 138 L430 182 L395 230 L330 258 L300 300 L256 312 L222 286 L198 236 L148 212 L120 170 Z"/>
-              <path id="continent-south-america" class="continent" data-continent="south-america" d="M320 344 L364 354 L398 384 L420 434 L408 500 L386 566 L356 624 L322 598 L304 538 L286 470 L294 404 Z"/>
-              <path id="continent-europe" class="continent" data-continent="europe" d="M600 132 L660 120 L712 130 L742 154 L738 184 L694 200 L658 194 L626 174 L604 154 Z"/>
-              <path id="continent-africa" class="continent" data-continent="africa" d="M616 234 L672 226 L718 252 L740 308 L736 392 L706 474 L660 516 L622 494 L604 426 L602 334 Z"/>
-              <path id="continent-asia" class="continent" data-continent="asia" d="M748 134 L836 108 L946 118 L1062 154 L1108 216 L1086 266 L1004 282 L936 252 L890 282 L832 258 L772 220 L748 184 Z"/>
-              <path id="continent-oceania" class="continent" data-continent="oceania" d="M942 454 L1008 444 L1070 466 L1092 506 L1064 536 L996 542 L944 518 L922 486 Z"/>
-
-              <text x="220" y="150" class="continent-label">América do Norte</text>
-              <text x="300" y="380" class="continent-label">América do Sul</text>
-              <text x="635" y="155" class="continent-label">Europa</text>
-              <text x="640" y="340" class="continent-label">África</text>
-              <text x="875" y="160" class="continent-label">Ásia</text>
-              <text x="972" y="482" class="continent-label">Oceania</text>
-            </g>
-
-            <!-- Países -->
-            <g id="countriesLayer">
-              <!-- América do Norte -->
-              <path class="country hidden" data-country="canada" data-continent="north-america" d="M168 126 L236 104 L310 104 L362 120 L388 152 L374 180 L318 196 L250 194 L198 176 L170 154 Z"/>
-              <path class="country hidden" data-country="usa" data-continent="north-america" d="M186 196 L250 196 L322 200 L368 218 L356 252 L314 270 L258 276 L214 262 L190 236 Z"/>
-              <path class="country hidden" data-country="mexico" data-continent="north-america" d="M206 266 L252 278 L276 302 L262 328 L232 334 L206 320 L190 290 Z"/>
-
-              <!-- América do Sul -->
-              <path class="country hidden" data-country="brazil" data-continent="south-america" d="M316 388 L366 382 L396 406 L398 452 L372 486 L336 484 L306 450 L300 416 Z"/>
-              <path class="country hidden" data-country="argentina" data-continent="south-america" d="M342 490 L364 510 L364 556 L346 600 L326 590 L320 548 L326 512 Z"/>
-
-              <!-- Europa -->
-              <path class="country hidden" data-country="france" data-continent="europe" d="M640 154 L666 152 L680 170 L670 188 L644 186 L632 170 Z"/>
-              <path class="country hidden" data-country="uk" data-continent="europe" d="M620 142 L634 142 L640 158 L632 170 L620 164 L616 150 Z"/>
-
-              <!-- África -->
-              <path class="country hidden" data-country="egypt" data-continent="africa" d="M672 250 L700 250 L706 278 L678 282 L666 266 Z"/>
-              <path class="country hidden" data-country="south-africa" data-continent="africa" d="M656 456 L692 454 L706 484 L680 502 L648 490 L644 470 Z"/>
-
-              <!-- Ásia -->
-              <path class="country hidden" data-country="japan" data-continent="asia" d="M1034 208 L1044 214 L1048 230 L1038 240 L1028 230 Z"/>
-              <path class="country hidden" data-country="china" data-continent="asia" d="M860 180 L920 174 L966 194 L958 236 L904 244 L862 224 L846 202 Z"/>
-              <path class="country hidden" data-country="india" data-continent="asia" d="M824 246 L852 248 L866 278 L850 306 L824 296 L812 268 Z"/>
-
-              <!-- Oceania -->
-              <path class="country hidden" data-country="australia" data-continent="oceania" d="M974 470 L1042 468 L1074 498 L1050 526 L984 526 L956 500 Z"/>
-
-              <!-- Labels -->
-              <text class="country-label" x="246" y="154">Canadá</text>
-              <text class="country-label" x="252" y="236">Estados Unidos</text>
-              <text class="country-label" x="210" y="307">México</text>
-
-              <text class="country-label" x="334" y="436">Brasil</text>
-              <text class="country-label" x="320" y="556">Argentina</text>
-
-              <text class="country-label" x="646" y="174">França</text>
-              <text class="country-label" x="604" y="140">Reino Unido</text>
-
-              <text class="country-label" x="672" y="246">Egito</text>
-              <text class="country-label" x="642" y="520">África do Sul</text>
-
-              <text class="country-label" x="878" y="212">China</text>
-              <text class="country-label" x="812" y="322">Índia</text>
-              <text class="country-label" x="1020" y="204">Japão</text>
-
-              <text class="country-label" x="985" y="506">Austrália</text>
-            </g>
-          </g>
-        </svg>
+      <div class="card">
+        <div class="card-icon">🌍</div>
+        <h4>Viagens Internacionais</h4>
+        <p>Passagens para Europa saem de 50–70 mil milhas. Business class que custa R$ 25.000 pode ser resgatada por 80 mil milhas.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛋️</div>
+        <h4>Upgrade de Cabine</h4>
+        <p>Use milhas para fazer upgrade para executiva ou primeira classe. Diferença de conforto enorme pelo mesmo voo.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h4>Salas VIP</h4>
+        <p>Status elite em programas de fidelidade libera acesso a lounges exclusivos em aeroportos do mundo todo.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h4>No Dia a Dia</h4>
+        <p>Troque milhas por produtos, descontos em viagens, ingressos e experiências. Smiles, Latam Pass e TudoAzul têm catálogos extensos.</p>
       </div>
 
-      <div class="helper">
-        Clique em um continente para aproximar • Depois clique em um país • Ou use a pesquisa ao lado
-      </div>
-    </main>
+      <div class="section-title" style="margin-top:20px">Economia Real</div>
 
-    <!-- Painel direito -->
-    <aside class="panel right-panel">
-      <div class="panel-header">
-        <div class="brand" style="margin-bottom:10px;">
-          <div class="brand-badge" style="background:linear-gradient(135deg,var(--accent-3), #ff9f6e); color:#2a1600;">🔎</div>
-          <div>
-            <h1>Pesquisa de país</h1>
-            <p>Encontre mesmo sem saber onde fica</p>
-          </div>
-        </div>
-
-        <div class="search-box">
-          <input id="countrySearch" class="search-input" type="text" placeholder="Ex.: Canadá, Japão, México" />
-          <button id="searchBtn" class="search-btn">Buscar</button>
-        </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:13px;color:var(--text-dim);line-height:1.7">
+        💡 <strong style="color:var(--text)">Exemplo prático:</strong><br>
+        São Paulo → Paris (ida e volta)<br>
+        Preço em dinheiro: <span style="color:var(--gold)">~R$ 6.800</span><br>
+        Preço em milhas: <span style="color:var(--accent2)">~65.000 milhas + R$ 450 em taxas</span><br>
+        Economia: <span style="color:var(--accent2)">~R$ 6.350 (93%)</span>
       </div>
 
-      <div class="panel-scroll">
-        <div class="card">
-          <h3>Como usar</h3>
-          <ul class="bullet-list">
-            <li>Digite o nome de um país</li>
-            <li>Selecione o resultado</li>
-            <li>O mapa vai localizar e destacar a região</li>
-            <li>As informações do país aparecem no painel esquerdo</li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <h3>Resultados</h3>
-          <div id="searchResults" class="search-results">
-            <div class="search-item" data-country="canada">
-              <strong>Canadá</strong>
-              <span class="small">América do Norte</span>
-            </div>
-            <div class="search-item" data-country="usa">
-              <strong>Estados Unidos</strong>
-              <span class="small">América do Norte</span>
-            </div>
-            <div class="search-item" data-country="mexico">
-              <strong>México</strong>
-              <span class="small">América do Norte</span>
-            </div>
-            <div class="search-item" data-country="japan">
-              <strong>Japão</strong>
-              <span class="small">Ásia</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Observação</h3>
-          <p>
-            Os textos dos países abaixo são exemplos e placeholders. A estrutura foi pensada
-            para você substituir e expandir depois com suas pesquisas completas.
-          </p>
-        </div>
-      </div>
-    </aside>
+    </div>
   </div>
 
-  <script>
-    const tabs = document.querySelectorAll('.tab-btn');
-    const tabContents = {
-      milhas: document.getElementById('tab-milhas'),
-      pais: document.getElementById('tab-pais')
-    };
+  <!-- TOGGLE BUTTONS -->
+  <button class="toggle-btn" id="toggle-left" title="Ocultar/mostrar painel">‹</button>
+  <button class="toggle-btn" id="toggle-right" title="Ocultar/mostrar busca">›</button>
 
-    tabs.forEach(btn => {
-      btn.addEventListener('click', () => {
-        tabs.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        Object.values(tabContents).forEach(el => el.style.display = 'none');
-        tabContents[btn.dataset.tab].style.display = 'block';
-      });
-    });
+  <!-- MAP -->
+  <div id="map"></div>
 
-    const countryData = {
-      canada: {
-        name: 'Canadá',
-        continent: 'América do Norte',
-        moeda: 'Dólar canadense (CAD)',
-        lingua: 'Inglês e francês',
-        visto: 'Para brasileiros, a regra pode variar conforme o perfil da viagem. Use este campo como espaço para completar depois com sua pesquisa oficial.',
-        comportamento: 'Pontualidade, educação e respeito ao espaço pessoal são muito valorizados.',
-        costume: 'O inverno marca bastante a vida local. Em várias regiões, festivais de neve e atividades ao ar livre são comuns.',
-        gastronomia: 'Poutine, maple syrup, pratos quentes e culinária multicultural.',
-        logisticaDinheiro: 'Exemplo: passagens a partir de R$ 3.200 a R$ 5.500, dependendo da época e origem.',
-        logisticaMilhas: 'Exemplo: de 45.000 a 95.000 milhas por trecho/promocional, variando conforme programa.',
-      },
-      usa: {
-        name: 'Estados Unidos',
-        continent: 'América do Norte',
-        moeda: 'Dólar americano (USD)',
-        lingua: 'Inglês',
-        visto: 'Brasileiros normalmente precisam de visto para turismo. Você pode detalhar aqui tipo, validade e permanência máxima.',
-        comportamento: 'Valorização de fila organizada, pontualidade e objetividade na comunicação.',
-        costume: 'Datas como Thanksgiving e Halloween têm grande presença cultural e comercial.',
-        gastronomia: 'Hambúrgueres, panquecas, barbecue, fast food e culinária influenciada por muitos povos.',
-        logisticaDinheiro: 'Exemplo: R$ 2.700 a R$ 6.000, dependendo da cidade e do período.',
-        logisticaMilhas: 'Exemplo: 35.000 a 100.000 milhas, conforme rota e antecedência.',
-      },
-      mexico: {
-        name: 'México',
-        continent: 'América do Norte',
-        moeda: 'Peso mexicano (MXN)',
-        lingua: 'Espanhol',
-        visto: 'Esse campo pode ser editado depois com a regra exata para brasileiros e tempo máximo de permanência.',
-        comportamento: 'Cumprimentos cordiais e forte valorização de convivência familiar e social.',
-        costume: 'O Día de los Muertos é uma das celebrações culturais mais conhecidas do país.',
-        gastronomia: 'Tacos, burritos, nachos, molhos, milho, pimentas e sabores intensos.',
-        logisticaDinheiro: 'Exemplo: R$ 2.400 a R$ 4.800, variando entre Cidade do México, Cancún e outras rotas.',
-        logisticaMilhas: 'Exemplo: 30.000 a 80.000 milhas em trechos promocionais.',
-      },
-      brazil: {
-        name: 'Brasil',
-        continent: 'América do Sul',
-        moeda: 'Real (BRL)',
-        lingua: 'Português',
-        visto: 'Campo pronto para preenchimento posterior conforme o público do seu site.',
-        comportamento: 'Contato social próximo e comunicação geralmente calorosa e informal.',
-        costume: 'Carnaval, festas juninas e diversidade cultural regional.',
-        gastronomia: 'Feijoada, pão de queijo, acarajé, churrasco e culinária regional variada.',
-        logisticaDinheiro: 'Exemplo: ajuste depois conforme origem e destino.',
-        logisticaMilhas: 'Exemplo: ajuste depois conforme programa e sazonalidade.',
-      },
-      argentina: {
-        name: 'Argentina',
-        continent: 'América do Sul',
-        moeda: 'Peso argentino (ARS)',
-        lingua: 'Espanhol',
-        visto: 'Campo editável para regra exata e permanência.',
-        comportamento: 'Forte cultura de convivência social, cafés e encontros.',
-        costume: 'O mate é muito presente no cotidiano.',
-        gastronomia: 'Empanadas, carnes, medialunas e doce de leite.',
-        logisticaDinheiro: 'Exemplo de valor médio para completar depois.',
-        logisticaMilhas: 'Exemplo de valor em milhas para completar depois.',
-      },
-      france: {
-        name: 'França',
-        continent: 'Europa',
-        moeda: 'Euro (EUR)',
-        lingua: 'Francês',
-        visto: 'Campo para completar com regra de entrada e tempo permitido.',
-        comportamento: 'Boas maneiras e cordialidade são bem vistas.',
-        costume: 'Feriados, cafés, arte e tradição gastronômica são marcantes.',
-        gastronomia: 'Croissant, queijos, massas, sobremesas e alta culinária.',
-        logisticaDinheiro: 'Exemplo de faixa de preço a ser substituída.',
-        logisticaMilhas: 'Exemplo de faixa em milhas a ser substituída.',
-      },
-      uk: {
-        name: 'Reino Unido',
-        continent: 'Europa',
-        moeda: 'Libra esterlina (GBP)',
-        lingua: 'Inglês',
-        visto: 'Campo para detalhar regras de entrada e permanência.',
-        comportamento: 'Fila, pontualidade e educação costumam ser valorizadas.',
-        costume: 'Chá, pubs e tradições históricas fazem parte da identidade local.',
-        gastronomia: 'Fish and chips, cafés, tortas e culinária multicultural.',
-        logisticaDinheiro: 'Exemplo para edição posterior.',
-        logisticaMilhas: 'Exemplo para edição posterior.',
-      },
-      egypt: {
-        name: 'Egito',
-        continent: 'África',
-        moeda: 'Libra egípcia (EGP)',
-        lingua: 'Árabe',
-        visto: 'Campo preparado para sua pesquisa completa.',
-        comportamento: 'Respeito à cultura local e a locais religiosos é muito importante.',
-        costume: 'Grandes referências históricas e culturais ligadas ao passado antigo.',
-        gastronomia: 'Pratos com grãos, temperos, pães e receitas tradicionais.',
-        logisticaDinheiro: 'Exemplo para edição posterior.',
-        logisticaMilhas: 'Exemplo para edição posterior.',
-      },
-      'south-africa': {
-        name: 'África do Sul',
-        continent: 'África',
-        moeda: 'Rand sul-africano (ZAR)',
-        lingua: 'Múltiplas línguas oficiais',
-        visto: 'Campo pronto para detalhamento futuro.',
-        comportamento: 'Diversidade cultural forte e costumes variados.',
-        costume: 'Safáris, esportes e convivência multicultural chamam atenção.',
-        gastronomia: 'Carnes, grelhados e culinária diversa.',
-        logisticaDinheiro: 'Exemplo para editar depois.',
-        logisticaMilhas: 'Exemplo para editar depois.',
-      },
-      china: {
-        name: 'China',
-        continent: 'Ásia',
-        moeda: 'Renminbi / Yuan (CNY)',
-        lingua: 'Mandarim',
-        visto: 'Campo para regras específicas e prazo de permanência.',
-        comportamento: 'Respeito à formalidade e etiqueta pode ser importante em vários contextos.',
-        costume: 'Ano Novo Chinês e tradições milenares têm grande destaque.',
-        gastronomia: 'Macarrão, arroz, dumplings, chás e muita variedade regional.',
-        logisticaDinheiro: 'Exemplo para substituir depois.',
-        logisticaMilhas: 'Exemplo para substituir depois.',
-      },
-      india: {
-        name: 'Índia',
-        continent: 'Ásia',
-        moeda: 'Rupia indiana (INR)',
-        lingua: 'Hindi e inglês em muitos contextos, além de outras línguas',
-        visto: 'Campo pronto para completar depois com as exigências específicas.',
-        comportamento: 'Há forte diversidade regional e religiosa; respeito cultural é essencial.',
-        costume: 'Festivais coloridos como Holi e Diwali são muito conhecidos.',
-        gastronomia: 'Curries, especiarias, arroz, pães e pratos vegetarianos.',
-        logisticaDinheiro: 'Exemplo para edição futura.',
-        logisticaMilhas: 'Exemplo para edição futura.',
-      },
-      japan: {
-        name: 'Japão',
-        continent: 'Ásia',
-        moeda: 'Iene (JPY)',
-        lingua: 'Japonês',
-        visto: 'Campo pronto para preencher com regra atualizada.',
-        comportamento: 'Respeito, silêncio em espaços públicos e organização são muito valorizados.',
-        costume: 'Hanami, festivais sazonais e etiqueta social são marcantes.',
-        gastronomia: 'Sushi, ramen, tempurá, bentô e culinária muito valorizada esteticamente.',
-        logisticaDinheiro: 'Exemplo: faixa a completar conforme origem e temporada.',
-        logisticaMilhas: 'Exemplo: faixa em milhas para completar depois.',
-      },
-      australia: {
-        name: 'Austrália',
-        continent: 'Oceania',
-        moeda: 'Dólar australiano (AUD)',
-        lingua: 'Inglês',
-        visto: 'Campo preparado para informar exigência e tempo de permanência.',
-        comportamento: 'Estilo mais descontraído, mas respeitoso.',
-        costume: 'Praias, esportes ao ar livre e vida urbana misturados com natureza.',
-        gastronomia: 'Carnes, frutos do mar, tortas salgadas e culinária multicultural.',
-        logisticaDinheiro: 'Exemplo para editar posteriormente.',
-        logisticaMilhas: 'Exemplo para editar posteriormente.',
-      }
-    };
+  <!-- BREADCRUMB -->
+  <div id="breadcrumb">🌍 <span>Mundo</span></div>
+  <div class="map-hint" id="map-hint">Clique em um continente para explorar</div>
 
-    const continentViews = {
-      world: { scale: 1, x: 0, y: 0 },
-      'north-america': { scale: 2.2, x: -170, y: -95 },
-      'south-america': { scale: 2.45, x: -280, y: -290 },
-      europe: { scale: 3.1, x: -1240, y: -305 },
-      africa: { scale: 2.4, x: -900, y: -240 },
-      asia: { scale: 1.9, x: -810, y: -80 },
-      oceania: { scale: 2.75, x: -1640, y: -620 }
-    };
+  <!-- RIGHT PANEL: SEARCH -->
+  <div id="panel-right">
+    <div id="search-box">
+      <h2>🔍 Explorar</h2>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="search-input" placeholder="Buscar país..." autocomplete="off"/>
+      </div>
+    </div>
+    <div id="search-results"></div>
+  </div>
 
-    const countryToContinent = {
-      canada: 'north-america',
-      usa: 'north-america',
-      mexico: 'north-america',
-      brazil: 'south-america',
-      argentina: 'south-america',
-      france: 'europe',
-      uk: 'europe',
-      egypt: 'africa',
-      'south-africa': 'africa',
-      china: 'asia',
-      india: 'asia',
-      japan: 'asia',
-      australia: 'oceania'
-    };
+</div>
 
-    const viewport = document.getElementById('viewport');
-    const continents = document.querySelectorAll('.continent');
-    const countries = document.querySelectorAll('.country');
-    const countryPanel = document.getElementById('countryPanel');
-    const searchInput = document.getElementById('countrySearch');
-    const searchBtn = document.getElementById('searchBtn');
-    const searchResults = document.getElementById('searchResults');
-    const resetViewBtn = document.getElementById('resetViewBtn');
-    const focusNorthAmericaBtn = document.getElementById('focusNorthAmericaBtn');
+<!-- CONTINENT TOAST -->
+<div id="continent-toast">
+  <span>🌍</span>
+  <span class="ct-name" id="toast-name"></span>
+  <span style="font-size:12px;color:var(--text-dim)">— clique em um país</span>
+</div>
 
-    let activeContinent = null;
-    let activeCountry = null;
+<!-- COUNTRY PANEL -->
+<div id="country-panel">
+  <div class="cp-header">
+    <div class="cp-back" id="cp-back">← Voltar ao mapa</div>
+    <div class="cp-flag" id="cp-flag">🌍</div>
+    <div class="cp-name" id="cp-name">País</div>
+    <div class="cp-region" id="cp-region">Região</div>
+  </div>
+  <div class="cp-tabs">
+    <div class="cp-tab active" data-tab="geral">Geral</div>
+    <div class="cp-tab" data-tab="cultura">Cultura</div>
+    <div class="cp-tab" data-tab="gastronomia">Gastronomia</div>
+    <div class="cp-tab" data-tab="viagem">Viagem</div>
+  </div>
+  <div class="cp-body">
+    <div class="cp-section active" id="tab-geral"></div>
+    <div class="cp-section" id="tab-cultura"></div>
+    <div class="cp-section" id="tab-gastronomia"></div>
+    <div class="cp-section" id="tab-viagem"></div>
+  </div>
+</div>
 
-    function setView(view) {
-      viewport.style.transition = 'transform 900ms cubic-bezier(.22,1,.36,1)';
-      viewport.setAttribute('transform', `translate(${view.x}, ${view.y}) scale(${view.scale})`);
-    }
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ═══════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════
+const COUNTRIES = {
+  "Brasil": {
+    flag:"🇧🇷", continent:"América do Sul", latLng:[-14,-55], zoom:4,
+    moeda:"Real (BRL)", idioma:"Português",
+    visto:{status:"isento",dias:"Até 90 dias para brasileiros",detalhe:"Documento de identidade é suficiente para viagens dentro do MERCOSUL"},
+    cultura:["Cumprimentos com beijo no rosto são comuns","Jogo de conversa informal (papo) é muito valorizado","Pontualidade é flexível socialmente","Evite política em primeiros encontros"],
+    feriados:["Carnaval (fevereiro/março)","Festa Junina (junho)","Independência: 7 de setembro","Natal e Ano Novo amplamente celebrados"],
+    gastronomia:{pratos:["Feijoada","Churrasco","Pão de queijo","Brigadeiro","Açaí","Coxinha","Moqueca"],dica:"Tente a culinária regional: acarajé na Bahia, tucumã no Amazonas e barreado no Paraná."},
+    viagem:{origem:"São Paulo (GRU)",destino:"São Paulo (GRU)",preco:"R$ 0 (destino doméstico)",milhas:"0 milhas (doméstico)",dica:"Para voos domésticos, acumule Smiles ou Latam Pass com cartões co-branded para passagens quase gratuitas."}
+  },
+  "Argentina": {
+    flag:"🇦🇷", continent:"América do Sul", latLng:[-38,-65], zoom:5,
+    moeda:"Peso argentino (ARS)", idioma:"Espanhol",
+    visto:{status:"isento",dias:"Até 90 dias",detalhe:"Brasileiros entram apenas com RG. Atenção ao câmbio paralelo (dólar blue)"},
+    cultura:["Cumprimento com abraço e beijo","Tango é patrimônio cultural — vá a um milonga","Jantar tardio (21h–23h é normal)","Mate é um ritual social — aceite se oferecido"],
+    feriados:["Dia da Independência: 9 de julho","Carnaval de Gualeguaychú (fevereiro)","Semana Santa amplamente celebrada"],
+    gastronomia:{pratos:["Asado","Empanadas","Milanesa napolitana","Dulce de leche","Alfajores","Choripán","Locro"],dica:"O bife de chorizo argentino é famoso mundialmente. Experimente em uma parrilla tradicional em Buenos Aires."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Buenos Aires (EZE)",preco:"R$ 800 – R$ 2.200",milhas:"15.000 – 25.000 milhas",dica:"Rota frequente com boas promoções. Use Smiles ou Latam Pass para maximizar o resgate."}
+  },
+  "França": {
+    flag:"🇫🇷", continent:"Europa", latLng:[46,2], zoom:6,
+    moeda:"Euro (EUR)", idioma:"Francês",
+    visto:{status:"requerido",dias:"Schengen: até 90 dias em 180",detalhe:"Visto Schengen — válido para 26 países europeus. Solicite com 3 meses de antecedência no VFS Global."},
+    cultura:["Diga 'Bonjour' ao entrar em qualquer estabelecimento","Não elogie excessivamente — é visto como insincero","Almoço é sagrado: lojas fecham entre 12h–14h","Gorjeta não é obrigatória mas apreciada"],
+    feriados:["Dia da Bastilha: 14 de julho","Natal e Páscoa com tradições fortes","Festival de Cannes (maio)","Grandes Vacanses (julho–agosto): França desacelera"],
+    gastronomia:{pratos:["Croissant","Coq au vin","Ratatouille","Crème brûlée","Bouillabaisse","Foie gras","Baguette com queijo"],dica:"Evite restaurantes na Torre Eiffel. Vá a uma brasserie de bairro para comer melhor por menos. Peça o menu do dia (formule)."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Paris (CDG)",preco:"R$ 4.500 – R$ 9.000",milhas:"55.000 – 85.000 milhas",dica:"Business class para Paris com Smiles sai ~90.000 milhas. Vale muito pela experiência de 11h de voo."}
+  },
+  "Japão": {
+    flag:"🇯🇵", continent:"Ásia", latLng:[36,138], zoom:5,
+    moeda:"Iene (JPY)", idioma:"Japonês",
+    visto:{status:"isento",dias:"Até 90 dias",detalhe:"Brasileiros com passaporte comum entram sem visto. Atenção: respeite as regras locais rigorosamente."},
+    cultura:["Remova sapatos antes de entrar em casas e alguns restaurantes","Não fale alto no transporte público","Gorjeta é considerada ofensiva — nunca faça","Fila é sagrada — jamais fure","Incline a cabeça ao cumprimentar (ojigi)"],
+    feriados:["Hanami (sakura) — março/abril","Obon: festival dos ancestrais (agosto)","Ano Novo Japonês (shōgatsu): jan","Golden Week: abril–maio (evite viagens então)"],
+    gastronomia:{pratos:["Sushi","Ramen","Tempura","Wagyu","Onigiri","Takoyaki","Matcha"],dica:"Coma ramen em lojas locais, não em shoppings. Osaka é a capital gastronômica. Experimente konbini food — as lojas de conveniência têm comida excelente."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Tóquio (NRT/HND)",preco:"R$ 5.800 – R$ 12.000",milhas:"65.000 – 100.000 milhas",dica:"ANA e JAL têm excelentes programas de milhas. ANA Business class é considerada a melhor do mundo."}
+  },
+  "Estados Unidos": {
+    flag:"🇺🇸", continent:"América do Norte", latLng:[38,-97], zoom:4,
+    moeda:"Dólar americano (USD)", idioma:"Inglês",
+    visto:{status:"requerido",dias:"Até 180 dias",detalhe:"Visto B1/B2 necessário. Agendamento na embaixada — antecedência de 2–6 meses. Custo: ~$185."},
+    cultura:["Gorjeta de 15–20% é obrigatória em restaurantes","Sorrisos e conversa casual com estranhos é normal","Espaço pessoal maior que no Brasil","'How are you?' é cumprimento, não pergunta real"],
+    feriados:["Thanksgiving (4ª quinta de novembro)","Independence Day: 4 de julho","Super Bowl (fevereiro) — evento cultural","Natal com decoração extravagante"],
+    gastronomia:{pratos:["Cheeseburger","BBQ texano","Clam chowder (San Francisco)","Lobster roll (Boston)","Key lime pie (Miami)","Nashville hot chicken"],dica:"Cada cidade tem especialidade própria. Evite comer apenas em redes — a culinária americana local é surpreendente."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Miami/NY (MIA/JFK)",preco:"R$ 2.200 – R$ 6.500",milhas:"40.000 – 70.000 milhas",dica:"Miami é a rota mais barata em milhas. Use American Airlines AAdvantage para melhores resgates."}
+  },
+  "Portugal": {
+    flag:"🇵🇹", continent:"Europa", latLng:[39,-8], zoom:7,
+    moeda:"Euro (EUR)", idioma:"Português",
+    visto:{status:"requerido",dias:"Schengen: até 90 dias em 180",detalhe:"Visto Schengen necessário. Muitos brasileiros com NHR ou visto D7 residem em Portugal."},
+    cultura:["Fado é a alma de Lisboa — imperdível em Alfama","Saudade é um conceito filosófico nacional","Ritmo de vida mais tranquilo — não espere urgência","Trato formal com pessoas mais velhas"],
+    feriados:["Dia de Portugal: 10 de junho","Festa de Lisboa (Santos Populares): junho","Carnaval de Torres Vedras","Semana Santa em Braga"],
+    gastronomia:{pratos:["Pastel de nata","Bacalhau à brás","Bifana","Caldo verde","Piri-piri","Cataplana","Francesinha (Porto)"],dica:"A Francesinha no Porto é uma experiência única. Os pastéis de nata da Fábrica de Belém são os originais — a fila vale a pena."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Lisboa (LIS)",preco:"R$ 3.200 – R$ 7.000",milhas:"45.000 – 70.000 milhas",dica:"TAP tem conexões excelentes. O programa Miles&Go permite resgates competitivos e Lisboa é porta de entrada para a Europa."}
+  },
+  "Itália": {
+    flag:"🇮🇹", continent:"Europa", latLng:[43,12], zoom:6,
+    moeda:"Euro (EUR)", idioma:"Italiano",
+    visto:{status:"requerido",dias:"Schengen: até 90 dias",detalhe:"Visto Schengen válido para toda a zona. Solicite pelo consulado italiano ou VFS Global."},
+    cultura:["Refeições são eventos sociais — nunca apresse","Cappuccino após as 11h é visto como estranho","Vestuário adequado em igrejas (ombros e joelhos cobertos)","Gesticulação faz parte da comunicação"],
+    feriados:["Ferragosto: agosto (Itália para!)","Carnaval de Veneza (fevereiro)","Dia da República: 2 de junho","Páscoa com muita tradição gastronômica"],
+    gastronomia:{pratos:["Pizza napolitana","Pasta carbonara","Risotto","Tiramisù","Gelato","Ossobuco","Arancini"],dica:"Nunca peça macarrão com frango na Itália. Cada região tem sua especialidade: ragù em Bolonha, pesto em Gênova, pizza em Nápoles."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Roma (FCO/CIA)",preco:"R$ 4.800 – R$ 9.500",milhas:"55.000 – 85.000 milhas",dica:"Alitalia foi substituída pela ITA Airways. Use miles de parceiras como Latam para resgates em Star Alliance (Lufthansa) para Roma."}
+  },
+  "Austrália": {
+    flag:"🇦🇺", continent:"Oceania", latLng:[-27,133], zoom:4,
+    moeda:"Dólar australiano (AUD)", idioma:"Inglês",
+    visto:{status:"requerido",dias:"Variável por visto",detalhe:"eVisitor (subclasse 651) para brasileiros — gratuito, válido por 12 meses, estadia de até 3 meses por vez. Solicite online."},
+    cultura:["'No worries' — cultura muito relaxada","Pontualidade é valorizada no trabalho","BBQ (barbie) é evento social importante","Respeite as terras e culturas indígenas","LGBTQ+ muito acolhido nas grandes cidades"],
+    feriados:["Australia Day: 26 de janeiro","Anzac Day: 25 de abril","Melbourne Cup: primeira terça de novembro","Natal no verão — praias e churrasco"],
+    gastronomia:{pratos:["Meat pie","Vegemite","Tim Tam","Barramundi","Lamington","Pavlova","Avocado toast (origem australiana)"],dica:"Sydney tem uma das cenas gastronômicas mais diversas do mundo. Experimente cozinha asiática-australiana (ModOz) e frutos do mar frescos."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Sydney (SYD)",preco:"R$ 7.000 – R$ 14.000",milhas:"80.000 – 120.000 milhas",dica:"Uma das rotas mais caras do mundo. Qantas Frequent Flyer e Emirates Skywards têm bons resgates. Considere parada em Dubai ou Doha."}
+  },
+  "Egito": {
+    flag:"🇪🇬", continent:"África", latLng:[26,30], zoom:6,
+    moeda:"Libra egípcia (EGP)", idioma:"Árabe",
+    visto:{status:"requerido",dias:"Até 30 dias",detalhe:"Visto on arrival disponível em Cairo (~$25 USD). Também disponível via plataforma oficial online antes da viagem."},
+    cultura:["Dress code modesto, especialmente para mulheres","Ramadã: respeite os jejuadores em locais públicos","Barganha é esperada em bazares — divirta-se","'Inshallah' (se Deus quiser) está em todo lugar","Propinas (baksheesh) são parte da cultura de serviço"],
+    feriados:["Eid al-Fitr: fim do Ramadã","Eid al-Adha: Festa do Sacrifício","Dia da Revolução: 23 de julho","Festa do Rio Nilo (Wafaa al-Nil): agosto"],
+    gastronomia:{pratos:["Koshari","Ful medames","Kofta","Shawarma","Mahshi","Om Ali (sobremesa)","Feteer meshaltet"],dica:"O Koshari é o prato nacional — grão-de-bico, lentilha, macarrão e molho de tomate picante. Coma em restaurantes locais por menos de $2."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Cairo (CAI)",preco:"R$ 5.500 – R$ 11.000",milhas:"65.000 – 95.000 milhas",dica:"EgyptAir faz parte da Star Alliance. Use miles de Smiles em voos da Avianca/United para conexão via Europa (Frankfurt, Londres) até Cairo."}
+  },
+  "México": {
+    flag:"🇲🇽", continent:"América do Norte", latLng:[23,-102], zoom:5,
+    moeda:"Peso mexicano (MXN)", idioma:"Espanhol",
+    visto:{status:"isento",dias:"Até 180 dias",detalhe:"Brasileiros entram sem visto com passaporte válido. Preencha o formulário de entrada na chegada."},
+    cultura:["Abraços e beijos são cumprimentos comuns","Pontualidade é flexível socialmente ('hora mexicana')","Dia dos Mortos (nov) é celebração, não luto","Haggling em mercados é esperado — mas seja gentil"],
+    feriados:["Día de Muertos: 1–2 de novembro","Independência: 15–16 de setembro (Grito)","Semana Santa com grandes procissões","Natal e Posadas (dezembro)"],
+    gastronomia:{pratos:["Tacos al pastor","Guacamole","Mole negro","Enchiladas","Pozole","Tamales","Chiles en nogada"],dica:"A gastronomia mexicana é Patrimônio Cultural da UNESCO. Evite o Tex-Mex — o autêntico é diferente e muito superior. Oaxaca é a capital culinária."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Cidade do México (MEX)",preco:"R$ 2.800 – R$ 6.000",milhas:"40.000 – 65.000 milhas",dica:"Aeromexico é parceira da Delta. Use SkyMiles para resgates eficientes para o México, especialmente em classe executiva."}
+  },
+  "Tailândia": {
+    flag:"🇹🇭", continent:"Ásia", latLng:[15,101], zoom:5,
+    moeda:"Baht tailandês (THB)", idioma:"Tailandês",
+    visto:{status:"isento",dias:"Até 30 dias (prorrogável)",detalhe:"Brasileiros isentos de visto por 30 dias. Prorrogação de 30 dias possível no escritório de imigração local por ~500 THB."},
+    cultura:["Nunca toque a cabeça de ninguém — é sagrada","Pés são considerados impuros — não aponte para pessoas","Wai (palmas unidas) é o cumprimento tradicional","Respeito absoluto pela família real é obrigatório por lei","Dress code em templos: ombros e joelhos cobertos"],
+    feriados:["Songkran: Ano Novo Tailandês (abril) — festival d'água","Loi Krathong: festival das lanternas (novembro)","Dia do Rei Bhumibol: 5 de dezembro","Makha Bucha: celebração budista (fevereiro)"],
+    gastronomia:{pratos:["Pad Thai","Tom Yum","Som Tam","Massaman curry","Mango sticky rice","Khao Pad","Green curry"],dica:"A culinária de rua tailandesa é das melhores do mundo. Coma no mercado Chatuchak em Bangkok ou nas praias de Krabi. O chili é intenso — avise 'mai phet' (não apimentado) se necessário."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Bangkok (BKK/DMK)",preco:"R$ 5.200 – R$ 10.500",milhas:"60.000 – 95.000 milhas",dica:"Thai Airways é membro da Star Alliance. Rota comum: GRU → Dubai (Emirates) → Bangkok. Miles de Smiles funcionam bem nessa rota."}
+  },
+  "África do Sul": {
+    flag:"🇿🇦", continent:"África", latLng:[-29,25], zoom:5,
+    moeda:"Rand sul-africano (ZAR)", idioma:"11 idiomas oficiais (Zulu, Inglês, Afrikaans...)",
+    visto:{status:"isento",dias:"Até 90 dias",detalhe:"Brasileiros isentos de visto. Passaporte deve ter 2 páginas em branco e validade de 30+ dias após o retorno."},
+    cultura:["Ubuntu: 'Sou porque somos' — filosofia de comunidade","Respeito pelos mais velhos é fundamental","Braai (churrasco) é evento social e cultural","Evite discussões sobre apartheid com desconhecidos","11 idiomas oficiais — inglês funciona em todo lugar"],
+    feriados:["Freedom Day: 27 de abril (fim do apartheid)","Day of Reconciliation: 16 de dezembro","Heritage Day: 24 de setembro ('Braai Day')","Human Rights Day: 21 de março"],
+    gastronomia:{pratos:["Braai","Biltong","Bunny chow","Bobotie","Malva pudding","Pap e chakalaka","Boerewors"],dica:"O biltong é a carne seca sul-africana — muito melhor que jerky. O Bunny Chow (curry em pão) em Durban é experiência única e acessível."},
+    viagem:{origem:"São Paulo (GRU)",destino:"Johanesburgo (JNB)",preco:"R$ 5.800 – R$ 11.000",milhas:"70.000 – 100.000 milhas",dica:"South African Airways parou as operações. Use miles para voos com Ethiopian Airlines (Star Alliance) ou com escala em Addis Abeba — rota interessante para conhecer dois continentes."}
+  }
+};
 
-    function resetCountries() {
-      countries.forEach(c => c.classList.add('hidden'));
-      countries.forEach(c => c.classList.remove('showing'));
-      document.querySelectorAll('.country-label').forEach(label => label.style.display = 'none');
-    }
+const CONTINENTS = [
+  { name:"América do Sul", emoji:"🌎", center:[-15,-60], zoom:3 },
+  { name:"América do Norte", emoji:"🌎", center:[40,-100], zoom:3 },
+  { name:"Europa", emoji:"🌍", center:[50,10], zoom:4 },
+  { name:"Ásia", emoji:"🌏", center:[35,100], zoom:3 },
+  { name:"África", emoji:"🌍", center:[0,20], zoom:3 },
+  { name:"Oceania", emoji:"🌏", center:[-25,135], zoom:4 }
+];
 
-    function showCountriesForContinent(continentKey) {
-      resetCountries();
-      countries.forEach(country => {
-        if (country.dataset.continent === continentKey) {
-          country.classList.remove('hidden');
-          country.classList.add('showing');
-        }
-      });
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+const map = L.map('map', {
+  center: [20, 0],
+  zoom: 2,
+  minZoom: 2,
+  maxZoom: 8,
+  zoomControl: true,
+  worldCopyJump: false
+});
 
-      document.querySelectorAll('.country-label').forEach(label => {
-        label.style.display = 'none';
-      });
+// Dark tile layer
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
 
-      document.querySelectorAll(`#countriesLayer .country-label`).forEach(label => {
-        const text = label.textContent.trim().toLowerCase();
-        const mapping = {
-          'canadá':'canada',
-          'estados unidos':'usa',
-          'méxico':'mexico',
-          'brasil':'brazil',
-          'argentina':'argentina',
-          'frança':'france',
-          'reino unido':'uk',
-          'egito':'egypt',
-          'áfrica do sul':'south-africa',
-          'china':'china',
-          'índia':'india',
-          'japão':'japan',
-          'austrália':'australia'
-        };
-        if (mapping[text] && countryToContinent[mapping[text]] === continentKey) {
-          label.style.display = 'block';
-        }
-      });
-    }
+// Country borders layer
+let countriesLayer = null;
+let selectedLayer = null;
+let currentContinent = null;
+const countryLayers = {};
 
-    function focusContinent(continentKey) {
-      activeContinent = continentKey;
-      setView(continentViews[continentKey]);
-      continents.forEach(cont => {
-        cont.classList.remove('selected');
-        cont.classList.remove('hidden');
-        if (cont.dataset.continent !== continentKey) cont.classList.add('hidden');
-        else cont.classList.add('selected');
-      });
-      showCountriesForContinent(continentKey);
-      clearCountrySelection();
-    }
-
-    function clearCountrySelection() {
-      activeCountry = null;
-      countries.forEach(c => c.classList.remove('selected'));
-    }
-
-    function resetMap() {
-      activeContinent = null;
-      activeCountry = null;
-      setView(continentViews.world);
-      continents.forEach(cont => {
-        cont.classList.remove('hidden', 'selected');
-      });
-      countries.forEach(c => c.classList.remove('selected'));
-      resetCountries();
-      document.querySelectorAll('.country-label').forEach(label => label.style.display = 'none');
-    }
-
-    function renderCountryPanel(key) {
-      const data = countryData[key];
-      if (!data) return;
-
-      tabs.forEach(b => b.classList.remove('active'));
-      document.querySelector('[data-tab="pais"]').classList.add('active');
-      tabContents.milhas.style.display = 'none';
-      tabContents.pais.style.display = 'block';
-
-      countryPanel.innerHTML = `
-        <div class="country-title">
-          <div>
-            <h2>${data.name}</h2>
-            <p class="small">${data.continent}</p>
-          </div>
-          <span class="badge">📍 Selecionado</span>
-        </div>
-
-        <div class="grid-info">
-          <div class="info-box">
-            <h4>Nome do país</h4>
-            <p>${data.name}</p>
-          </div>
-
-          <div class="info-box">
-            <h4>Moeda</h4>
-            <p>${data.moeda}</p>
-          </div>
-
-          <div class="info-box">
-            <h4>Língua oficial</h4>
-            <p>${data.lingua}</p>
-          </div>
-
-          <div class="info-box">
-            <h4>Visto</h4>
-            <p>${data.visto}</p>
-          </div>
-
-          <div class="info-box">
-            <h4>Tradições de comportamento</h4>
-            <p>${data.comportamento}</p>
-          </div>
-
-          <div class="info-box">
-            <h4>Feriado ou costume cultural</h4>
-            <p>${data.costume}</p>
-          </div>
-
-          <div class="info-box">
-            <h4>Gastronomia</h4>
-            <p>${data.gastronomia}</p>
-          </div>
-
-          <div class="info-box">
-            <h4>Logística de viagem</h4>
-            <p><strong style="color:#fff;">Preço médio em dinheiro:</strong><br>${data.logisticaDinheiro}</p>
-            <p style="margin-top:10px;"><strong style="color:#fff;">Preço médio em milhas:</strong><br>${data.logisticaMilhas}</p>
-          </div>
-        </div>
-      `;
-    }
-
-    function selectCountry(key) {
-      const continent = countryToContinent[key];
-      if (!continent) return;
-
-      if (activeContinent !== continent) {
-        focusContinent(continent);
-      }
-
-      activeCountry = key;
-      countries.forEach(c => c.classList.remove('selected'));
-      const target = document.querySelector(`.country[data-country="${key}"]`);
-      if (target) target.classList.add('selected');
-
-      renderCountryPanel(key);
-    }
-
-    continents.forEach(cont => {
-      cont.addEventListener('click', () => {
-        focusContinent(cont.dataset.continent);
-      });
-    });
-
-    countries.forEach(country => {
-      country.addEventListener('click', (e) => {
-        e.stopPropagation();
-        selectCountry(country.dataset.country);
-      });
-    });
-
-    resetViewBtn.addEventListener('click', resetMap);
-    focusNorthAmericaBtn.addEventListener('click', () => focusContinent('north-america'));
-
-    function buildSearchResults(filter = '') {
-      const query = filter.trim().toLowerCase();
-      const entries = Object.entries(countryData).filter(([key, value]) => {
-        return value.name.toLowerCase().includes(query);
-      });
-
-      if (!entries.length) {
-        searchResults.innerHTML = `
-          <div class="card" style="margin:0;">
-            <h3>Nenhum país encontrado</h3>
-            <p>Tente pesquisar por outro nome. Ex.: Canadá, México, Japão.</p>
-          </div>
-        `;
-        return;
-      }
-
-      searchResults.innerHTML = entries.map(([key, value]) => `
-        <div class="search-item" data-country="${key}">
-          <strong>${value.name}</strong>
-          <span class="small">${value.continent}</span>
-        </div>
-      `).join('');
-
-      searchResults.querySelectorAll('.search-item').forEach(item => {
-        item.addEventListener('click', () => {
-          selectCountry(item.dataset.country);
+async function loadCountries() {
+  try {
+    const resp = await fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson');
+    const data = await resp.json();
+    countriesLayer = L.geoJSON(data, {
+      style: feature => ({
+        fillColor: '#1a3a5c',
+        weight: 0.5,
+        opacity: 0.6,
+        color: '#00c9ff',
+        fillOpacity: 0.2
+      }),
+      onEachFeature: (feature, layer) => {
+        const name = feature.properties.ADMIN;
+        countryLayers[name] = layer;
+        layer.on('mouseover', e => {
+          if (!selectedLayer || selectedLayer !== layer) {
+            layer.setStyle({ fillOpacity: 0.4, fillColor: '#00c9ff', weight: 1, color: '#00ffcc' });
+          }
+          layer._map && layer._map.getContainer().style.setProperty('cursor','pointer');
         });
-      });
-    }
+        layer.on('mouseout', e => {
+          if (!selectedLayer || selectedLayer !== layer) {
+            layer.setStyle({ fillOpacity: 0.2, fillColor: '#1a3a5c', weight: 0.5, color: '#00c9ff' });
+          }
+        });
+        layer.on('click', e => {
+          L.DomEvent.stopPropagation(e);
+          selectCountry(name, layer);
+        });
+        layer.bindTooltip(name, {
+          permanent: false, direction: 'center', className: 'country-tooltip',
+          offset: [0, 0]
+        });
+      }
+    }).addTo(map);
+  } catch(err) {
+    console.warn('GeoJSON load failed, using fallback', err);
+  }
+}
 
-    searchBtn.addEventListener('click', () => buildSearchResults(searchInput.value));
-    searchInput.addEventListener('input', () => buildSearchResults(searchInput.value));
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') buildSearchResults(searchInput.value);
+// Custom tooltip style
+const style = document.createElement('style');
+style.textContent = `.country-tooltip { background: rgba(8,15,26,.9); border: 1px solid rgba(0,201,255,.3); border-radius: 6px; color: #e8f4ff; font-family: 'DM Sans',sans-serif; font-size: 12px; padding: 4px 10px; box-shadow: 0 4px 20px rgba(0,0,0,.4); }`;
+document.head.appendChild(style);
+
+function selectCountry(name, layer) {
+  if (selectedLayer) {
+    selectedLayer.setStyle({ fillOpacity: 0.2, fillColor: '#1a3a5c', weight: 0.5, color: '#00c9ff' });
+  }
+  layer.setStyle({ fillOpacity: 0.55, fillColor: '#00ff9d', weight: 2, color: '#00ffcc' });
+  selectedLayer = layer;
+
+  const bounds = layer.getBounds();
+  map.fitBounds(bounds, { padding: [80, 80], maxZoom: 7, animate: true, duration: 1.2 });
+
+  const ptName = findPortuguese(name);
+  openCountryPanel(ptName || name);
+  updateBreadcrumb(currentContinent ? currentContinent.name : null, ptName || name);
+  hideMapHint();
+}
+
+function findPortuguese(engName) {
+  // try exact match in our data
+  if (COUNTRIES[engName]) return engName;
+  // try mapping
+  const MAP = {
+    "Brazil":"Brasil","Argentina":"Argentina","France":"França","Japan":"Japão",
+    "United States of America":"Estados Unidos","Portugal":"Portugal","Italy":"Itália",
+    "Australia":"Austrália","Egypt":"Egito","Mexico":"México","Thailand":"Tailândia",
+    "South Africa":"África do Sul"
+  };
+  return MAP[engName] || null;
+}
+
+// Continent click zones (invisible polygons)
+function addContinentZones() {
+  // We use map click + continent detection via lat/lng bounding
+  // Visual continent labels
+  CONTINENTS.forEach(c => {
+    const marker = L.marker(c.center, {
+      icon: L.divIcon({
+        html: `<div class="cont-label"><span>${c.emoji}</span><span>${c.name}</span></div>`,
+        className: '',
+        iconAnchor: [80, 20]
+      }),
+      interactive: true
+    }).addTo(map);
+    marker.on('click', () => zoomContinent(c));
+  });
+}
+
+const contStyle = document.createElement('style');
+contStyle.textContent = `.cont-label { display:flex;align-items:center;gap:6px;background:rgba(8,15,26,.75);border:1px solid rgba(0,201,255,.2);border-radius:20px;padding:5px 12px;font-family:'DM Sans',sans-serif;font-size:12px;color:#e8f4ff;cursor:pointer;transition:all .2s;white-space:nowrap;backdrop-filter:blur(8px); } .cont-label:hover { background:rgba(0,201,255,.15);border-color:rgba(0,201,255,.5);color:#00c9ff; }`;
+document.head.appendChild(contStyle);
+
+function zoomContinent(c) {
+  currentContinent = c;
+  map.flyTo(c.center, c.zoom, { animate: true, duration: 1.5 });
+  showToast(c.emoji, c.name);
+  updateBreadcrumb(c.name, null);
+  hideMapHint();
+}
+
+function showToast(emoji, name) {
+  const t = document.getElementById('continent-toast');
+  document.querySelector('#continent-toast span:first-child').textContent = emoji;
+  document.getElementById('toast-name').textContent = name;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function updateBreadcrumb(continent, country) {
+  const b = document.getElementById('breadcrumb');
+  let html = '🌍 <span>Mundo</span>';
+  if (continent) html += ` › <span style="color:var(--accent2)">${continent}</span>`;
+  if (country) html += ` › <span style="color:var(--gold)">${country}</span>`;
+  b.innerHTML = html;
+}
+
+function hideMapHint() {
+  document.getElementById('map-hint').style.opacity = '0';
+}
+
+// ── MAP CLICK (reset) ──
+map.on('click', () => {
+  if (selectedLayer) {
+    selectedLayer.setStyle({ fillOpacity: 0.2, fillColor: '#1a3a5c', weight: 0.5, color: '#00c9ff' });
+    selectedLayer = null;
+  }
+  closeCountryPanel();
+});
+
+// ═══════════════════════════════════════════════
+//  COUNTRY PANEL
+// ═══════════════════════════════════════════════
+function openCountryPanel(name) {
+  const data = COUNTRIES[name];
+  document.getElementById('cp-flag').textContent = data ? data.flag : '🌍';
+  document.getElementById('cp-name').textContent = name;
+  document.getElementById('cp-region').textContent = data ? data.continent : '—';
+
+  if (data) {
+    renderTabGeral(data);
+    renderTabCultura(data);
+    renderTabGastronomia(data);
+    renderTabViagem(data, name);
+  } else {
+    document.getElementById('tab-geral').innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-dim)"><div style="font-size:40px;margin-bottom:12px">📍</div><p>Informações detalhadas para <strong style="color:var(--text)">${name}</strong> serão adicionadas em breve.</p><p style="margin-top:10px;font-size:12px">A estrutura está pronta para expansão futura.</p></div>`;
+    ['tab-cultura','tab-gastronomia','tab-viagem'].forEach(id => {
+      document.getElementById(id).innerHTML = `<p style="color:var(--text-dim);font-size:13px;padding:20px">Em breve...</p>`;
     });
+  }
 
-    searchResults.querySelectorAll('.search-item').forEach(item => {
-      item.addEventListener('click', () => {
-        selectCountry(item.dataset.country);
-      });
+  // Reset tabs
+  document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.cp-section').forEach(s => s.classList.remove('active'));
+  document.querySelector('.cp-tab[data-tab="geral"]').classList.add('active');
+  document.getElementById('tab-geral').classList.add('active');
+
+  document.getElementById('country-panel').classList.add('open');
+}
+
+function closeCountryPanel() {
+  document.getElementById('country-panel').classList.remove('open');
+}
+
+function renderTabGeral(d) {
+  const visaBadge = d.visto.status === 'isento'
+    ? `<span class="visa-badge free">✓ Isento de Visto</span>`
+    : `<span class="visa-badge required">⚠ Visto Necessário</span>`;
+  document.getElementById('tab-geral').innerHTML = `
+    <div class="info-grid">
+      <div class="info-tile"><div class="label">Moeda</div><div class="value small">${d.moeda}</div></div>
+      <div class="info-tile"><div class="label">Idioma</div><div class="value small">${d.idioma}</div></div>
+    </div>
+    <div class="info-tile" style="margin-bottom:10px">
+      <div class="label">Visto para Brasileiros</div>
+      <div style="margin-top:6px">${visaBadge}</div>
+      <div style="margin-top:8px;font-size:13px;color:var(--text-dim)">${d.visto.dias}</div>
+      <div style="margin-top:6px;font-size:12px;color:var(--text-dim);line-height:1.6">${d.visto.detalhe}</div>
+    </div>
+    <div class="section-title" style="margin-top:16px">Feriados & Costumes</div>
+    ${d.feriados.map(f => `<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;font-size:13px;color:var(--text-dim)"><span style="color:var(--accent);margin-top:1px">◆</span>${f}</div>`).join('')}
+  `;
+}
+
+function renderTabCultura(d) {
+  document.getElementById('tab-cultura').innerHTML = `
+    <div class="section-title">Comportamento & Etiqueta</div>
+    ${d.cultura.map((c,i) => `
+      <div class="culture-item">
+        <div class="culture-icon">${['🤝','💬','⏰','🍽','🙏','👗','💡'][i%7]}</div>
+        <div class="culture-text"><p>${c}</p></div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderTabGastronomia(d) {
+  document.getElementById('tab-gastronomia').innerHTML = `
+    <div class="section-title">Pratos Típicos</div>
+    <div style="margin-bottom:16px">${d.gastronomia.pratos.map(p => `<span class="food-chip">🍴 ${p}</span>`).join('')}</div>
+    <div class="culture-item">
+      <div class="culture-icon">💡</div>
+      <div class="culture-text"><h4>Dica do Viajante</h4><p>${d.gastronomia.dica}</p></div>
+    </div>
+  `;
+}
+
+function renderTabViagem(d, name) {
+  document.getElementById('tab-viagem').innerHTML = `
+    <div class="section-title">Logística de Viagem</div>
+    <div class="flight-card">
+      <div class="flight-route">
+        <div class="flight-city">🇧🇷 ${d.viagem.origem}</div>
+        <div class="flight-arrow">✈ ─────</div>
+        <div class="flight-city">${d.flag} ${d.viagem.destino}</div>
+      </div>
+      <div class="flight-prices">
+        <div class="price-box">
+          <div class="price-val">${d.viagem.preco}</div>
+          <div class="price-label">Passagem média (BRL)</div>
+        </div>
+        <div class="price-box">
+          <div class="price-val" style="color:var(--accent)">${d.viagem.milhas}</div>
+          <div class="price-label">Resgate em milhas</div>
+        </div>
+      </div>
+    </div>
+    <div class="culture-item">
+      <div class="culture-icon">✈️</div>
+      <div class="culture-text"><h4>Dica de Milhas</h4><p>${d.viagem.dica}</p></div>
+    </div>
+    <div style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);font-size:12px;color:var(--text-dim);line-height:1.6">
+      ℹ️ Valores estimados. Preços variam conforme temporada, antecedência e disponibilidade de assentos. Consulte sempre companhias aéreas e comparadores de milhas.
+    </div>
+  `;
+}
+
+// Tab switching
+document.querySelectorAll('.cp-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.cp-section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+  });
+});
+
+document.getElementById('cp-back').addEventListener('click', () => {
+  closeCountryPanel();
+  if (selectedLayer) {
+    selectedLayer.setStyle({ fillOpacity: 0.2, fillColor: '#1a3a5c', weight: 0.5, color: '#00c9ff' });
+    selectedLayer = null;
+  }
+});
+
+// ═══════════════════════════════════════════════
+//  SEARCH
+// ═══════════════════════════════════════════════
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+
+function renderSearch(query = '') {
+  const q = query.toLowerCase().trim();
+  const entries = Object.entries(COUNTRIES).filter(([name]) =>
+    q === '' || name.toLowerCase().includes(q)
+  );
+  if (entries.length === 0) {
+    searchResults.innerHTML = `<div class="no-results">😕 Nenhum país encontrado</div>`;
+    return;
+  }
+  searchResults.innerHTML = entries.map(([name, d]) => `
+    <div class="result-item" data-country="${name}">
+      <span class="flag">${d.flag}</span>
+      <div>
+        <div class="name">${name}</div>
+        <div class="continent">${d.continent}</div>
+      </div>
+    </div>
+  `).join('');
+  searchResults.querySelectorAll('.result-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const name = el.dataset.country;
+      const d = COUNTRIES[name];
+      if (d) {
+        const cont = CONTINENTS.find(c => c.name === d.continent);
+        if (cont) { currentContinent = cont; updateBreadcrumb(cont.name, name); }
+        map.flyTo(d.latLng, d.zoom, { animate: true, duration: 1.5 });
+        setTimeout(() => {
+          // find the layer
+          const layer = findLayerByCountry(name);
+          if (layer) selectCountry(Object.keys(countryLayers).find(k => countryLayers[k] === layer), layer);
+          else openCountryPanel(name);
+        }, 1600);
+        hideMapHint();
+      }
     });
+  });
+}
 
-    // estado inicial
-    resetMap();
-  </script>
+function findLayerByCountry(ptName) {
+  const MAP_REV = {
+    "Brasil":"Brazil","Argentina":"Argentina","França":"France","Japão":"Japan",
+    "Estados Unidos":"United States of America","Portugal":"Portugal","Itália":"Italy",
+    "Austrália":"Australia","Egito":"Egypt","México":"Mexico","Tailândia":"Thailand",
+    "África do Sul":"South Africa"
+  };
+  const eng = MAP_REV[ptName];
+  return eng ? countryLayers[eng] : null;
+}
+
+searchInput.addEventListener('input', () => renderSearch(searchInput.value));
+renderSearch();
+
+// ═══════════════════════════════════════════════
+//  PANEL TOGGLES
+// ═══════════════════════════════════════════════
+const leftPanel = document.getElementById('panel-left');
+const rightPanel = document.getElementById('panel-right');
+const toggleLeft = document.getElementById('toggle-left');
+const toggleRight = document.getElementById('toggle-right');
+
+toggleLeft.addEventListener('click', () => {
+  leftPanel.classList.toggle('hidden');
+  toggleLeft.textContent = leftPanel.classList.contains('hidden') ? '›' : '‹';
+  toggleLeft.classList.toggle('panel-hidden', leftPanel.classList.contains('hidden'));
+  setTimeout(() => map.invalidateSize(), 450);
+});
+
+toggleRight.addEventListener('click', () => {
+  rightPanel.classList.toggle('hidden');
+  toggleRight.textContent = rightPanel.classList.contains('hidden') ? '‹' : '›';
+  toggleRight.classList.toggle('panel-hidden', rightPanel.classList.contains('hidden'));
+  setTimeout(() => map.invalidateSize(), 450);
+});
+
+// ═══════════════════════════════════════════════
+//  STARTUP
+// ═══════════════════════════════════════════════
+window.addEventListener('load', async () => {
+  await loadCountries();
+  addContinentZones();
+
+  setTimeout(() => {
+    const loader = document.getElementById('loader');
+    loader.classList.add('fade');
+    setTimeout(() => loader.remove(), 900);
+  }, 2200);
+});
+</script>
 </body>
 </html>
