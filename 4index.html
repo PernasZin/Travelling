@@ -30,7 +30,7 @@ body{font-family:'Montserrat',sans-serif;font-weight:300;}
 button{font-family:inherit;cursor:pointer;border:none;background:none;}
 ::-webkit-scrollbar{width:2px;}
 ::-webkit-scrollbar-thumb{background:var(--gold3);border-radius:2px;}
- 
+
 /* ── LOADING ────────────────────────────── */
 #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .9s ease;}
 #loading.hide{opacity:0;pointer-events:none;}
@@ -39,7 +39,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .ld-bar{width:160px;height:1px;background:rgba(200,168,80,.1);overflow:hidden;position:relative;}
 .ld-bar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:slide 1.2s ease infinite;}
 @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
- 
+
 /* ── TOPBAR ─────────────────────────────── */
 #topbar{position:fixed;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 22px 0 44px;background:linear-gradient(to bottom,rgba(8,8,8,.9),transparent);z-index:200;pointer-events:none;}
 #logo{font-family:'Playfair Display',serif;font-size:1.1rem;letter-spacing:.55em;font-weight:400;opacity:0;animation:fDn .9s ease .4s forwards;}
@@ -48,7 +48,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 #reset-btn{display:none;align-items:center;gap:6px;border:1px solid rgba(200,168,80,.18);color:var(--muted);font-size:.44rem;letter-spacing:.22em;text-transform:uppercase;padding:6px 14px;transition:all .25s;}
 #reset-btn.vis{display:flex;}
 #reset-btn:hover{border-color:var(--gold);color:var(--gold2);}
- 
+
 /* ── SEARCH ─────────────────────────────── */
 #search-wrap{position:relative;pointer-events:all;}
 #search-inp{background:rgba(12,12,12,.8);border:1px solid rgba(200,168,80,.12);outline:none;color:var(--cream);font-family:'Montserrat',sans-serif;font-size:.52rem;font-weight:300;letter-spacing:.15em;padding:6px 30px 6px 12px;width:120px;transition:width .4s var(--ease),border-color .25s;text-transform:uppercase;caret-color:var(--gold);backdrop-filter:blur(10px);}
@@ -61,7 +61,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .sug-row:hover{background:rgba(200,168,80,.06);color:var(--gold2);}
 .sug-flag{font-size:.95rem;flex-shrink:0;}
 .sug-cont{font-size:.4rem;color:var(--gold3);margin-left:auto;letter-spacing:.1em;}
- 
+
 /* ── BREADCRUMB ─────────────────────────── */
 #bc{position:fixed;top:60px;left:44px;z-index:200;display:flex;align-items:center;gap:7px;opacity:0;transition:opacity .35s;pointer-events:none;}
 #bc.vis{opacity:1;pointer-events:all;}
@@ -69,7 +69,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .bc-i:hover{color:var(--gold);}
 .bc-i.cur{color:var(--gold2);}
 .bc-sep{font-size:.38rem;color:var(--gold3);}
- 
+
 /* ── MAP ────────────────────────────────── */
 #map-wrap{position:fixed;inset:0;transition:transform .75s var(--ease);}
 #map-wrap.shift{transform:translateX(-20%);}
@@ -101,14 +101,14 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .pdot circle.ring{fill:none;stroke:var(--gold);stroke-width:.6;animation:plsr 3s ease-in-out infinite;}
 @keyframes pls{0%,100%{r:2.5;opacity:.7;}50%{r:4;opacity:.2;}}
 @keyframes plsr{0%,100%{r:6;opacity:.35;}50%{r:9;opacity:0;}}
- 
+
 /* ── LEGEND ─────────────────────────────── */
 #legend{position:fixed;bottom:42px;left:40px;z-index:100;opacity:0;animation:fI .8s ease 2s forwards;}
 .leg{display:flex;align-items:center;gap:7px;margin-bottom:7px;cursor:pointer;transition:opacity .2s;}
 .leg:hover{opacity:.6;}
 .legdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 .legtx{font-size:.4rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;}
- 
+
 /* ── EMPTY STATE DASHBOARD ─────────────── */
 #dashboard{position:fixed;bottom:44px;left:50%;transform:translateX(-50%);z-index:90;display:flex;gap:14px;opacity:0;animation:fI 1s ease 2.5s forwards;pointer-events:none;}
 .dash-card{background:rgba(12,12,12,.8);backdrop-filter:blur(20px);border:1px solid rgba(200,168,80,.09);padding:12px 18px;white-space:nowrap;min-width:110px;text-align:center;}
@@ -116,7 +116,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .dash-card-val{font-size:.88rem;color:var(--bright);font-family:'Cormorant Garamond',serif;font-weight:400;}
 .dash-card-sub{font-size:.38rem;color:var(--muted);margin-top:3px;}
 #dashboard.hidden{opacity:0!important;pointer-events:none;}
- 
+
 /* ── MILES HUB (left) ───────────────────── */
 #miles-tab{position:fixed;left:0;top:50%;transform:translateY(-50%);width:30px;height:185px;background:rgba(10,10,10,.92);border-right:1px solid var(--gb);display:flex;align-items:center;justify-content:center;z-index:150;cursor:pointer;opacity:0;animation:fI .8s ease 2s forwards;transition:border-color .3s;}
 #miles-tab:hover{border-right-color:rgba(200,168,80,.28);}
@@ -152,7 +152,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .gloss-row:last-child{border:none;}
 .gloss-term{color:var(--gold2);font-weight:500;min-width:90px;flex-shrink:0;}
 .gloss-def{color:var(--dim);line-height:1.6;}
- 
+
 /* ── MAIN PANEL ─────────────────────────── */
 #panel{position:fixed;right:0;top:0;bottom:0;width:40vw;min-width:440px;max-width:660px;background:rgba(8,8,8,.96);backdrop-filter:blur(40px);border-left:1px solid var(--gb);z-index:300;transform:translateX(100%);transition:transform .7s var(--ease);display:flex;flex-direction:column;}
 #panel.open{transform:translateX(0);}
@@ -171,7 +171,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 #p-content{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--gold3) transparent;}
 .p-pane{display:none;}
 .p-pane.active{display:block;}
- 
+
 /* TAB 1 — PANORAMA */
 .hero-wrap{position:relative;height:240px;overflow:hidden;background:#111;}
 .hero-img{width:100%;height:100%;object-fit:cover;opacity:.55;transition:opacity .6s;}
@@ -195,7 +195,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .best-desc{font-size:.68rem;color:var(--dim);line-height:1.85;font-style:italic;border-left:2px solid var(--gold3);padding-left:12px;margin-top:16px;}
 /* Territory note */
 .terr-note{margin-top:16px;padding:12px 14px;background:rgba(200,168,80,.04);border:1px solid rgba(200,168,80,.09);font-size:.64rem;color:var(--dim);line-height:1.75;}
- 
+
 /* TAB 2 — GUIA PRÁTICO */
 .guide-body{padding:20px 24px;}
 .guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
@@ -222,7 +222,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .req-ico{font-size:.95rem;flex-shrink:0;}
 .req-lbl{font-size:.38rem;letter-spacing:.15em;color:var(--gold3);text-transform:uppercase;margin-bottom:3px;}
 .req-v{font-size:.64rem;color:var(--dim);line-height:1.5;}
- 
+
 /* TAB 3 — CULTURA E SABOR */
 .culture-body{padding:20px 24px;}
 .food-card{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(237,230,214,.05);}
@@ -237,7 +237,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .etiq-ico{font-size:.85rem;flex-shrink:0;line-height:1.2;}
 .vibe-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
 .vibe-pill{font-size:.4rem;letter-spacing:.12em;padding:4px 10px;border:1px solid rgba(200,168,80,.14);color:var(--muted);text-transform:uppercase;}
- 
+
 /* TAB 4 — LOGÍSTICA */
 .logist-body{padding:20px 24px;}
 /* Route visual */
@@ -275,7 +275,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
 .tip-box{margin-top:16px;padding:12px 14px;background:rgba(200,168,80,.04);border-left:2px solid var(--gold3);}
 .tip-lbl{font-size:.38rem;letter-spacing:.18em;color:var(--gold3);text-transform:uppercase;margin-bottom:4px;}
 .tip-text{font-size:.64rem;color:var(--dim);line-height:1.75;font-style:italic;}
- 
+
 /* ── TOOLTIP ────────────────────────────── */
 #tt{position:fixed;background:rgba(5,5,5,.95);backdrop-filter:blur(12px);border:1px solid rgba(200,168,80,.14);padding:6px 13px;font-size:.5rem;letter-spacing:.13em;color:var(--bright);text-transform:uppercase;pointer-events:none;z-index:600;opacity:0;transition:opacity .1s;white-space:nowrap;}
 /* ── HINT ───────────────────────────────── */
@@ -291,7 +291,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
   <div class="ld-sub">Explore o mundo com inteligência</div>
   <div class="ld-bar"></div>
 </div>
- 
+
 <!-- TOPBAR -->
 <div id="topbar">
   <div id="logo">TR<em>A</em>VELING</div>
@@ -304,7 +304,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
     </div>
   </div>
 </div>
- 
+
 <!-- BREADCRUMB -->
 <div id="bc">
   <span class="bc-i" onclick="resetView()">Mundo</span>
@@ -313,10 +313,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
   <span class="bc-sep" id="bc-s2" style="display:none">›</span>
   <span class="bc-i cur" id="bc-ctry" style="display:none"></span>
 </div>
- 
+
 <!-- MAP -->
 <div id="map-wrap"><svg id="map-svg"></svg></div>
- 
+
 <!-- EMPTY STATE DASHBOARD -->
 <div id="dashboard">
   <div class="dash-card"><div class="dash-card-lbl">Dólar</div><div class="dash-card-val" id="ds-usd">—</div><div class="dash-card-sub">USD / BRL</div></div>
@@ -324,10 +324,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
   <div class="dash-card"><div class="dash-card-lbl">Iene</div><div class="dash-card-val" id="ds-jpy">—</div><div class="dash-card-sub">JPY → R$ 100</div></div>
   <div class="dash-card"><div class="dash-card-lbl">Destinos em Alta</div><div class="dash-card-val" id="ds-hot" style="font-size:.75rem">🇯🇵🇮🇹🇲🇦</div><div class="dash-card-sub">Trending 2025</div></div>
 </div>
- 
+
 <!-- MILES TAB -->
 <div id="miles-tab" onclick="toggleMiles()"><span id="miles-tab-lbl">Milhas & Cartões</span></div>
- 
+
 <!-- MILES HUB -->
 <div id="miles-hub">
   <div class="mh-header">
@@ -336,7 +336,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
     <button class="mh-close" onclick="closeMiles()">✕</button>
   </div>
   <div class="mh-body">
- 
+
     <!-- Accordion 1 -->
     <div class="acc-item">
       <div class="acc-hdr" onclick="toggleAcc(this)">
@@ -356,7 +356,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
         </ul>
       </div>
     </div>
- 
+
     <!-- Accordion 2 -->
     <div class="acc-item">
       <div class="acc-hdr" onclick="toggleAcc(this)">
@@ -377,7 +377,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
         </ul>
       </div>
     </div>
- 
+
     <!-- Accordion 3 -->
     <div class="acc-item">
       <div class="acc-hdr" onclick="toggleAcc(this)">
@@ -403,7 +403,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
         </div>
       </div>
     </div>
- 
+
     <!-- Accordion 4 — Glossary -->
     <div class="acc-item">
       <div class="acc-hdr" onclick="toggleAcc(this)">
@@ -424,10 +424,10 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
         <div class="gloss-row"><span class="gloss-term">CPM (Custo por Milha)</span><span class="gloss-def">Quanto você paga para adquirir 1 milha. Bom CPM: abaixo de R$ 0,03.</span></div>
       </div>
     </div>
- 
+
   </div>
 </div>
- 
+
 <!-- LEGEND -->
 <div id="legend">
   <div class="leg" onclick="legendZoom('EU')"><div class="legdot" style="background:var(--eu)"></div><span class="legtx">Europa</span></div>
@@ -437,7 +437,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
   <div class="leg" onclick="legendZoom('AS')"><div class="legdot" style="background:var(--as)"></div><span class="legtx">Ásia</span></div>
   <div class="leg" onclick="legendZoom('OC')"><div class="legdot" style="background:var(--oc)"></div><span class="legtx">Oceania</span></div>
 </div>
- 
+
 <!-- MAIN PANEL -->
 <div id="panel">
   <!-- Sticky top bar -->
@@ -478,7 +478,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
         <div id="terr-note" class="terr-note" style="display:none"></div>
       </div>
     </div>
- 
+
     <!-- Tab 1: Guia Prático -->
     <div class="p-pane" id="pane-1">
       <div class="guide-body">
@@ -487,7 +487,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
         <div class="req-list" id="req-list"></div>
       </div>
     </div>
- 
+
     <!-- Tab 2: Cultura & Sabor -->
     <div class="p-pane" id="pane-2">
       <div class="culture-body">
@@ -499,7 +499,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
         <div class="vibe-row" id="vibe-row"></div>
       </div>
     </div>
- 
+
     <!-- Tab 3: Logística -->
     <div class="p-pane" id="pane-3">
       <div class="logist-body">
@@ -526,7 +526,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;}
     </div>
   </div>
 </div>
- 
+
 <div id="tt"></div>
 <div id="hint">Clique em um continente · depois em um país para explorar</div>
 <script>
@@ -564,7 +564,7 @@ const DB = {
   daily:"R$ 200–500",hotel:"R$ 120–600",food_cost:"R$ 30–120",
   tip:"Caldo de cana gelado com pastel de feira num sábado de manhã. R$ 8. Inesquecível."
 },
- 
+
 "United States of America":{
   flag:"🇺🇸",region:"América do Norte",cont:"NA",
   hero:"https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=1000&q=80",heroCredit:"Manhattan, Nova York",
@@ -594,7 +594,7 @@ const DB = {
   daily:"R$ 980–2.400",hotel:"R$ 600–1.800",food_cost:"R$ 120–350",
   tip:"Smash burger num diner local às 2h da manhã depois de uma noite em Nova York. Experiência americana pura."
 },
- 
+
 "Mexico":{
   flag:"🇲🇽",region:"América do Norte",cont:"NA",
   hero:"https://images.unsplash.com/photo-1518638150340-f706e86654de?w=1000&q=80",heroCredit:"Chichén Itzá, Yucatán",
@@ -624,7 +624,7 @@ const DB = {
   daily:"R$ 420–950",hotel:"R$ 200–700",food_cost:"R$ 30–150",
   tip:"Tacos de canasta às 7h da manhã num carrinho de rua na CDMX. O melhor café da manhã do planeta. Custa R$ 4."
 },
- 
+
 "France":{
   flag:"🇫🇷",region:"Europa Ocidental",cont:"EU",
   hero:"https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1000&q=80",heroCredit:"Torre Eiffel · Paris",
@@ -655,7 +655,7 @@ const DB = {
   daily:"R$ 950–2.000",hotel:"R$ 500–2.000",food_cost:"R$ 120–400",
   tip:"Um croque-monsieur num café de calçada parisiense. Simples, mas revela tudo sobre a filosofia gastronômica francesa."
 },
- 
+
 "Japan":{
   flag:"🇯🇵",region:"Ásia Oriental",cont:"AS",
   hero:"https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=1000&q=80",heroCredit:"Fushimi Inari-taisha · Kyoto",
@@ -685,7 +685,7 @@ const DB = {
   daily:"R$ 680–1.400",hotel:"R$ 280–1.200",food_cost:"R$ 60–280",
   tip:"Kaiseki de 12 pratos num ryokan histórico em Kyoto. A experiência gastronômica mais completa que existe."
 },
- 
+
 "Egypt":{
   flag:"🇪🇬",region:"Norte da África",cont:"AF",
   hero:"https://images.unsplash.com/photo-1539650116574-75e09e35e6c3?w=1000&q=80",heroCredit:"Grande Pirâmide de Gizé · Cairo",
@@ -715,7 +715,7 @@ const DB = {
   daily:"R$ 230–580",hotel:"R$ 100–500",food_cost:"R$ 25–100",
   tip:"Koshari num restaurante sem nome no Cairo por EGP 20 (~R$ 3). O melhor comfort food do planeta."
 },
- 
+
 "Thailand":{
   flag:"🇹🇭",region:"Sudeste Asiático",cont:"AS",
   hero:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=1000&q=80",heroCredit:"Wat Pho · Bangkok",
@@ -746,7 +746,7 @@ const DB = {
   tip:"Street food de Bangkok é Patrimônio Imaterial da UNESCO. Vá com estômago vazio e coragem total."
 }
 };
- 
+
 // Template para países sem dados completos
 const TMPL = {
   flag:"🌍",region:"—",cont:"—",
@@ -766,7 +766,7 @@ const TMPL = {
   daily:"Em breve",hotel:"—",food_cost:"—",
   tip:"Adicione dados para este destino usando a estrutura DB acima."
 };
- 
+
 const POPULATED = new Set(["Brazil","United States of America","Mexico","France","Japan","Egypt","Thailand"]);
 // ═══════════════════════════════════════════════════════════
 //  GEO DATA
@@ -786,7 +786,7 @@ const CONT_ZOOM={EU:{k:3.8,lon:15,lat:53},NA:{k:2.5,lon:-100,lat:49},SA:{k:3.0,l
 const CONT_LABELS={EU:"Europa",NA:"América do Norte",SA:"América do Sul",AF:"África",AS:"Ásia",OC:"Oceania",AN:"Antártida"};
 const DOT_COORDS={"Brazil":[-47.9,-15.8],"United States of America":[-77,38.9],"Mexico":[-99.1,19.4],"France":[2.3,48.8],"Japan":[139.7,35.7],"Egypt":[31.2,30.0],"Thailand":[100.5,13.7]};
 const MONTH_NAMES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
- 
+
 // ═══════════════════════════════════════════════════════════
 //  D3 SETUP
 // ═══════════════════════════════════════════════════════════
@@ -799,7 +799,7 @@ let currentCont=null,selectedEl=null,panelOpen=false,milesOpen=false;
 const getName=id=>ID_NAME[parseInt(id)]||null;
 const getCont=name=>{if(!name)return null;const p=TERR_PARENT[name];return CONT_MAP[p||name]||null;};
 const cCls=c=>c?`cont-${c}`:"cont-neutral";
- 
+
 // ═══════════════════════════════════════════════════════════
 //  LOAD
 // ═══════════════════════════════════════════════════════════
@@ -814,7 +814,7 @@ const cCls=c=>c?`cont-${c}`:"cont-neutral";
     setTimeout(()=>document.getElementById("loading").classList.add("hide"),1500);
   }
 })();
- 
+
 function buildMap(world){
   const feats=topojson.feature(world,world.objects.countries).features;
   g.selectAll(".land").data(feats).enter().append("path")
@@ -845,7 +845,7 @@ function buildMap(world){
   fetchRates();
   setTimeout(()=>document.getElementById("loading").classList.add("hide"),700);
 }
- 
+
 // ═══════════════════════════════════════════════════════════
 //  ZOOM LOGIC
 // ═══════════════════════════════════════════════════════════
@@ -864,7 +864,7 @@ function zoomToCont(cont){
   document.getElementById("hint").style.opacity=0;
   document.getElementById("dashboard").classList.add("hidden");
 }
- 
+
 function applyZoom(cfg,shifted){
   const cx=shifted?W*0.30:W/2;
   const center=proj([cfg.lon,cfg.lat]);if(!center)return;
@@ -873,7 +873,7 @@ function applyZoom(cfg,shifted){
   g.transition().duration(950).ease(d3.easeCubicInOut).attr("transform",tstr);
   d3.select("#dots").transition().duration(950).ease(d3.easeCubicInOut).attr("transform",tstr);
 }
- 
+
 function selectCountry(name,el){
   g.selectAll(".land").classed("selected",false);
   d3.select(el).classed("selected",true);selectedEl=el;
@@ -881,7 +881,7 @@ function selectCountry(name,el){
   updateBC(currentCont,name);
   openPanel(name);
 }
- 
+
 function resetView(){
   currentCont=null;selectedEl=null;
   g.transition().duration(950).ease(d3.easeCubicInOut).attr("transform","");
@@ -898,9 +898,9 @@ function resetView(){
   document.getElementById("dashboard").classList.remove("hidden");
   updateBC(null,null);
 }
- 
+
 function legendZoom(code){resetView();setTimeout(()=>zoomToCont(code),80);}
- 
+
 // ═══════════════════════════════════════════════════════════
 //  BREADCRUMB
 // ═══════════════════════════════════════════════════════════
@@ -919,7 +919,7 @@ function updateBC(cont,country){
   document.getElementById("pb-cont").textContent=CONT_LABELS[cont]||"—";
   document.getElementById("pb-ctry").textContent=country||"—";
 }
- 
+
 // ═══════════════════════════════════════════════════════════
 //  PANEL RENDERING
 // ═══════════════════════════════════════════════════════════
@@ -929,7 +929,7 @@ function switchTab(i){
   document.querySelectorAll(".p-tab").forEach((t,idx)=>t.classList.toggle("active",idx===i));
   document.querySelectorAll(".p-pane").forEach((p,idx)=>p.classList.toggle("active",idx===i));
 }
- 
+
 function openPanel(name){
   panelOpen=true;
   const d=DB[name]||TMPL;
@@ -997,14 +997,14 @@ function openPanel(name){
   document.getElementById("p-content").scrollTop=0;
   document.getElementById("map-wrap").classList.add("shift");
 }
- 
+
 function closePanel(){
   panelOpen=false;
   document.getElementById("panel").classList.remove("open");
   document.getElementById("map-wrap").classList.remove("shift");
   if(selectedEl){d3.select(selectedEl).classed("selected",false);selectedEl=null;}
 }
- 
+
 function buildMonths(scores){
   const colors=["#2a2a2a","#c8a850","#32a870"];
   document.getElementById("months-grid").innerHTML=scores.map((s,i)=>`
@@ -1013,7 +1013,7 @@ function buildMonths(scores){
       <div class="month-lbl">${MONTH_NAMES[i].substring(0,1)}</div>
     </div>`).join("");
 }
- 
+
 // ═══════════════════════════════════════════════════════════
 //  SEARCH AUTOCOMPLETE
 // ═══════════════════════════════════════════════════════════
@@ -1047,14 +1047,14 @@ function goTo(name){
   if(!currentCont&&cont){zoomToCont(cont);setTimeout(()=>{if(found)selectCountry(name,found);},1000);}
   else if(found)selectCountry(name,found);
 }
- 
+
 // ═══════════════════════════════════════════════════════════
 //  MILES HUB
 // ═══════════════════════════════════════════════════════════
 function toggleMiles(){milesOpen=!milesOpen;document.getElementById("miles-hub").classList.toggle("open",milesOpen);}
 function closeMiles(){milesOpen=false;document.getElementById("miles-hub").classList.remove("open");}
 function toggleAcc(hdr){const item=hdr.closest(".acc-item");item.classList.toggle("open");}
- 
+
 // ═══════════════════════════════════════════════════════════
 //  DASHBOARD (empty state)
 // ═══════════════════════════════════════════════════════════
@@ -1075,7 +1075,7 @@ async function fetchRates(){
     document.getElementById("ds-jpy").textContent="R$ —";
   }
 }
- 
+
 // ═══════════════════════════════════════════════════════════
 //  KEYBOARD & INTERACTIONS
 // ═══════════════════════════════════════════════════════════
@@ -1087,7 +1087,7 @@ document.addEventListener("keydown",e=>{
   }
 });
 svg.on("click",ev=>{if(ev.target.tagName==="svg"&&panelOpen)closePanel();});
- 
+
 // ═══════════════════════════════════════════════════════════
 //  RESIZE
 // ═══════════════════════════════════════════════════════════
