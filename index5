@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRAVELING — Explore o Mundo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<style>
+/* ═══ TOKENS ═══════════════════════════════════════════════════════════════ */
+:root {
+  --gold:#c8a850; --gold2:#dfc070; --gold3:#7a6030; --gold4:rgba(200,168,80,.09);
+  --eu:#b8924a; --eu-g:rgba(184,146,74,.22);
+  --na:#3a9cb0; --na-g:rgba(58,156,176,.22);
+  --sa:#32a870; --sa-g:rgba(50,168,112,.22);
+  --af:#c87840; --af-g:rgba(200,120,64,.22);
+  --as:#a04040; --as-g:rgba(160,64,64,.22);
+  --oc:#5a7cc8; --oc-g:rgba(90,124,200,.22);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+[data-theme="dark"] {
+  --bg:#080808; --bg2:#0e0e0e; --bg3:#141414; --bg4:#1c1c1c;
+  --fg:rgba(237,230,214,.93); --muted:rgba(237,230,214,.30); --dim:rgba(237,230,214,.57);
+  --glass:rgba(9,9,9,.88); --gb:rgba(200,168,80,.09);
+  --land:#171717; --border:#252525;
+  --tbar:rgba(8,8,8,.94); --card:rgba(255,255,255,.025);
+  --inp-bg:rgba(16,16,16,.9); --inp-b:rgba(200,168,80,.14);
+  --scr:rgba(100,80,40,.4); --shadow:rgba(0,0,0,.6);
+}
+[data-theme="light"] {
+  --bg:#fdfaf3; --bg2:#f5f0e6; --bg3:#ede8da; --bg4:#e4ddd0;
+  --fg:rgba(28,20,8,.88); --muted:rgba(28,20,8,.36); --dim:rgba(28,20,8,.58);
+  --glass:rgba(253,250,243,.94); --gb:rgba(160,120,40,.16);
+  --land:#d4ccb4; --border:#bfb898;
+  --tbar:rgba(253,250,243,.97); --card:rgba(0,0,0,.028);
+  --inp-bg:rgba(248,244,234,.95); --inp-b:rgba(160,120,40,.22);
+  --scr:rgba(160,120,40,.25); --shadow:rgba(60,40,0,.12);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);}
+body{font-family:'Montserrat',sans-serif;font-weight:300;transition:background .35s,color .35s;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+::-webkit-scrollbar{width:2px;}
+::-webkit-scrollbar-thumb{background:var(--scr);border-radius:2px;}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+/* ═══ LOADING ═══════════════════════════════════════════════════════════════ */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .9s ease;}
+#loading.hide{opacity:0;pointer-events:none;}
+.ld-mark{font-family:'Playfair Display',serif;font-size:1.8rem;letter-spacing:.65em;color:var(--fg);margin-bottom:4px;animation:fIn .7s ease both;}
+.ld-sub{font-size:.41rem;letter-spacing:.45em;color:var(--muted);text-transform:uppercase;margin-bottom:28px;animation:fIn .7s ease .18s both;}
+.ld-bar{width:160px;height:1px;background:rgba(200,168,80,.1);overflow:hidden;position:relative;}
+.ld-bar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:ldSl 1.2s ease infinite;}
+@keyframes ldSl{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes fIn{from{opacity:0}to{opacity:1}}
+@keyframes fDn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ TOPBAR ════════════════════════════════════════════════════════════════ */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px 0 16px;
+  background:var(--tbar);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--gb);z-index:400;
+}
+#logo{
+  font-family:'Playfair Display',serif;font-size:1.05rem;letter-spacing:.52em;
+  font-weight:400;cursor:pointer;user-select:none;
+  opacity:0;animation:fDn .8s ease .4s forwards;
+  transition:opacity .2s;padding:6px 4px;
+}
+#logo:hover{opacity:.8!important;}
+#logo em{color:var(--gold);font-style:normal;}
+#topbar-right{display:flex;align-items:center;gap:9px;opacity:0;animation:fIn .7s ease .95s forwards;}
+.tb-btn{
+  display:flex;align-items:center;gap:5px;
+  border:1px solid var(--gb);color:var(--muted);font-size:.42rem;
+  letter-spacing:.19em;text-transform:uppercase;padding:5px 11px;
+  transition:all .22s;white-space:nowrap;border-radius:3px;
+}
+.tb-btn:hover{border-color:var(--gold);color:var(--gold2);}
+.tb-btn.hidden{display:none!important;}
+#counter-badge{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 11px;background:var(--gold4);
+  border:1px solid rgba(200,168,80,.15);border-radius:3px;
+  font-size:.42rem;letter-spacing:.13em;color:var(--gold);white-space:nowrap;
+}
+.ctr-n{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--gold2);font-weight:400;line-height:1;}
+#theme-btn{
+  width:30px;height:30px;border:1px solid var(--gb);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;transition:all .22s;
+}
+#theme-btn:hover{border-color:var(--gold);background:var(--gold4);}
+
+/* ═══ SEARCH ════════════════════════════════════════════════════════════════ */
+#sw{position:relative;}
+#si{
+  background:var(--inp-bg);border:1px solid var(--inp-b);outline:none;
+  color:var(--fg);font-family:'Montserrat',sans-serif;font-size:.5rem;
+  font-weight:300;letter-spacing:.13em;padding:6px 28px 6px 10px;
+  width:110px;transition:width .4s var(--ease),border-color .25s;
+  text-transform:uppercase;caret-color:var(--gold);border-radius:3px;
+}
+#si::placeholder{color:var(--muted);}
+#si:focus{width:180px;border-color:rgba(200,168,80,.38);}
+.si-ico{position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--gold3);font-size:.65rem;pointer-events:none;}
+#sug{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:var(--glass);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border:1px solid var(--gb);max-height:220px;overflow-y:auto;display:none;z-index:500;border-radius:3px;
+}
+#sug.open{display:block;}
+.sg-row{
+  padding:8px 11px;font-size:.51rem;letter-spacing:.09em;color:var(--dim);
+  cursor:pointer;text-transform:uppercase;display:flex;align-items:center;gap:8px;
+  transition:background .1s,color .1s;
+}
+.sg-row:hover,.sg-row:focus{background:var(--gold4);color:var(--gold2);}
+.sg-fl{font-size:.88rem;flex-shrink:0;line-height:1;}
+.sg-ct{font-size:.37rem;color:var(--gold3);margin-left:auto;letter-spacing:.09em;}
+
+/* ═══ BREADCRUMB ════════════════════════════════════════════════════════════ */
+#bc{position:fixed;top:59px;left:42px;z-index:200;display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .3s;pointer-events:none;}
+#bc.vis{opacity:1;pointer-events:all;}
+.bc-i{font-size:.4rem;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;cursor:pointer;transition:color .2s;background:none;border:none;}
+.bc-i:hover{color:var(--gold);}
+.bc-cur{color:var(--gold2)!important;}
+.bc-sep{font-size:.34rem;color:var(--gold3);}
+
+/* ═══ MAP ═══════════════════════════════════════════════════════════════════ */
+#map-wrap{position:fixed;inset:0;top:52px;transition:transform .72s var(--ease);}
+#map-wrap.shift{transform:translateX(-20%);}
+#map-svg{width:100%;height:100%;display:block;}
+.land{fill:var(--land);stroke:var(--border);stroke-width:.3px;cursor:pointer;transition:fill .15s,stroke .15s,filter .15s;}
+[data-theme="dark"] .land.dimmed{fill:#090909;stroke:#161616;stroke-width:.2px;opacity:.38;}
+[data-theme="light"] .land.dimmed{fill:#e2ddd0;stroke:#ccc6b4;stroke-width:.2px;opacity:.5;}
+.land.cont-EU:hover{fill:#2c2410;stroke:var(--eu);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--eu-g));}
+.land.cont-NA:hover{fill:#0c2a34;stroke:var(--na);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--na-g));}
+.land.cont-SA:hover{fill:#0b2c1a;stroke:var(--sa);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--sa-g));}
+.land.cont-AF:hover{fill:#2a1608;stroke:var(--af);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--af-g));}
+.land.cont-AS:hover{fill:#2a1010;stroke:var(--as);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--as-g));}
+.land.cont-OC:hover{fill:#121e38;stroke:var(--oc);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--oc-g));}
+.land:not([class*="cont-"]):hover{filter:brightness(1.4);}
+[data-theme="light"] .land.cont-EU:hover{fill:#d8cc8c;stroke:var(--eu);}
+[data-theme="light"] .land.cont-NA:hover{fill:#88bcd4;stroke:var(--na);}
+[data-theme="light"] .land.cont-SA:hover{fill:#88d4ac;stroke:var(--sa);}
+[data-theme="light"] .land.cont-AF:hover{fill:#d4a870;stroke:var(--af);}
+[data-theme="light"] .land.cont-AS:hover{fill:#d49090;stroke:var(--as);}
+[data-theme="light"] .land.cont-OC:hover{fill:#90a4d8;stroke:var(--oc);}
+.land.selected{stroke:var(--gold)!important;stroke-width:1.2px!important;filter:drop-shadow(0 0 8px rgba(200,168,80,.4))!important;}
+.land.visited-mark{opacity:.9;}
+/* Pulse dots */
+.pdot{pointer-events:none;}
+.pd-c{animation:pdC 3s ease-in-out infinite;}
+.pd-r{fill:none;stroke:var(--gold);stroke-width:.6;animation:pdR 3s ease-in-out infinite;}
+@keyframes pdC{0%,100%{r:2.6;opacity:.72;}50%{r:4;opacity:.18;}}
+@keyframes pdR{0%,100%{r:6.5;opacity:.38;}50%{r:10;opacity:0;}}
+
+/* ═══ LEGEND ════════════════════════════════════════════════════════════════ */
+#legend{position:fixed;bottom:38px;left:38px;z-index:100;opacity:0;animation:fIn .8s ease 2s forwards;}
+.leg{display:flex;align-items:center;gap:7px;margin-bottom:7px;cursor:pointer;transition:opacity .2s;}
+.leg:hover{opacity:.6;}
+.leg:focus-visible{outline:1px solid var(--gold);}
+.ldot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.ltx{font-size:.38rem;letter-spacing:.19em;color:var(--muted);text-transform:uppercase;}
+
+/* ═══ DASHBOARD (empty state) ═══════════════════════════════════════════════ */
+#dashboard{
+  position:fixed;bottom:42px;left:50%;transform:translateX(-50%);
+  z-index:90;display:flex;gap:11px;
+  opacity:0;animation:fIn .9s ease 2.5s forwards;
+  pointer-events:none;transition:opacity .35s;
+}
+#dashboard.gone{opacity:0!important;pointer-events:none!important;}
+.dsh-c{
+  background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--gb);padding:9px 15px;min-width:94px;text-align:center;border-radius:3px;
+}
+.dsh-lbl{font-size:.36rem;letter-spacing:.19em;color:var(--gold3);text-transform:uppercase;margin-bottom:4px;}
+.dsh-val{font-size:.86rem;color:var(--fg);font-family:'Cormorant Garamond',serif;font-weight:400;}
+.dsh-sub{font-size:.34rem;color:var(--muted);margin-top:2px;}
+
+/* ═══ MILES HUB — LEFT ══════════════════════════════════════════════════════ */
+#miles-tab{
+  position:fixed;left:0;top:50%;transform:translateY(-50%);
+  width:28px;height:170px;
+  background:var(--bg2);border-right:1px solid var(--gb);
+  display:flex;align-items:center;justify-content:center;
+  z-index:200;cursor:pointer;
+  opacity:0;animation:fIn .8s ease 2s forwards;transition:border-color .25s;
+}
+#miles-tab:hover{border-right-color:rgba(200,168,80,.28);}
+#miles-tab span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:.4rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;white-space:nowrap;transition:color .25s;}
+#miles-tab:hover span{color:rgba(200,168,80,.55);}
+#miles-hub{
+  position:fixed;left:-320px;top:52px;bottom:0;width:310px;
+  background:var(--glass);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  border-right:1px solid var(--gb);z-index:190;
+  transition:left .5s var(--ease);overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--scr) transparent;
+}
+#miles-hub.open{left:0;}
+.mh-head{
+  padding:16px 18px 12px;border-bottom:1px solid var(--gb);
+  position:sticky;top:0;background:var(--glass);backdrop-filter:blur(20px);z-index:2;
+  display:flex;align-items:flex-start;justify-content:space-between;
+}
+.mh-title{font-family:'Playfair Display',serif;font-size:.92rem;color:var(--gold);font-style:italic;}
+.mh-sub{font-size:.37rem;letter-spacing:.17em;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.mh-x{font-size:.8rem;color:var(--muted);transition:color .2s;padding:2px 4px;}
+.mh-x:hover{color:var(--gold);}
+.mh-body{padding:4px 0 36px;}
+/* Accordion */
+.acc{border-bottom:1px solid rgba(200,168,80,.06);}
+.acc-h{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;cursor:pointer;transition:background .12s;}
+.acc-h:hover{background:var(--gold4);}
+.acc-hl{display:flex;align-items:center;gap:9px;}
+.acc-ico{font-size:.9rem;}
+.acc-ti{font-size:.57rem;color:var(--fg);letter-spacing:.05em;font-weight:400;}
+.acc-su{font-size:.37rem;color:var(--muted);letter-spacing:.1em;margin-top:1px;}
+.acc-ar{font-size:.46rem;color:var(--gold3);transition:transform .28s;}
+.acc.is-open .acc-ar{transform:rotate(180deg);}
+.acc-bd{display:none;padding:2px 18px 14px;}
+.acc.is-open .acc-bd{display:block;}
+.acc-p{font-size:.61rem;color:var(--dim);line-height:1.85;margin-bottom:7px;}
+.acc-ul{list-style:none;}
+.acc-ul li{font-size:.6rem;color:var(--dim);padding:5px 0;border-bottom:1px solid rgba(200,168,80,.05);display:flex;gap:7px;line-height:1.55;}
+.acc-ul li:last-child{border:none;}
+.acc-ul li::before{content:"›";color:var(--gold3);flex-shrink:0;}
+.acc-tag{display:inline-block;font-size:.37rem;letter-spacing:.1em;padding:3px 7px;border:1px solid rgba(200,168,80,.14);color:var(--gold3);text-transform:uppercase;margin:3px 2px 0 0;border-radius:2px;}
+.gl-row{display:flex;gap:9px;padding:6px 0;border-bottom:1px solid rgba(200,168,80,.05);font-size:.59rem;}
+.gl-row:last-child{border:none;}
+.gl-term{color:var(--gold2);font-weight:500;min-width:80px;flex-shrink:0;}
+.gl-def{color:var(--dim);line-height:1.55;}
+
+/* ═══ MAIN PANEL ════════════════════════════════════════════════════════════ */
+#panel{
+  position:fixed;right:0;top:52px;bottom:0;
+  width:40vw;min-width:420px;max-width:640px;
+  background:var(--glass);backdrop-filter:blur(44px);-webkit-backdrop-filter:blur(44px);
+  border-left:1px solid var(--gb);z-index:350;
+  transform:translateX(100%);transition:transform .7s var(--ease);
+  display:flex;flex-direction:column;
+  box-shadow:-8px 0 40px var(--shadow);
+}
+#panel.open{transform:translateX(0);}
+/* Panel bar */
+#p-bar{display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid var(--gb);flex-shrink:0;background:var(--glass);backdrop-filter:blur(16px);}
+#p-x{width:24px;height:24px;border:1px solid var(--gb);display:flex;align-items:center;justify-content:center;font-size:.78rem;color:var(--muted);transition:all .2s;border-radius:3px;flex-shrink:0;}
+#p-x:hover{border-color:var(--gold);color:var(--gold);background:var(--gold4);}
+#p-bc-inner{font-size:.39rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;display:flex;gap:5px;align-items:center;}
+#p-bc-inner .sep{color:var(--gold3);}
+#visited-btn{
+  margin-left:auto;display:flex;align-items:center;gap:5px;
+  border:1px solid var(--gb);color:var(--muted);
+  font-size:.38rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:4px 9px;transition:all .22s;border-radius:3px;white-space:nowrap;
+}
+#visited-btn:hover,#visited-btn.on{border-color:var(--sa);color:var(--sa);background:rgba(50,168,112,.06);}
+/* Tabs */
+#p-tabs{display:flex;border-bottom:1px solid var(--gb);flex-shrink:0;background:var(--bg2);}
+.pt{
+  flex:1;padding:9px 3px;font-size:.37rem;letter-spacing:.11em;
+  color:var(--muted);text-transform:uppercase;text-align:center;
+  cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;
+}
+.pt:hover{color:var(--dim);}
+.pt.on{color:var(--gold);border-bottom-color:var(--gold);}
+#p-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--scr) transparent;}
+.pane{display:none;}.pane.on{display:block;}
+
+/* ── TAB 0: CHECK-IN ─────────────────────────────────────────────────────── */
+/* Polaroid Gallery */
+.polaroid-gallery{
+  display:flex;gap:0;overflow-x:auto;padding:14px 16px 10px;
+  scrollbar-width:none;background:var(--bg2);border-bottom:1px solid var(--gb);
+}
+.polaroid-gallery::-webkit-scrollbar{display:none;}
+.polaroid{
+  flex-shrink:0;width:140px;
+  background:white;padding:6px 6px 22px;
+  box-shadow:0 3px 14px rgba(0,0,0,.35),0 1px 4px rgba(0,0,0,.2);
+  margin-right:10px;transform:rotate(var(--rot));
+  transition:transform .25s,box-shadow .25s;cursor:default;position:relative;
+}
+[data-theme="light"] .polaroid{box-shadow:0 3px 14px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.1);}
+.polaroid:hover{transform:rotate(0deg) scale(1.04);box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:2;}
+.polaroid img{width:100%;height:90px;object-fit:cover;display:block;background:#222;}
+.polaroid-cap{
+  font-family:'Montserrat',sans-serif;font-size:.38rem;
+  color:#444;text-align:center;margin-top:5px;letter-spacing:.06em;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+/* Country header below gallery */
+.ctry-head{padding:12px 18px 8px;border-bottom:1px solid var(--gb);}
+.ctry-flag{font-size:2rem;margin-bottom:5px;line-height:1;}
+.ctry-name{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:500;color:var(--fg);line-height:1.1;margin-bottom:2px;}
+.ctry-region{font-size:.39rem;letter-spacing:.3em;color:var(--gold3);text-transform:uppercase;}
+.tab-body{padding:14px 18px;}
+.sec-lbl{font-size:.38rem;letter-spacing:.21em;color:var(--gold3);text-transform:uppercase;margin-bottom:9px;font-weight:500;}
+/* Essentials grid */
+.ess-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.ess-c{background:var(--card);border:1px solid var(--gb);padding:10px 12px;border-radius:3px;}
+.ess-ico{font-size:.95rem;margin-bottom:4px;}
+.ess-lbl{font-size:.35rem;letter-spacing:.17em;color:var(--gold3);text-transform:uppercase;margin-bottom:3px;}
+.ess-val{font-size:.68rem;color:var(--fg);font-weight:400;line-height:1.3;}
+.ess-sub{font-size:.5rem;color:var(--dim);margin-top:2px;}
+/* Live rate badge */
+.rate-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(50,168,112,.08);border:1px solid rgba(50,168,112,.18);
+  padding:3px 8px;border-radius:2px;font-size:.44rem;color:var(--sa);
+  margin-top:4px;font-weight:500;
+}
+/* Months */
+.months-row{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;margin-bottom:5px;}
+.mo-cell{text-align:center;}
+.mo-bar{border-radius:2px;margin-bottom:2px;transition:opacity .2s;}
+.mo-bar:hover{opacity:.75;}
+.mo-l{font-size:.33rem;color:var(--muted);}
+.mo-leg{display:flex;gap:12px;margin-top:5px;margin-bottom:12px;}
+.mol-i{display:flex;align-items:center;gap:4px;font-size:.35rem;color:var(--muted);}
+.mol-d{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.best-q{font-size:.63rem;color:var(--dim);line-height:1.85;font-style:italic;border-left:2px solid var(--gold3);padding-left:10px;margin-top:10px;}
+.terr-box{margin-top:12px;padding:10px 12px;background:var(--gold4);border:1px solid rgba(200,168,80,.1);border-radius:3px;font-size:.6rem;color:var(--dim);line-height:1.7;}
+
+/* ── TAB 1: BUROCRACIA ───────────────────────────────────────────────────── */
+.conflict-card{padding:11px 13px;border-radius:3px;margin-bottom:12px;border:1px solid;}
+.conflict-card.green{background:rgba(50,168,112,.06);border-color:rgba(50,168,112,.2);}
+.conflict-card.yellow{background:rgba(200,168,80,.06);border-color:rgba(200,168,80,.2);}
+.conflict-card.red{background:rgba(200,50,50,.07);border-color:rgba(200,50,50,.22);}
+.conflict-badge{font-size:.41rem;letter-spacing:.17em;text-transform:uppercase;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.conflict-badge::before{content:'●';flex-shrink:0;}
+.conflict-badge.green{color:#32a870;}
+.conflict-badge.yellow{color:#c8a850;}
+.conflict-badge.red{color:#e05050;}
+.conflict-body{font-size:.6rem;color:var(--dim);line-height:1.78;}
+/* Border status */
+.border-status{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:3px;margin-bottom:12px;border:1px solid var(--gb);background:var(--card);}
+.bs-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;animation:bsPulse 2s ease-in-out infinite;}
+@keyframes bsPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.bs-txt{font-size:.42rem;letter-spacing:.13em;text-transform:uppercase;font-weight:500;}
+.bs-dot.open{background:#32a870;}
+.bs-dot.warn{background:#c8a850;}
+.bs-dot.closed{background:#e05050;}
+.bs-txt.open{color:#32a870;}
+.bs-txt.warn{color:#c8a850;}
+.bs-txt.closed{color:#e05050;}
+/* Visa */
+.visa-c{padding:11px 13px;border-left:3px solid;margin-bottom:11px;border-radius:0 3px 3px 0;}
+.visa-c.free{border-color:var(--sa);background:rgba(50,168,112,.05);}
+.visa-c.req{border-color:var(--as);background:rgba(160,64,64,.05);}
+.visa-c.cond{border-color:var(--eu);background:rgba(184,146,74,.05);}
+.visa-badge2{font-size:.42rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.visa-badge2::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.visa-badge2.free{color:var(--sa);}
+.visa-badge2.req{color:var(--as);}
+.visa-badge2.cond{color:var(--eu);}
+.visa-body2{font-size:.61rem;color:var(--dim);line-height:1.8;}
+.visa-body2 strong{color:var(--fg);font-weight:500;}
+.req-row{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid rgba(200,168,80,.06);}
+.req-row:last-child{border:none;}
+.req-ico{font-size:.85rem;flex-shrink:0;}
+.req-lbl{font-size:.36rem;letter-spacing:.13em;color:var(--gold3);text-transform:uppercase;margin-bottom:2px;}
+.req-v{font-size:.6rem;color:var(--dim);line-height:1.5;}
+
+/* ── TAB 2: CULTURA ─────────────────────────────────────────────────────── */
+.food-c{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(200,168,80,.06);}
+.food-c:last-child{border:none;}
+.food-em{font-size:1.8rem;line-height:1;flex-shrink:0;}
+.food-must{font-size:.33rem;letter-spacing:.13em;color:var(--gold3);text-transform:uppercase;margin-bottom:2px;}
+.food-nm{font-family:'Cormorant Garamond',serif;font-size:.86rem;font-style:italic;color:var(--fg);margin-bottom:2px;}
+.food-dsc{font-size:.59rem;color:var(--dim);line-height:1.7;}
+.etiq-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid rgba(200,168,80,.05);font-size:.6rem;color:var(--dim);line-height:1.6;}
+.etiq-row:last-child{border:none;}
+.etiq-ico{font-size:.78rem;flex-shrink:0;line-height:1.2;}
+.vibe-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+.vibe-p{font-size:.37rem;letter-spacing:.1em;padding:3px 8px;border:1px solid var(--gb);color:var(--muted);text-transform:uppercase;border-radius:2px;}
+
+/* ── TAB 3: VOOS ────────────────────────────────────────────────────────── */
+.route-vis{background:var(--card);border:1px solid var(--gb);padding:14px;margin-bottom:14px;border-radius:3px;text-align:center;}
+.route-row{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:12px;}
+.route-ap{text-align:center;}
+.route-code{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--fg);font-weight:400;line-height:1;}
+.route-city{font-size:.36rem;letter-spacing:.13em;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.route-mid{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.route-dash{height:1px;width:100%;background:repeating-linear-gradient(90deg,var(--gold3) 0,var(--gold3) 4px,transparent 4px,transparent 9px);}
+.route-plane{font-size:1rem;color:var(--gold);}
+.route-hrs{font-size:.34rem;letter-spacing:.13em;color:var(--muted);text-transform:uppercase;}
+.origin-wrap{display:flex;gap:7px;margin-bottom:12px;}
+#origin-inp{
+  flex:1;background:var(--inp-bg);border:1px solid var(--inp-b);outline:none;
+  color:var(--fg);font-family:'Montserrat',sans-serif;font-size:.52rem;
+  font-weight:300;letter-spacing:.11em;padding:7px 10px;caret-color:var(--gold);border-radius:3px;text-transform:uppercase;
+}
+#origin-inp::placeholder{color:var(--muted);}
+#calc-btn{
+  background:var(--gold4);border:1px solid rgba(200,168,80,.2);color:var(--gold);
+  font-size:.44rem;letter-spacing:.13em;text-transform:uppercase;padding:7px 12px;
+  transition:all .22s;border-radius:3px;
+}
+#calc-btn:hover{background:rgba(200,168,80,.14);border-color:var(--gold);}
+.price-2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
+.pr-box{padding:11px;background:var(--card);border:1px solid var(--gb);text-align:center;border-radius:3px;}
+.pr-box.hl{border-color:rgba(200,168,80,.22);background:var(--gold4);}
+.pr-lbl{font-size:.35rem;letter-spacing:.15em;color:var(--gold3);text-transform:uppercase;margin-bottom:6px;}
+.pr-main{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--fg);font-weight:400;line-height:1;}
+.pr-box.hl .pr-main{color:var(--gold);}
+.pr-sub{font-size:.44rem;color:var(--dim);margin-top:2px;}
+.prog-row{display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid rgba(200,168,80,.05);}
+.prog-row:last-child{border:none;}
+.prog-n{font-size:.57rem;color:var(--fg);font-weight:400;flex:1;}
+.prog-mi{font-size:.58rem;color:var(--gold);font-weight:500;}
+.prog-cl{font-size:.36rem;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;}
+/* Miles difficulty */
+.miles-diff{margin-top:12px;padding:11px 13px;background:var(--card);border:1px solid var(--gb);border-radius:3px;}
+.diff-lbl-title{font-size:.36rem;letter-spacing:.19em;color:var(--gold3);text-transform:uppercase;margin-bottom:8px;}
+.diff-bar-wrap{display:flex;gap:4px;margin-bottom:5px;}
+.diff-seg{flex:1;height:6px;border-radius:2px;opacity:.3;transition:opacity .3s;}
+.diff-seg.lit{opacity:1;}
+.diff-label{font-size:.5rem;color:var(--fg);font-weight:500;}
+.diff-desc{font-size:.56rem;color:var(--dim);margin-top:3px;}
+.cost-t{width:100%;margin-top:11px;}
+.ct-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(200,168,80,.05);}
+.ct-row:last-child{border:none;}
+.ct-lbl{font-size:.51rem;color:var(--muted);}
+.ct-val{font-size:.63rem;color:var(--dim);}
+.ct-val.hi{color:var(--gold2);}
+
+/* ── TAB 4: CHECKLIST ───────────────────────────────────────────────────── */
+.chk-group{margin-bottom:14px;}
+.chk-group-title{font-size:.37rem;letter-spacing:.2em;color:var(--gold3);text-transform:uppercase;margin-bottom:8px;font-weight:500;}
+.chk-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:3px;cursor:pointer;transition:background .12s;user-select:none;}
+.chk-item:hover{background:var(--gold4);}
+.chk-box{
+  width:15px;height:15px;border:1px solid var(--gb);border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .18s;font-size:.5rem;color:transparent;
+}
+.chk-item.done .chk-box{background:var(--sa);border-color:var(--sa);color:white;}
+.chk-label{font-size:.6rem;color:var(--dim);line-height:1.4;transition:color .18s;}
+.chk-item.done .chk-label{color:var(--muted);text-decoration:line-through;}
+.chk-ico{font-size:.8rem;flex-shrink:0;}
+.chk-tip{font-size:.59rem;color:var(--dim);font-style:italic;border-left:2px solid var(--gold3);padding-left:9px;margin-top:3px;margin-bottom:10px;line-height:1.7;}
+
+/* ── TIP BOX (all tabs) ──────────────────────────────────────────────────── */
+.tip-b{margin-top:13px;padding:10px 12px;background:var(--gold4);border-left:2px solid var(--gold3);border-radius:0 3px 3px 0;}
+.tip-lbl{font-size:.35rem;letter-spacing:.15em;color:var(--gold3);text-transform:uppercase;margin-bottom:3px;}
+.tip-tx{font-size:.6rem;color:var(--dim);line-height:1.75;font-style:italic;}
+
+/* ═══ TOOLTIP ═══════════════════════════════════════════════════════════════ */
+#tt{
+  position:fixed;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--gb);padding:5px 11px;font-size:.49rem;letter-spacing:.11em;
+  color:var(--fg);text-transform:uppercase;pointer-events:none;z-index:700;
+  opacity:0;transition:opacity .1s;white-space:nowrap;border-radius:3px;
+  display:flex;align-items:center;gap:6px;
+}
+.tt-fl{font-size:.85rem;}
+
+/* ═══ HINT ══════════════════════════════════════════════════════════════════ */
+#hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);font-size:.37rem;letter-spacing:.19em;color:var(--muted);text-transform:uppercase;pointer-events:none;opacity:0;animation:fIn 1s ease 2.8s forwards;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div id="loading"><div class="ld-mark">TRAVELING</div><div class="ld-sub">Explore o mundo com inteligência</div><div class="ld-bar"></div></div>
+
+<header id="topbar">
+  <button id="logo" onclick="homeReset()" aria-label="Voltar ao início">TR<em>A</em>VELING</button>
+  <div id="topbar-right">
+    <div id="counter-badge" title="Países visitados">🌍 <span style="font-size:.42rem;color:var(--muted)">Explorador:</span> <span class="ctr-n" id="ctr-n">0</span><span style="font-size:.38rem;color:var(--muted)">/193</span></div>
+    <button class="tb-btn hidden" id="reset-btn" onclick="resetView()">⊕ Mundo</button>
+    <button id="theme-btn" onclick="toggleTheme()" aria-label="Alternar tema">🌙</button>
+    <div id="sw"><input id="si" type="search" placeholder="Buscar país..." autocomplete="off" spellcheck="false" aria-label="Buscar país"><span class="si-ico" aria-hidden="true">⌕</span><div id="sug" role="listbox"></div></div>
+  </div>
+</header>
+
+<nav id="bc">
+  <button class="bc-i" onclick="resetView()">Mundo</button>
+  <span class="bc-sep" id="bc-s1" style="display:none">›</span>
+  <span class="bc-i bc-cur" id="bc-cont" style="display:none"></span>
+  <span class="bc-sep" id="bc-s2" style="display:none">›</span>
+  <span class="bc-i bc-cur" id="bc-ctry" style="display:none"></span>
+</nav>
+
+<div id="map-wrap"><svg id="map-svg"></svg></div>
+
+<div id="dashboard">
+  <div class="dsh-c"><div class="dsh-lbl">Dólar</div><div class="dsh-val" id="ds-usd">—</div><div class="dsh-sub">USD/BRL</div></div>
+  <div class="dsh-c"><div class="dsh-lbl">Euro</div><div class="dsh-val" id="ds-eur">—</div><div class="dsh-sub">EUR/BRL</div></div>
+  <div class="dsh-c"><div class="dsh-lbl">Iene</div><div class="dsh-val" id="ds-jpy">—</div><div class="dsh-sub">¥100/BRL</div></div>
+  <div class="dsh-c"><div class="dsh-lbl">Trending</div><div class="dsh-val" style="font-size:.7rem">🇯🇵🇬🇷🇮🇹🇲🇦</div><div class="dsh-sub">2025</div></div>
+</div>
+
+<button id="miles-tab" onclick="toggleMiles()" aria-label="Abrir painel de milhas" aria-expanded="false"><span>Milhas & Cartões</span></button>
+
+<aside id="miles-hub">
+  <div class="mh-head"><div><div class="mh-title">Milhas & Cartões</div><div class="mh-sub">Hub de conscientização</div></div><button class="mh-x" onclick="closeMiles()">✕</button></div>
+  <div class="mh-body">
+    <div class="acc"><div class="acc-h" onclick="toggleAcc(this)"><div class="acc-hl"><span class="acc-ico">💳</span><div><div class="acc-ti">Cartões de Elite 2025</div><div class="acc-su">Melhor custo-benefício</div></div></div><span class="acc-ar">▾</span></div>
+      <div class="acc-bd"><ul class="acc-ul">
+        <li><strong>Nubank Ultravioleta:</strong> 1pt/R$1 + transferência 1:1 Smiles. Sem anuidade acima de R$5k/mês.</li>
+        <li><strong>Itaú Personnalité Visa Infinite:</strong> 2,4pts/R$1 internacionais. LoungeKey ilimitado.</li>
+        <li><strong>XP Visa Infinite:</strong> 2,5pts/R$1 com conversão livre Smiles, TudoAzul e Livelo.</li>
+        <li><strong>Bradesco Aeternum:</strong> 2,8pts/R$1 + 30.000pts boas-vindas. O melhor premium do Brasil.</li>
+        <li><strong>C6 Carbon:</strong> 2pts/R$1 com anuidade revertida em milhas.</li>
+      </ul></div></div>
+    <div class="acc"><div class="acc-h" onclick="toggleAcc(this)"><div class="acc-hl"><span class="acc-ico">📅</span><div><div class="acc-ti">Estratégia do Mês</div><div class="acc-su">Transferências com bônus</div></div></div><span class="acc-ar">▾</span></div>
+      <div class="acc-bd"><p class="acc-p">Bônus de transferência chegam a 100%. Assine alertas em MaxMilhas e Melhores Destinos.</p><ul class="acc-ul">
+        <li><strong>Livelo → Smiles:</strong> Bônus de 30–80% em campanhas sazonais.</li>
+        <li><strong>Itaú → TudoAzul:</strong> Transferência 1:1,25 em promoções mensais.</li>
+        <li><strong>Bradesco → Latam Pass:</strong> Bônus de até 60% em datas especiais.</li>
+      </ul><div style="margin-top:7px"><span class="acc-tag">Concentre gastos</span><span class="acc-tag">Use portais</span><span class="acc-tag">Bônus sazonais</span></div></div></div>
+    <div class="acc"><div class="acc-h" onclick="toggleAcc(this)"><div class="acc-hl"><span class="acc-ico">🏆</span><div><div class="acc-ti">Clube de Milhas</div><div class="acc-su">Estratégias avançadas</div></div></div><span class="acc-ar">▾</span></div>
+      <div class="acc-bd"><ul class="acc-ul">
+        <li>Concentre contas fixas (IPTU, IPVA, luz, internet) no cartão premium.</li>
+        <li>Portais de shopping: Livelo Store, Smiles Store com 4–20pts/R$1.</li>
+        <li>Compras no exterior com cartão de bônus em dólar — rendimento 2–3x maior.</li>
+        <li>Peça upgrade em vez de comprar executiva — melhor CPM.</li>
+      </ul></div></div>
+    <div class="acc"><div class="acc-h" onclick="toggleAcc(this)"><div class="acc-hl"><span class="acc-ico">📖</span><div><div class="acc-ti">Glossário Rápido</div><div class="acc-su">Para iniciantes</div></div></div><span class="acc-ar">▾</span></div>
+      <div class="acc-bd">
+        <div class="gl-row"><span class="gl-term">Milha / Ponto</span><span class="gl-def">Unidade dos programas. 1 milha ≠ 1 ponto — a conversão varia.</span></div>
+        <div class="gl-row"><span class="gl-term">Voo-prêmio</span><span class="gl-def">Passagem emitida inteiramente com milhas, sem custo em dinheiro.</span></div>
+        <div class="gl-row"><span class="gl-term">Upgrade</span><span class="gl-def">Econômica → Executiva usando milhas. Melhor custo-benefício.</span></div>
+        <div class="gl-row"><span class="gl-term">CPM</span><span class="gl-def">Custo por Milha. Bom CPM: abaixo de R$0,03.</span></div>
+        <div class="gl-row"><span class="gl-term">LoungeKey</span><span class="gl-def">Acesso a salas VIP em aeroportos. Cartões Infinite geralmente incluem.</span></div>
+        <div class="gl-row"><span class="gl-term">Expiração</span><span class="gl-def">Milhas vencem em 18–36 meses. Qualquer movimentação renova o prazo.</span></div>
+      </div></div>
+  </div>
+</aside>
+
+<nav id="legend">
+  <div class="leg" onclick="legendZoom('EU')" tabindex="0"><div class="ldot" style="background:var(--eu)"></div><span class="ltx">Europa</span></div>
+  <div class="leg" onclick="legendZoom('NA')" tabindex="0"><div class="ldot" style="background:var(--na)"></div><span class="ltx">América do Norte</span></div>
+  <div class="leg" onclick="legendZoom('SA')" tabindex="0"><div class="ldot" style="background:var(--sa)"></div><span class="ltx">América do Sul</span></div>
+  <div class="leg" onclick="legendZoom('AF')" tabindex="0"><div class="ldot" style="background:var(--af)"></div><span class="ltx">África</span></div>
+  <div class="leg" onclick="legendZoom('AS')" tabindex="0"><div class="ldot" style="background:var(--as)"></div><span class="ltx">Ásia</span></div>
+  <div class="leg" onclick="legendZoom('OC')" tabindex="0"><div class="ldot" style="background:var(--oc)"></div><span class="ltx">Oceania</span></div>
+</nav>
+
+<aside id="panel">
+  <div id="p-bar">
+    <button id="p-x" onclick="closePanel()">✕</button>
+    <div id="p-bc-inner"><span id="pb-cont">—</span><span class="sep">›</span><span id="pb-ctry">—</span></div>
+    <button id="visited-btn" onclick="toggleVisited()">☐ Visitado</button>
+  </div>
+  <div id="p-tabs">
+    <div class="pt on" onclick="switchTab(0)">📍 Check-in</div>
+    <div class="pt" onclick="switchTab(1)">🛂 Burocracia</div>
+    <div class="pt" onclick="switchTab(2)">🎭 Cultura</div>
+    <div class="pt" onclick="switchTab(3)">✈️ Voos</div>
+    <div class="pt" onclick="switchTab(4)">🎒 Checklist</div>
+  </div>
+  <div id="p-scroll">
+    <!-- Tab 0 -->
+    <div class="pane on" id="pane-0">
+      <div class="polaroid-gallery" id="polaroid-gallery"></div>
+      <div class="ctry-head"><div id="p-flag" class="ctry-flag"></div><div id="p-name" class="ctry-name">—</div><div id="p-region" class="ctry-region">—</div></div>
+      <div class="tab-body">
+        <div class="ess-grid" id="ess-grid"></div>
+        <div class="sec-lbl">Melhor época para visitar</div>
+        <div class="months-row" id="months-row"></div>
+        <div class="mo-leg"><div class="mol-i"><div class="mol-d" style="background:#32a870"></div>Ótimo</div><div class="mol-i"><div class="mol-d" style="background:#c8a850"></div>Bom</div><div class="mol-i"><div class="mol-d" style="background:#333"></div>Evitar</div></div>
+        <div class="best-q" id="best-q"></div>
+        <div id="terr-box" class="terr-box" style="display:none"></div>
+      </div>
+    </div>
+    <!-- Tab 1 -->
+    <div class="pane" id="pane-1"><div class="tab-body" id="buro-body"></div></div>
+    <!-- Tab 2 -->
+    <div class="pane" id="pane-2">
+      <div class="tab-body">
+        <div class="sec-lbl">O prato que define a nação</div>
+        <div id="food-list"></div>
+        <div class="sec-lbl" style="margin-top:14px">O que nunca fazer</div>
+        <div id="etiq-list"></div>
+        <div class="sec-lbl" style="margin-top:12px">A vibe do lugar</div>
+        <div class="vibe-wrap" id="vibe-wrap"></div>
+      </div>
+    </div>
+    <!-- Tab 3 -->
+    <div class="pane" id="pane-3">
+      <div class="tab-body">
+        <div class="route-vis">
+          <div class="route-row">
+            <div class="route-ap"><div class="route-code" id="rt-orig-c">GRU</div><div class="route-city" id="rt-orig-city">São Paulo</div></div>
+            <div class="route-mid"><div class="route-dash"></div><div class="route-plane">✈</div><div class="route-dash"></div><div class="route-hrs" id="rt-hrs">—</div></div>
+            <div class="route-ap"><div class="route-code" id="rt-dest-c">—</div><div class="route-city" id="rt-dest-city">—</div></div>
+          </div>
+          <div class="origin-wrap"><input id="origin-inp" type="text" placeholder="Origem (IATA, ex: GRU)" value="GRU" maxlength="4"><button id="calc-btn" onclick="calcRoute()">Calcular</button></div>
+          <div id="route-result"></div>
+        </div>
+        <div class="price-2" id="price-2"></div>
+        <div class="sec-lbl">Por programa de milhas</div>
+        <div id="prog-rows"></div>
+        <div class="miles-diff" id="miles-diff"></div>
+        <div class="sec-lbl" style="margin-top:12px">Custo estimado da viagem</div>
+        <div class="cost-t" id="cost-t"></div>
+        <div id="tip-box-3"></div>
+      </div>
+    </div>
+    <!-- Tab 4 -->
+    <div class="pane" id="pane-4">
+      <div class="tab-body">
+        <div class="chk-tip" id="chk-tip"></div>
+        <div id="chk-lists"></div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button onclick="chkAll(true)" style="flex:1;padding:7px;border:1px solid var(--gb);border-radius:3px;font-size:.42rem;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--gb)'">✓ Marcar tudo</button>
+          <button onclick="chkAll(false)" style="flex:1;padding:7px;border:1px solid var(--gb);border-radius:3px;font-size:.42rem;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--gb)'">✗ Limpar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div id="tt" role="tooltip"></div>
+<div id="hint">Clique num continente · depois num país para explorar</div>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  SEARCH ALIASES — Portuguese → English country names
+// ═══════════════════════════════════════════════════════════
+const ALIASES = {
+  "alemanha":"Germany","alemanha":"Germany","franca":"France","franca":"France","franca":"France",
+  "franca":"France","estados unidos":"United States of America","eua":"United States of America",
+  "estados unidos da america":"United States of America","japao":"Japan","japao":"Japan",
+  "china":"China","india":"India","india":"India","russia":"Russia","russia":"Russia",
+  "turquia":"Turkey","turquia":"Turkey","grecia":"Greece","grecia":"Greece","suica":"Switzerland",
+  "suica":"Switzerland","espanha":"Spain","italia":"Italy","italia":"Italy","reino unido":"United Kingdom",
+  "inglaterra":"United Kingdom","australia":"Australia","australia":"Australia","canada":"Canada",
+  "canada":"Canada","mexico":"Mexico","mexico":"Mexico","argentina":"Argentina","chile":"Chile",
+  "colombia":"Colombia","colombia":"Colombia","peru":"Peru","egito":"Egypt","tailandia":"Thailand",
+  "tailandia":"Thailand","coreia do sul":"South Korea","indonesia":"Indonesia","indonesia":"Indonesia",
+  "filipinas":"Philippines","vietna":"Vietnam","vietna":"Vietnam","tailandia":"Thailand",
+  "singapura":"Singapore","malasia":"Malaysia","malasia":"Malaysia","noruega":"Norway",
+  "suecia":"Sweden","suecia":"Sweden","dinamarca":"Denmark","finlandia":"Finland","finlandia":"Finland",
+  "polonia":"Poland","polonia":"Poland","hungria":"Hungary","austria":"Austria","austria":"Austria",
+  "belgica":"Belgium","belgica":"Belgium","holanda":"Netherlands","paises baixos":"Netherlands",
+  "portugal":"Portugal","croacia":"Croatia","croacia":"Croatia","romenia":"Romania","romenia":"Romania",
+  "bulgaria":"Bulgaria","bulgaria":"Bulgaria","ucrania":"Ukraine","ucrania":"Ukraine","marrocos":"Morocco",
+  "africa do sul":"South Africa","nigeria":"Nigeria","quenia":"Kenya","quenia":"Kenya",
+  "etiopia":"Ethiopia","etiopia":"Ethiopia","tanzania":"Tanzania","tanzania":"Tanzania",
+  "arabia saudita":"Saudi Arabia","emirados arabes":"United Arab Emirates","dubai":"United Arab Emirates",
+  "israel":"Israel","jordania":"Jordan","jordania":"Jordan","ira":"Iran","ira":"Iran",
+  "iraque":"Iraq","paquistao":"Pakistan","paquistao":"Pakistan","bangladesh":"Bangladesh",
+  "nova zelandia":"New Zealand","nova zelandia":"New Zealand","papua nova guine":"Papua New Guinea",
+  "fica":"Fiji","fiji":"Fiji","cazaquistao":"Kazakhstan","uzbequistao":"Uzbekistan",
+  "mongolia":"Mongolia","mongolia":"Mongolia","nepal":"Nepal","sri lanka":"Sri Lanka",
+  "butan":"Bhutan","maldivas":"Maldives","cuba":"Cuba","haiti":"Haiti","jamaica":"Jamaica",
+  "guatemala":"Guatemala","costa rica":"Costa Rica","panama":"Panama","panama":"Panama",
+  "venezuela":"Venezuela","bolivia":"Bolivia","bolivia":"Bolivia","equador":"Ecuador",
+  "paraguai":"Paraguay","uruguai":"Uruguay","guiana":"Guyana","suriname":"Suriname",
+  "senegal":"Senegal","ghana":"Ghana","angola":"Angola","mocambique":"Mozambique",
+  "mocambique":"Mozambique","madagascar":"Madagascar","camarao":"Cameroon","sudao":"Sudan",
+  "sudao":"Sudan","libia":"Libya","tunisia":"Tunisia","tunisia":"Tunisia","argelia":"Algeria",
+  "argelia":"Algeria","somalia":"Somalia","uganda":"Uganda","ruanda":"Rwanda","namibia":"Namibia",
+  "namibia":"Namibia","zimbabue":"Zimbabwe","zambia":"Zambia","tanzania":"Tanzania",
+  "luxemburgo":"Luxembourg","irlanda":"Ireland","islandia":"Iceland","islandia":"Iceland",
+  "chipre":"Cyprus","malta":"Malta","albania":"Albania","servia":"Serbia","servia":"Serbia",
+  "croatia":"Croatia","eslovenia":"Slovenia","eslovenia":"Slovenia","eslovaquia":"Slovakia",
+  "eslovaquia":"Slovakia","letonia":"Latvia","letonia":"Latvia","lituania":"Lithuania",
+  "lituania":"Lithuania","estonia":"Estonia","bielorrussia":"Belarus","bielorrussia":"Belarus",
+  "moldova":"Moldova","macedonia":"Macedonia","kosovo":"Kosovo","montenegro":"Montenegro",
+  "bosnia":"Bosnia and Herz.","georgia":"Georgia","armenia":"Armenia","azerbaijao":"Azerbaijan",
+  "azerbaijao":"Azerbaijan","quirguistao":"Kyrgyzstan","tadjiquistao":"Tajikistan",
+  "turquemenistao":"Turkmenistan","nova zelandia":"New Zealand","coreia do norte":"N. Korea",
+  "siria":"Syria","siria":"Syria","iemen":"Yemen","iemen":"Yemen","kuwait":"Kuwait",
+  "catar":"Qatar","omã":"Oman","oma":"Oman","libano":"Lebanon","libano":"Lebanon",
+  "jordania":"Jordan","israel":"Israel","palestina":"Palestine","laos":"Laos","camboja":"Cambodia",
+  "camboja":"Cambodia","birmânia":"Myanmar","birmania":"Myanmar","timor":"Timor-Leste",
+  "brunei":"Brunei","taiwan":"Taiwan","coreia":"South Korea"
+};
+
+// ═══════════════════════════════════════════════════════════
+//  COUNTRY DATABASE (countriesData)
+// ═══════════════════════════════════════════════════════════
+// photos: [{url, caption}] — shown as Polaroids
+// months: 0=evitar, 1=bom, 2=ótimo
+// conflict: null | "green" | "yellow" | "red"
+// borderStatus: "open" | "warn" | "closed"
+// milesDifficulty: 1=Fácil, 2=Médio, 3=Difícil
+// checklist groups: [{group, items:[{ico,label}]}]
+
+const countriesData = {
+
+"Brazil": {
+  flag:"🇧🇷", region:"América do Sul", cont:"SA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&q=75", caption:"Cristo Redentor"},
+    {url:"https://images.unsplash.com/photo-1554188248-986adbb73be4?w=400&q=75", caption:"Amazônia"},
+    {url:"https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f?w=400&q=75", caption:"Carnaval"}
+  ], rotations:[-2,1,-1],
+  months:[1,1,1,2,2,2,2,2,1,1,1,1],
+  bestTime:"Abril a setembro é a temporada seca no Sudeste — ideal para Rio e SP. Nordeste brilha de outubro a março com sol garantido. Carnaval (fev) é a festa maior, mas preços triplicam.",
+  currency:"Real Brasileiro (BRL)", symbol:"R$", currencyCode:"BRL",
+  lang:"Português", voltage:"127V/220V · Tipo N",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas normalmente.",
+  visa:"free", visaText:"Destino <strong>doméstico</strong> — nenhum requisito de visto para brasileiros.",
+  vaccines:"Febre Amarela obrigatória para Amazônia e Centro-Oeste. Hepatite A/B recomendadas.",
+  passport:"RG ou Passaporte válidos. Sem prazo mínimo além da estadia.",
+  foods:[
+    {e:"🫘",name:"Feijoada",desc:"Feijão preto com carnes de porco, paio e linguiça. Sextas-feiras são sagradas.",must:true},
+    {e:"🦐",name:"Acarajé",desc:"Bolinho frito em dendê com vatapá, camarão e caruru. Ícone da Bahia.",must:true},
+    {e:"🧀",name:"Pão de Queijo",desc:"Bolinho de polvilho e queijo minas — crocante por fora, cremoso por dentro.",must:false},
+    {e:"🍭",name:"Brigadeiro",desc:"Trufa de chocolate e leite condensado. O doce nacional.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Cumprimentos com beijo na bochecha e abraço são esperados."},
+    {e:"⚠️",t:"Pontualidade social é flexível — mas não em negócios."},
+    {e:"❌",t:"Nunca compare com Argentina em tom depreciativo."},
+    {e:"❌",t:"Evite discutir salários em conversas sociais informais."}
+  ],
+  vibe:["Caloroso","Festivo","Diverso","Criativo","Imprevisível"],
+  airport:"GRU", airportCity:"São Paulo", flightHours:"Doméstico",
+  flightBRL:"R$ 350–1.400", flightNote:"Voos domésticos frequentes",
+  milesSmiles:"10k–28k", milesAzul:"8k–25k", milesLatam:"10k–30k",
+  milesDifficulty:1, milesDiffNote:"Emissão fácil — muitos voos disponíveis em todas as companhias.",
+  dailyCost:"R$ 200–500", hotelCost:"R$ 120–600", foodCost:"R$ 30–120",
+  tip:"Caldo de cana gelado com pastel de feira num sábado de manhã. R$ 8. Inesquecível.",
+  territories:null,
+  climate:"tropical", // for checklist
+  checklist:[
+    {group:"Documentos", items:[{ico:"📄",l:"RG ou Passaporte válido"},{ico:"📋",l:"Seguro de viagem (para aventuras)"},{ico:"💳",l:"Cartão de crédito com IOF"}]},
+    {group:"Roupas (Clima Tropical)", items:[{ico:"👕",l:"Camisetas leves e frescas"},{ico:"🩳",l:"Shorts e bermudas"},{ico:"🧴",l:"Protetor solar FPS 50+"},{ico:"🕶️",l:"Óculos de sol polarizados"},{ico:"👒",l:"Chapéu ou boné"},{ico:"🧥",l:"Casaco leve para ar-condicionado"}]},
+    {group:"Saúde", items:[{ico:"💊",l:"Repelente de insetos (DEET)"},{ico:"💉",l:"Vacina febre amarela (Amazônia)"},{ico:"🩺",l:"Kit de primeiros socorros"}]},
+    {group:"Tecnologia", items:[{ico:"🔌",l:"Adaptador Tipo N"},{ico:"📱",l:"Google Maps offline baixado"},{ico:"🌐",l:"Chip de dados local ou eSIM"}]}
+  ]
+},
+
+"United States of America": {
+  flag:"🇺🇸", region:"América do Norte", cont:"NA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&q=75", caption:"Nova York"},
+    {url:"https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&q=75", caption:"Grand Canyon"},
+    {url:"https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=400&q=75", caption:"San Francisco"}
+  ], rotations:[1,-2,0],
+  months:[1,1,2,2,2,2,1,1,2,2,1,1],
+  bestTime:"Primavera (abr–mai) e outono (set–out) — temperaturas amenas em todo o país. Verão é movimentado e caro. Inverno é ótimo para neve ou sol na Flórida.",
+  currency:"Dólar Americano (USD)", symbol:"US$", currencyCode:"USD",
+  lang:"Inglês", voltage:"120V · Tipo A/B",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Visto B1/B2 obrigatório para brasileiros.",
+  visa:"req", visaText:"Visto <strong>B1/B2 obrigatório</strong>. Taxa: US$185 (MRV). Entrevista presencial na Embaixada. Processo: 2–10 semanas.",
+  vaccines:"Sem exigência. Covid-19 e Influenza recomendadas.",
+  passport:"Validade mínima de 6 meses além do retorno. ESTA não disponível para brasileiros.",
+  foods:[
+    {e:"🥩",name:"Texas BBQ",desc:"Brisket defumado 12–18h em fogo indireto. Austin, TX é a capital mundial.",must:true},
+    {e:"🦞",name:"Lobster Roll",desc:"Lagosta fresca com manteiga em pão brioche. Maine e Cape Cod são clássicos.",must:true},
+    {e:"🍕",name:"Deep Dish Pizza",desc:"Pizza estilo torta com recheio generoso. Criação exclusivamente chicagoana.",must:false},
+    {e:"🍔",name:"Smash Burger",desc:"Blend prensado na chapa, queijo americano derretido, picles e molho especial.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Gorjeta de 18–22% é OBRIGATÓRIA — faz parte do salário do servidor."},
+    {e:"✅",t:"Small talk com estranhos é normal. 'How are you?' é cumprimento, não pergunta."},
+    {e:"⚠️",t:"Política divide intensamente — evite o assunto em reuniões sociais."},
+    {e:"❌",t:"Nunca deixe de dar gorjeta. É considerado ofensivo."}
+  ],
+  vibe:["Dinâmico","Diverso","Ambicioso","Direto","Barulhento"],
+  airport:"MIA", airportCity:"Miami / Nova York", flightHours:"~10h",
+  flightBRL:"R$ 3.200–8.500", flightNote:"Ida e volta, classe econômica",
+  milesSmiles:"35k–60k", milesAzul:"38k–65k", milesLatam:"35k–58k",
+  milesDifficulty:2, milesDiffNote:"Muitos assentos disponíveis, mas alta demanda. Reserve com 4–6 meses de antecedência.",
+  dailyCost:"R$ 980–2.400", hotelCost:"R$ 600–1.800", foodCost:"R$ 120–350",
+  tip:"Smash burger num diner local às 2h da manhã depois de uma noite em Nova York. Experiência americana pura.",
+  territories:null,
+  climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte com visto B1/B2 válido"},{ico:"📄",l:"Confirmação de visto (I-94)"},{ico:"🏥",l:"Seguro de saúde internacional (OBRIGATÓRIO)"},{ico:"💳",l:"Cartão com chip e senha"}]},
+    {group:"Roupas (Clima Variado)", items:[{ico:"🧥",l:"Casaco para ar-condicionado intenso"},{ico:"👟",l:"Tênis confortável para caminhar muito"},{ico:"☂️",l:"Guarda-chuva compacto"},{ico:"👔",l:"Roupa social (restaurantes fine dining)"}]},
+    {group:"Tecnologia", items:[{ico:"🔌",l:"Adaptador Tipo A/B"},{ico:"📱",l:"Google Maps e Uber instalados"},{ico:"🚗",l:"International Driver Permit"}]},
+    {group:"Saúde", items:[{ico:"💊",l:"Remédios com receita em inglês"},{ico:"🩺",l:"Kit de primeiros socorros"},{ico:"☀️",l:"Protetor solar (verão nos EUA é forte)"}]}
+  ]
+},
+
+"Mexico": {
+  flag:"🇲🇽", region:"América do Norte", cont:"NA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1518638150340-f706e86654de?w=400&q=75", caption:"Chichén Itzá"},
+    {url:"https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?w=400&q=75", caption:"Cidade do México"},
+    {url:"https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=400&q=75", caption:"Cancún"}
+  ], rotations:[-1,2,-2],
+  months:[2,2,2,1,1,0,0,0,1,1,2,2],
+  bestTime:"Novembro a abril — temporada seca perfeita para Cancún, CDMX e Oaxaca. Maio a outubro: chuvas e risco de furacões no Caribe.",
+  currency:"Peso Mexicano (MXN)", symbol:"MX$", currencyCode:"MXN",
+  lang:"Espanhol", voltage:"127V · Tipo A/B",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 180 dias.",
+  vaccines:"Hepatite A e Febre Tifoide recomendadas para regiões rurais.",
+  passport:"Passaporte com 6 meses de validade além da entrada.",
+  foods:[
+    {e:"🌮",name:"Tacos al Pastor",desc:"Carne de porco marinada em adobo e abacaxi, fatiada do trompo.",must:true},
+    {e:"🫙",name:"Mole Negro",desc:"Molho oaxaquenho com 30+ ingredientes e chocolate amargo.",must:true},
+    {e:"🌽",name:"Elote en Vaso",desc:"Milho com maionese, queijo cotija, limão e chili. Street food perfeito.",must:false},
+    {e:"🫔",name:"Tamales de Rajas",desc:"Massa de milho cozida em folha de bananeira com pimentas e queijo.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Nunca recuse comida oferecida por família mexicana — gesto de acolhimento."},
+    {e:"⚠️",t:"Dia de Los Muertos é celebração sagrada dos ancestrais, não Halloween."},
+    {e:"❌",t:"Não confunda tortilla de milho com tortilla de trigo — orgulho regional."},
+    {e:"❌",t:"'Tex-Mex' não é culinária mexicana para os mexicanos."}
+  ],
+  vibe:["Vibrante","Familiar","Picante","Criativo","Hospitaleiro"],
+  airport:"MEX", airportCity:"Cidade do México", flightHours:"~8h",
+  flightBRL:"R$ 2.400–7.000", flightNote:"Ida e volta, classe econômica",
+  milesSmiles:"28k–50k", milesAzul:"30k–55k", milesLatam:"28k–48k",
+  milesDifficulty:1, milesDiffNote:"Destino próximo com boa disponibilidade de assentos.",
+  dailyCost:"R$ 420–950", hotelCost:"R$ 200–700", foodCost:"R$ 30–150",
+  tip:"Tacos de canasta às 7h da manhã num carrinho de rua na CDMX. O melhor café da manhã do planeta. ~R$4.",
+  territories:null, climate:"tropical",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte válido"},{ico:"💳",l:"Cartão de crédito e reais para câmbio"},{ico:"🏥",l:"Seguro viagem"}]},
+    {group:"Roupas (Tropical/Misto)", items:[{ico:"👕",l:"Roupas leves"},{ico:"🧥",l:"Casaco para CDMX (altitude)"},{ico:"🩱",l:"Roupa de banho (praias)"},{ico:"🧴",l:"Protetor solar FPS 50+"}]},
+    {group:"Saúde", items:[{ico:"💧",l:"Só beba água mineral embalada"},{ico:"💊",l:"Remédio para problemas intestinais"},{ico:"💉",l:"Vacina Hepatite A"}]},
+    {group:"Tecnologia", items:[{ico:"📱",l:"Google Tradutor offline"},{ico:"🚗",l:"Uber instalado (CDMX e Cancún)"},{ico:"💵",l:"Pesos em espécie para táxi e rua"}]}
+  ]
+},
+
+"France": {
+  flag:"🇫🇷", region:"Europa Ocidental", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=75", caption:"Torre Eiffel"},
+    {url:"https://images.unsplash.com/photo-1555993539-1732b0258235?w=400&q=75", caption:"Château de Versailles"},
+    {url:"https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&q=75", caption:"Provence"}
+  ], rotations:[0,-2,1],
+  months:[0,0,1,2,2,2,1,1,2,2,1,0],
+  bestTime:"Primavera (abr–mai) com jardins floridos. Outono (set–out) tem menos turistas e preços menores. Julho–agosto: Paris está lotada e quente.",
+  currency:"Euro (EUR)", symbol:"€", currencyCode:"EUR",
+  lang:"Francês", voltage:"230V · Tipo E",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Solicite via VFS Global com 2–3 meses de antecedência. Taxa: €80. Válido por 90 dias em 180.",
+  vaccines:"Sem exigência. Febre Amarela necessária se vier de zona endêmica.",
+  passport:"Validade mínima de 3 meses além da saída da área Schengen.",
+  foods:[
+    {e:"🥐",name:"Croissant au Beurre",desc:"Massa folhada com manteiga normanda. Na padaria local às 7h30.",must:true},
+    {e:"🐌",name:"Escargot Bourguignon",desc:"Caracóis com manteiga, alho e salsa. Revela o DNA da cozinha francesa.",must:true},
+    {e:"🧀",name:"Plateau de Fromages",desc:"Brie, Roquefort, Comté, Époisses. Patrimônio cultural imaterial.",must:false},
+    {e:"🍮",name:"Crème Brûlée",desc:"Creme de baunilha com crosta caramelizada na tocha.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Diga 'Bonjour' ao entrar em qualquer estabelecimento."},
+    {e:"✅",t:"Refeições são rituais — não apresse o garçom."},
+    {e:"⚠️",t:"Agosto em Paris: muitos restaurantes fecham para férias."},
+    {e:"❌",t:"Não fale alto em restaurantes. Jamais peça ketchup num prato gourmet."}
+  ],
+  vibe:["Elegante","Artístico","Orgulhoso","Filosófico","Sutil"],
+  airport:"CDG", airportCity:"Paris", flightHours:"~11h",
+  flightBRL:"R$ 4.500–12.000", flightNote:"Ida e volta, classe econômica",
+  milesSmiles:"40k–68k", milesAzul:"42k–72k", milesLatam:"40k–65k",
+  milesDifficulty:2, milesDiffNote:"Alta procura para Paris. Temporada de Verão e Natal têm disponibilidade reduzida.",
+  dailyCost:"R$ 950–2.000", hotelCost:"R$ 500–2.000", foodCost:"R$ 120–400",
+  tip:"Croque-monsieur num café de calçada parisiense às 9h. Simples e perfeito — revela tudo da filosofia gastronômica francesa.",
+  territories:"🌿 <strong>Guiana Francesa</strong> (América do Sul) e 🏝 <strong>Martinica & Guadalupe</strong> (Caribe) são departamentos ultramarinos — mesma moeda, mesmo visto Schengen.",
+  climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen válido"},{ico:"🏥",l:"Seguro viagem (exigido para Schengen)"},{ico:"💳",l:"Cartão sem tarifa internacional"}]},
+    {group:"Roupas (Temperado)", items:[{ico:"🧥",l:"Casaco impermeável (chuvas frequentes)"},{ico:"👟",l:"Tênis confortável para calçamento parisiense"},{ico:"🧣",l:"Cachecol e lenço (inverno)"},{ico:"👗",l:"Roupa elegante para jantares"}]},
+    {group:"Tecnologia", items:[{ico:"🔌",l:"Adaptador Tipo E/F"},{ico:"🌐",l:"Chip europeu ou eSIM"},{ico:"🗺️",l:"Maps offline (Paris tem metrô complexo)"}]},
+    {group:"Saúde", items:[{ico:"💊",l:"Remédios pessoais com receita traduzida"},{ico:"🩺",l:"Cartão europeu de seguro de saúde (EHIC)"}]}
+  ]
+},
+
+"Japan": {
+  flag:"🇯🇵", region:"Ásia Oriental", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400&q=75", caption:"Fushimi Inari"},
+    {url:"https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=400&q=75", caption:"Monte Fuji"},
+    {url:"https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=75", caption:"Tokyo Shibuya"}
+  ], rotations:[-1,2,-2],
+  months:[0,0,2,2,1,0,0,0,1,2,2,1],
+  bestTime:"Hanami (cerejeiras, mar–abr) — reserve 6 meses antes. Outono (out–nov) com koyo é igualmente lindo. Verão quente e úmido.",
+  currency:"Iene (JPY)", symbol:"¥", currencyCode:"JPY",
+  lang:"Japonês", voltage:"100V · Tipo A",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros (até 15 dias).",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 15 dias. Para estadias maiores, solicite com 60 dias de antecedência.",
+  vaccines:"Sem exigência. Hepatite A/B recomendadas.",
+  passport:"Validade mínima de 6 meses além do retorno.",
+  foods:[
+    {e:"🍜",name:"Ramen Tonkotsu",desc:"Caldo de osso de porco 18h+, macarrão fresco, chashu e ovo marinado. Fukuoka é o epicentro.",must:true},
+    {e:"🥩",name:"Wagyu A5",desc:"Marmorização extrema — derrete na boca literalmente. Kobe ou Matsusaka.",must:true},
+    {e:"🍱",name:"Kaiseki",desc:"Sequência de 12–14 pratos que conta a história de uma estação. Arte culinária.",must:false},
+    {e:"🍙",name:"Onigiri Konbini",desc:"Bolinho de arroz no 7-Eleven japonês às 6h. Surpreendentemente saboroso.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Curve levemente a cabeça ao cumprimentar. Profundidade indica respeito."},
+    {e:"✅",t:"Receba cartões de visita com as duas mãos — protocolo obrigatório."},
+    {e:"❌",t:"Nunca dê gorjeta — é considerado desrespeitoso em toda a cultura japonesa."},
+    {e:"❌",t:"Nunca espete hashi verticalmente no arroz — símbolo de funeral."}
+  ],
+  vibe:["Preciso","Respeitoso","Silencioso","Eficiente","Profundo"],
+  airport:"NRT", airportCity:"Tokyo / Osaka", flightHours:"~24–26h",
+  flightBRL:"R$ 5.500–14.000", flightNote:"Geralmente com escala",
+  milesSmiles:"52k–84k", milesAzul:"55k–88k", milesLatam:"50k–80k",
+  milesDifficulty:3, milesDiffNote:"Alta demanda e poucas parcerias diretas. Emissão pode ser difícil. Recomendado LATAM com parceiro JAL.",
+  dailyCost:"R$ 680–1.400", hotelCost:"R$ 280–1.200", foodCost:"R$ 60–280",
+  tip:"Kaiseki de 12 pratos num ryokan histórico em Kyoto. A experiência gastronômica mais completa que existe.",
+  territories:null, climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte válido (15 dias sem visto)"},{ico:"💴",l:"Ienes em espécie (Japão é cash society)"},{ico:"🏥",l:"Seguro de saúde internacional"}]},
+    {group:"Roupas (Temperado)", items:[{ico:"👟",l:"Tênis ou tênis sem cadarço (remove frequentemente)"},{ico:"🧥",l:"Casaco para outono/primavera"},{ico:"🧦",l:"Meias sem furos (remove sapatos nos tatamis)"},{ico:"🌂",l:"Guarda-chuva compacto"}]},
+    {group:"Tecnologia", items:[{ico:"📶",l:"Pocket WiFi ou SIM japonês (JR Pass)"},{ico:"🗺️",l:"Google Maps + IC Card para metrô"},{ico:"📱",l:"Suica Card para transporte"}]},
+    {group:"Saúde", items:[{ico:"💊",l:"Cuidado: remédios comuns são proibidos (pseudoefedrina)"},{ico:"🩺",l:"Kit básico (farmácias podem ser difíceis)"},{ico:"😷",l:"Máscaras cirúrgicas (cultura local)"}]}
+  ]
+},
+
+"Egypt": {
+  flag:"🇪🇬", region:"Norte da África", cont:"AF",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1539650116574-75e09e35e6c3?w=400&q=75", caption:"Pirâmides de Gizé"},
+    {url:"https://images.unsplash.com/photo-1553913861-c0fddf2619ee?w=400&q=75", caption:"Luxor Temple"},
+    {url:"https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=400&q=75", caption:"Mar Vermelho"}
+  ], rotations:[1,-1,2],
+  months:[2,2,2,1,0,0,0,0,1,2,2,2],
+  bestTime:"Outubro a março — 20–28°C para explorar pirâmides. Verão (jun–ago): Cairo bate 40–46°C. Ramadã muda a dinâmica do país.",
+  currency:"Libra Egípcia (EGP)", symbol:"£E", currencyCode:"EGP",
+  lang:"Árabe", voltage:"220V · Tipo C/F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. e-Visa online obrigatória.",
+  visa:"cond", visaText:"<strong>e-Visa online</strong> para brasileiros. Custo: USD 25. Aprovação em 3–7 dias. Válida 30 dias após chegada.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A e Febre Tifoide recomendadas.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🍚",name:"Koshari",desc:"Lentilha, macarrão e arroz com molho de tomate picante e cebola frita. O prato nacional.",must:true},
+    {e:"🫘",name:"Ful Medames",desc:"Feijão-fava com azeite, limão e cominho. Café da manhã egípcio há 5.000 anos.",must:true},
+    {e:"🥘",name:"Molokhia",desc:"Sopa de folhas de juta com alho e coentro sobre arroz e frango. Sabor ancestral.",must:false},
+    {e:"🥐",name:"Feteer Meshaltet",desc:"Massa folhada egípcia em camadas com mel ou queijo. Exclusividade egípcia.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Regateio em souks é cultura — sorria e o preço cai 40–70%."},
+    {e:"✅",t:"Aceite chá de hortelã quando oferecido — é gesto de hospitalidade."},
+    {e:"⚠️",t:"Durante o Ramadã, evite comer em público durante o dia."},
+    {e:"❌",t:"Nunca fotografe militares, instalações ou pessoas sem permissão."}
+  ],
+  vibe:["Milenar","Caótico","Hospitaleiro","Espiritual","Histórico"],
+  airport:"CAI", airportCity:"Cairo", flightHours:"~12–14h",
+  flightBRL:"R$ 4.200–10.500", flightNote:"Conexão em Europa ou Doha",
+  milesSmiles:"50k–78k", milesAzul:"52k–80k", milesLatam:"48k–76k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade irregular. Conexões via Europa ou Qatar Airways podem ter mais opções.",
+  dailyCost:"R$ 230–580", hotelCost:"R$ 100–500", foodCost:"R$ 25–100",
+  tip:"Koshari num restaurante sem placa no Cairo por EGP 20 (~R$3). O melhor comfort food do planeta.",
+  territories:null, climate:"desert",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + e-Visa impressa"},{ico:"💵",l:"Dólares para câmbio local"},{ico:"🏥",l:"Seguro de saúde internacional"}]},
+    {group:"Roupas (Deserto/Calor)", items:[{ico:"👕",l:"Roupas folgadas de manga longa (sol intenso)"},{ico:"🧢",l:"Chapéu de aba larga e óculos de sol"},{ico:"🧴",l:"Protetor solar FPS 70+"},{ico:"👡",l:"Sapatos fechados para templos e ruínas"}]},
+    {group:"Higiene", items:[{ico:"🚰",l:"NUNCA beba água da torneira"},{ico:"💊",l:"Remédio para problemas estomacais (obrigatório)"},{ico:"🧴",l:"Álcool gel (higiene em banheiros públicos)"}]},
+    {group:"Tecnologia", items:[{ico:"📱",l:"SIM egípcio (Vodafone/Etisalat)"},{ico:"🗺️",l:"Maps offline do Cairo"},{ico:"💵",l:"Dinheiro em espécie para bazares"}]}
+  ]
+},
+
+"Thailand": {
+  flag:"🇹🇭", region:"Sudeste Asiático", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=400&q=75", caption:"Wat Pho, Bangkok"},
+    {url:"https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=400&q=75", caption:"Ilhas do Sul"},
+    {url:"https://images.unsplash.com/photo-1538485399081-7191377e8241?w=400&q=75", caption:"Chiang Mai"}
+  ], rotations:[-2,0,1],
+  months:[2,2,2,1,0,0,0,0,0,1,2,2],
+  bestTime:"Novembro a fevereiro — temporada seca e fresca perfeita. Março–abril quentes mas secos. Maio–outubro: monção intensa prejudica praias.",
+  currency:"Baht (THB)", symbol:"฿", currencyCode:"THB",
+  lang:"Tailandês", voltage:"220V · Tipo A/B/C",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros (30 dias).",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por 30 dias. Extensão de 30 dias no escritório de imigração por THB 1.900.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A/B, Raiva recomendadas.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🍜",name:"Pad Thai",desc:"Macarrão de arroz com camarão, tofu, ovo, brotos e amendoim. O prato mais famoso.",must:true},
+    {e:"🍛",name:"Massaman Curry",desc:"Curry suave com batata, amendoim e leite de coco. Eleito o melhor prato do mundo.",must:true},
+    {e:"🥗",name:"Som Tam",desc:"Salada de papaia verde com pimenta malagueta, limão e molho de peixe.",must:true},
+    {e:"🍚",name:"Khao Man Gai",desc:"Frango cozido sobre arroz temperado com caldo. Café da manhã de mercado. ~R$8.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Wai (palmas juntas + cabeça curvada) é o cumprimento tradicional."},
+    {e:"⚠️",t:"Descalce-se ao entrar em templos, casas e alguns restaurantes."},
+    {e:"❌",t:"Nunca toque a cabeça de ninguém — é a parte mais sagrada do corpo."},
+    {e:"❌",t:"Desrespeito à família real é crime com pena de prisão."}
+  ],
+  vibe:["Espiritual","Sorridento","Colorido","Picante","Festivo"],
+  airport:"BKK", airportCity:"Bangkok", flightHours:"~22–24h",
+  flightBRL:"R$ 4.800–13.000", flightNote:"Geralmente com escala",
+  milesSmiles:"54k–90k", milesAzul:"56k–92k", milesLatam:"52k–86k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade razoável via Singapore Airlines ou Thai Airways. Reserve com antecedência.",
+  dailyCost:"R$ 280–750", hotelCost:"R$ 100–600", foodCost:"R$ 25–120",
+  tip:"Street food de Bangkok é Patrimônio Imaterial da UNESCO. Vá com estômago vazio e coragem.",
+  territories:null, climate:"tropical",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte válido"},{ico:"🏥",l:"Seguro de saúde internacional"},{ico:"💵",l:"Bahts em espécie ou cartão internacional"}]},
+    {group:"Roupas (Tropical Úmido)", items:[{ico:"👕",l:"Roupas leves e de secagem rápida"},{ico:"🩱",l:"Roupa de banho e saída de praia"},{ico:"🧣",l:"Lenço/canga para cobrir ombros em templos"},{ico:"🧴",l:"Protetor solar e repelente DEET"}]},
+    {group:"Saúde", items:[{ico:"💊",l:"Remédio para diarreia (troca brusca de dieta)"},{ico:"💉",l:"Vacina Hepatite A (recomendada)"},{ico:"🦟",l:"Repelente com DEET 30%+ (dengue)"}]},
+    {group:"Tecnologia", items:[{ico:"📱",l:"SIM tailandês (AIS/DTAC — muito barato)"},{ico:"🚖",l:"Grab App instalado (Uber local)"},{ico:"🗺️",l:"Maps.me offline para áreas rurais"}]}
+  ]
+},
+
+"Greece": {
+  flag:"🇬🇷", region:"Europa Meridional", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=400&q=75", caption:"Santorini"},
+    {url:"https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?w=400&q=75", caption:"Acropole de Atenas"},
+    {url:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&q=75", caption:"Mykonos"}
+  ], rotations:[1,-1,2],
+  months:[0,0,1,2,2,2,2,1,2,2,1,0],
+  bestTime:"Maio–junho e setembro–outubro são ideais — menos turistas e calor agradável. Julho–agosto é altíssima temporada em Santorini e Mykonos.",
+  currency:"Euro (EUR)", symbol:"€", currencyCode:"EUR",
+  lang:"Grego", voltage:"230V · Tipo C/F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Via VFS Global com 2–3 meses de antecedência. Taxa: €80.",
+  vaccines:"Sem exigência. Hepatite A recomendada.",
+  passport:"Validade de 3 meses além da saída da área Schengen.",
+  foods:[
+    {e:"🧆",name:"Moussaka",desc:"Berinjela em camadas com carne moída e béchamel gratinado. O prato nacional.",must:true},
+    {e:"🥙",name:"Souvlaki",desc:"Espetinho de carne grelhado servido no pão pita com tzatziki e tomate.",must:true},
+    {e:"🫒",name:"Spanakopita",desc:"Torta de espinafre e queijo feta em massa filo crocante.",must:false},
+    {e:"🍯",name:"Loukoumades",desc:"Bolinhos fritos com mel e canela. Sobremesa milenar.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Gregos são expressivos e hospitaleiros — espere conversas longas e calorosas."},
+    {e:"⚠️",t:"Moutza (palma espalmada voltada) é muito ofensivo. Nunca use para dizer 'stop'."},
+    {e:"❌",t:"Não fotografe dentro de igrejas ortodoxas sem permissão explícita."},
+    {e:"❌",t:"Siesta (14h–17h): muitas lojas e serviços fecham."}
+  ],
+  vibe:["Mediterrâneo","Histórico","Festivo","Relaxado","Caloroso"],
+  airport:"ATH", airportCity:"Atenas", flightHours:"~13h",
+  flightBRL:"R$ 4.200–10.000", flightNote:"Conexão em Europa",
+  milesSmiles:"42k–70k", milesAzul:"44k–72k", milesLatam:"40k–68k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade moderada. Verão é muito concorrido — reserve com 6 meses.",
+  dailyCost:"R$ 540–1.150", hotelCost:"R$ 250–1.000", foodCost:"R$ 80–250",
+  tip:"Polvo grelhado com ouzo numa taverna de Santorini ao pôr do sol. Não é clichê — é transcendente.",
+  territories:null, climate:"mediterranean",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem (exigido para Schengen)"},{ico:"💳",l:"Cartão sem tarifa internacional"}]},
+    {group:"Roupas (Mediterrâneo)", items:[{ico:"👗",l:"Roupas leves e coloridas"},{ico:"🩱",l:"Fato de banho (muitas praias)"},{ico:"🧥",l:"Casaco leve para noites frescas"},{ico:"👟",l:"Sandálias confortáveis e tênis"}]},
+    {group:"Prático", items:[{ico:"🧴",l:"Protetor solar (verão grego é intenso)"},{ico:"🚌",l:"Ferry pass para ilhas"},{ico:"💵",l:"Euros em espécie para tavernas"}]}
+  ]
+},
+
+"Turkey": {
+  flag:"🇹🇷", region:"Ásia / Europa", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=400&q=75", caption:"Istambul"},
+    {url:"https://images.unsplash.com/photo-1570939274717-7eda259b50ed?w=400&q=75", caption:"Capadócia"},
+    {url:"https://images.unsplash.com/photo-1589561084283-930aa7b1ce50?w=400&q=75", caption:"Pamukkale"}
+  ], rotations:[-2,1,0],
+  months:[1,1,2,2,2,1,0,0,2,2,1,1],
+  bestTime:"Abril–maio e setembro–outubro são ideais — clima ameno para explorar Istambul e Capadócia. Julho–agosto: turismo de massa e calor intenso.",
+  currency:"Lira Turca (TRY)", symbol:"₺", currencyCode:"TRY",
+  lang:"Turco", voltage:"230V · Tipo C/F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. e-Visa obrigatória para brasileiros.",
+  visa:"cond", visaText:"<strong>e-Visa online obrigatória</strong> para brasileiros. Custo: USD 50. Aprovação imediata.",
+  vaccines:"Sem exigência. Hepatite A/B recomendadas.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🥩",name:"Iskender Kebab",desc:"Finas fatias de cordeiro sobre pão, molho de tomate e manteiga derretida. Bursa, 1867.",must:true},
+    {e:"🥙",name:"Balık Ekmek",desc:"Sanduíche de peixe recém-pescado na ponte Gálata. Ícone de Istambul. ~R$12.",must:true},
+    {e:"🍰",name:"Baklava de Pistache",desc:"Massa filo com pistache e mel de laranja. Gaziantep produz o melhor do mundo.",must:false},
+    {e:"🥯",name:"Simit",desc:"Rosca de gergelim crocante — o café da manhã turco.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Çay (chá turco) é oferecido em qualquer situação — aceite sempre."},
+    {e:"✅",t:"Turcos são muito hospitaleiros — espere convites para casa."},
+    {e:"⚠️",t:"Vestimenta modesta em mesquitas: cobrir ombros, pernas e cabeça (mulheres)."},
+    {e:"❌",t:"Não recuse repetidamente chá ou café — pode soar como grosseria."}
+  ],
+  vibe:["Caloroso","Histórico","Aromático","Contrastante","Vibrante"],
+  airport:"IST", airportCity:"Istambul", flightHours:"~13–15h",
+  flightBRL:"R$ 3.500–9.000", flightNote:"Turkish Airlines faz voo direto GRU–IST",
+  milesSmiles:"44k–72k", milesAzul:"46k–74k", milesLatam:"42k–70k",
+  milesDifficulty:2, milesDiffNote:"Turkish Airlines tem parceria com Miles&Smiles. Voo direto de SP facilita emissão.",
+  dailyCost:"R$ 320–780", hotelCost:"R$ 150–700", foodCost:"R$ 40–180",
+  tip:"Hamam turco num banho histórico em Istambul. Uma das experiências sensoriais mais intensas do mundo.",
+  territories:null, climate:"mediterranean",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + e-Visa impressa"},{ico:"💵",l:"Dólares/Euros para câmbio"},{ico:"🏥",l:"Seguro de saúde internacional"}]},
+    {group:"Roupas", items:[{ico:"👗",l:"Roupas leves no verão"},{ico:"🧥",l:"Casaco para Istambul (vento do Bósforo)"},{ico:"🧣",l:"Lenço para cobrir cabeça em mesquitas"},{ico:"👟",l:"Sapatos fáceis de tirar"}]},
+    {group:"Prático", items:[{ico:"📱",l:"SIM turco (Turkcell)"},{ico:"💵",l:"Liras turcas em espécie para Grand Bazar"},{ico:"🗺️",l:"İstanbul Kart para transporte público"}]}
+  ]
+},
+
+"Chile": {
+  flag:"🇨🇱", region:"América do Sul", cont:"SA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1531590878845-12627191e687?w=400&q=75", caption:"Torres del Paine"},
+    {url:"https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&q=75", caption:"Atacama"},
+    {url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=75", caption:"Santiago"}
+  ], rotations:[0,-2,1],
+  months:[2,2,1,1,1,0,0,0,1,1,2,2],
+  bestTime:"Outubro a março (verão no hemisfério sul) para Patagônia e Torres del Paine. Atacama é visitável o ano todo.",
+  currency:"Peso Chileno (CLP)", symbol:"CL$", currencyCode:"CLP",
+  lang:"Espanhol", voltage:"220V · Tipo L/C",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros. Passaporte ou RG válidos.",
+  vaccines:"Sem exigência específica. Hepatite A recomendada.",
+  passport:"Passaporte ou RG válidos. Sem prazo mínimo além da estadia.",
+  foods:[
+    {e:"🥟",name:"Empanada de Pino",desc:"Massa assada recheada com carne moída, ovo, azeitona e cebola. Ícone chileno.",must:true},
+    {e:"🦀",name:"Cazuela de Mariscos",desc:"Caldo aromático de frutos do mar com batata e arroz. Sabor da costa do Pacífico.",must:true},
+    {e:"🍷",name:"Pisco Sour",desc:"Coquetel de pisco chileno com limão, açúcar e clara de ovo. Disputa com Peru.",must:false},
+    {e:"🍞",name:"Marraqueta",desc:"Pão folhado crocante — o café da manhã chileno de todos os dias.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Chilenos são formais — trate com 'usted' até que peçam 'tuteo'."},
+    {e:"⚠️",t:"Pontualidade social: 15–30min de atraso é normal em festas."},
+    {e:"❌",t:"Nunca compare o Chile com Argentina em assuntos de Pisco ou Patagônia."}
+  ],
+  vibe:["Tranquilo","Organizado","Natural","Distante","Refinado"],
+  airport:"SCL", airportCity:"Santiago", flightHours:"~4h",
+  flightBRL:"R$ 800–3.000", flightNote:"Voo direto disponível",
+  milesSmiles:"12k–30k", milesAzul:"14k–32k", milesLatam:"10k–28k",
+  milesDifficulty:1, milesDiffNote:"Destino próximo com muita disponibilidade. Fácil emissão.",
+  dailyCost:"R$ 400–900", hotelCost:"R$ 200–800", foodCost:"R$ 60–200",
+  tip:"Pisco Sour no topo de um mirante em Valparaíso ao entardecer. Vista para o Pacífico e cor de postal.",
+  territories:null, climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte ou RG válido"},{ico:"💳",l:"Cartão de crédito e reais para câmbio"},{ico:"🏥",l:"Seguro viagem"}]},
+    {group:"Roupas (Variado)", items:[{ico:"🧥",l:"Casaco impermeável (Patagônia ventosa)"},{ico:"👕",l:"Roupas em camadas"},{ico:"🥾",l:"Bota de trekking para Torres del Paine"},{ico:"🕶️",l:"Óculos de sol (Atacama tem UV extremo)"}]},
+    {group:"Aventura", items:[{ico:"🎒",l:"Mochila para trekking"},{ico:"💧",l:"Garrafa de água reutilizável"},{ico:"☀️",l:"Protetor solar FPS 70+ (Atacama)"}]}
+  ]
+},
+
+"Switzerland": {
+  flag:"🇨🇭", region:"Europa Central", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=75", caption:"Alpes Suíços"},
+    {url:"https://images.unsplash.com/photo-1591123120675-6f7f1aae0e5b?w=400&q=75", caption:"Interlaken"},
+    {url:"https://images.unsplash.com/photo-1562564055-71e051d33c19?w=400&q=75", caption:"Zurique"}
+  ], rotations:[-1,2,-2],
+  months:[0,0,1,2,2,2,2,2,2,1,0,0],
+  bestTime:"Junho a setembro: verão alpino perfeito para caminhadas. Dezembro a março: temporada de ski de classe mundial.",
+  currency:"Franco Suíço (CHF)", symbol:"CHF", currencyCode:"CHF",
+  lang:"Alemão / Francês / Italiano / Romanche", voltage:"230V · Tipo J",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas (Schengen parcial / política própria).",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong> (a Suíça é membro do espaço Schengen). Via VFS Global. Taxa: €80.",
+  vaccines:"Sem exigência. Encefalite por carraça (TBE) recomendada para trilhas.",
+  passport:"Validade de 3 meses além da saída da área Schengen.",
+  foods:[
+    {e:"🧀",name:"Fondue de Queijo",desc:"Queijo Gruyère e Emmental derretidos com vinho branco e pão. Experiência alpina obrigatória.",must:true},
+    {e:"🥩",name:"Rösti",desc:"Batata ralada e frita em disco crocante. Acompanhamento nacional.",must:true},
+    {e:"🍫",name:"Chocolate Suíço",desc:"Lindt, Toblerone, Läderach — cada região tem suas marcas artesanais.",must:false},
+    {e:"🍲",name:"Zürcher Geschnetzeltes",desc:"Tiras de vitela em molho cremoso de cogumelos. Prato típico de Zurique.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Pontualidade é lei — atrasos são considerados desrespeito sério."},
+    {e:"✅",t:"Respeite o silêncio em domingos — é quase que obrigatório culturalmente."},
+    {e:"⚠️",t:"Idioma varia por região — não assuma que todos falam alemão."},
+    {e:"❌",t:"Não descarte lixo na rua — multas reais e frequentes."}
+  ],
+  vibe:["Preciso","Organizado","Limpo","Neutro","Caro"],
+  airport:"ZRH", airportCity:"Zurique / Genebra", flightHours:"~13h",
+  flightBRL:"R$ 5.000–13.000", flightNote:"Conexão geralmente necessária",
+  milesSmiles:"42k–70k", milesAzul:"44k–72k", milesLatam:"40k–68k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade moderada. Inclui-se na emissão Schengen geral.",
+  dailyCost:"R$ 1.400–3.500", hotelCost:"R$ 800–3.000", foodCost:"R$ 200–600",
+  tip:"Fondue num chalé de madeira nas montanhas após uma caminhada nas Alpes. Transformador.",
+  territories:null, climate:"alpine",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem (cobertura alta — saúde é caríssima)"},{ico:"💳",l:"Cartão de débito/crédito (tudo caro)"}]},
+    {group:"Roupas (Alpino)", items:[{ico:"🧥",l:"Casaco impermeável para chuvas"},{ico:"🥾",l:"Bota de trekking para trilhas"},{ico:"🧤",l:"Luvas e gorro (altitude)"},{ico:"❄️",l:"Roupa de ski (inverno)"}]},
+    {group:"Prático", items:[{ico:"🚆",l:"Swiss Travel Pass para trens"},{ico:"💰",l:"Francos suíços em espécie"},{ico:"🗺️",l:"SBB App para horários de trem"}]}
+  ]
+},
+
+"China": {
+  flag:"🇨🇳", region:"Ásia Oriental", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=400&q=75", caption:"Grande Muralha"},
+    {url:"https://images.unsplash.com/photo-1513197874917-5e1bfe576175?w=400&q=75", caption:"Shanghai"},
+    {url:"https://images.unsplash.com/photo-1545893835-abaa50cbe628?w=400&q=75", caption:"Guilin"}
+  ], rotations:[2,-1,1],
+  months:[1,0,1,2,2,1,0,0,1,2,2,1],
+  bestTime:"Abril–maio (primavera) e setembro–outubro (outono) para Pequim, Shanghai e Xi'an. Evite feriados dourados (maio e outubro): 1,4 bilhão de turistas internos.",
+  currency:"Yuan Renminbi (CNY)", symbol:"¥", currencyCode:"CNY",
+  lang:"Mandarim", voltage:"220V · Tipo A/I",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Visto obrigatório exceto trânsito de 72–144h.",
+  visa:"req", visaText:"Visto <strong>obrigatório</strong> para brasileiros. Processo em 5–10 dias úteis na Embaixada. Transit sem visto de 72–144h em cidades selecionadas.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A/B recomendadas.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🦆",name:"Peking Duck",desc:"Pato laqueado com pele crocante servido em crepe com molho hoisin. Obrigatório em Pequim.",must:true},
+    {e:"🥟",name:"Xiaolongbao",desc:"Dumpling de caldo quente com carne de porco. Shanghai é a origem. Pede-se por bambu.",must:true},
+    {e:"🌶️",name:"Hot Pot Sichuanês",desc:"Fondue de caldo picante com pimenta Sichuan que entorpece a língua. Experiência intensa.",must:false},
+    {e:"🍚",name:"Dim Sum Cantonês",desc:"Cestinhos de vaporizador com diferentes dumplins. Ritual de domingo em Guangzhou.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Apresente e receba cartões de visita com as duas mãos — protocolo essencial."},
+    {e:"✅",t:"Traga presentes para anfitriões: frutas, chá ou doces embrulhados em vermelho."},
+    {e:"⚠️",t:"VPN obrigatória — Google, WhatsApp, Instagram e Facebook são bloqueados."},
+    {e:"❌",t:"Nunca fale mal do governo ou do Partido Comunista em público."}
+  ],
+  vibe:["Contrastante","Moderno","Ancestral","Eficiente","Intenso"],
+  airport:"PEK", airportCity:"Pequim / Shanghai", flightHours:"~24–28h",
+  flightBRL:"R$ 5.500–15.000", flightNote:"Conexão geralmente necessária",
+  milesSmiles:"56k–92k", milesAzul:"58k–94k", milesLatam:"54k–88k",
+  milesDifficulty:3, milesDiffNote:"Poucas parcerias diretas. Voos com conexão complexificam emissão. Use LATAM via oneworld.",
+  dailyCost:"R$ 380–900", hotelCost:"R$ 180–800", foodCost:"R$ 40–200",
+  tip:"Jiaozi com vinagre preto às 7h num restaurante sem cardápio em inglês em Pequim. Aponte e sorria.",
+  territories:null, climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto chinês"},{ico:"🏥",l:"Seguro de saúde internacional"},{ico:"💳",l:"UnionPay ou dinheiro (Alipay bloqueado para estrangeiros)"}]},
+    {group:"Tecnologia — CRÍTICO", items:[{ico:"🔒",l:"VPN instalada ANTES de sair do Brasil"},{ico:"📱",l:"Google Maps offline (Google bloqueado na China)"},{ico:"🌐",l:"Baidu Maps como alternativa local"},{ico:"💬",l:"WeChat instalado para comunicação local"}]},
+    {group:"Roupas (Variado)", items:[{ico:"🧥",l:"Casaco para Pequim no inverno"},{ico:"👕",l:"Roupas leves para Shanghai no verão"},{ico:"👟",l:"Tênis confortável (você caminha muito)"}]},
+    {group:"Saúde", items:[{ico:"😷",l:"Máscaras (qualidade do ar varia por cidade)"},{ico:"💧",l:"Nunca beba água da torneira"},{ico:"💊",l:"Remédios para estômago"}]}
+  ]
+},
+
+// ── CONFLITO ─────────────────────────────────────────────────────────
+"Ukraine": {
+  flag:"🇺🇦", region:"Europa Oriental", cont:"EU",
+  photos:[{url:"https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=400&q=75",caption:"Kiev (antes do conflito"}],
+  rotations:[0],
+  months:[1,1,2,2,2,1,1,1,2,2,1,0],
+  bestTime:"Verão era o melhor período. Consulte o Itamaraty antes de qualquer planejamento.",
+  currency:"Hryvnia (UAH)", symbol:"₴", currencyCode:"UAH",
+  lang:"Ucraniano / Russo", voltage:"230V · Tipo C/F",
+  conflict:"red", conflictText:"<strong>Zona de conflito ativo.</strong> O Ministério das Relações Exteriores do Brasil recomenda que brasileiros <strong>não viajem</strong> à Ucrânia. Conflito armado em curso desde fevereiro de 2022.",
+  borderStatus:"closed", borderNote:"Espaço aéreo fechado para voos comerciais.",
+  visa:"cond", visaText:"Entrada não recomendada pelo Itamaraty.",
+  vaccines:"Hepatite A/B e Difteria recomendadas.",
+  passport:"Passaporte com validade de 6 meses.",
+  foods:[{e:"🍲",name:"Borscht",desc:"Sopa de beterraba com repolho e creme azedo. Símbolo cultural.",must:true},{e:"🥟",name:"Varenyky",desc:"Dumplings recheados com batata, queijo ou frutas.",must:false}],
+  etiquette:[{e:"⚠️",t:"Situação de segurança extremamente crítica. Não viaje."}],
+  vibe:["Resiliente","Cultural","Histórico"],
+  airport:"KBP", airportCity:"Kiev (fechado)", flightHours:"Indisponível",
+  flightBRL:"Indisponível", flightNote:"",
+  milesSmiles:"—", milesAzul:"—", milesLatam:"—",
+  milesDifficulty:3, milesDiffNote:"Não recomendado viajar.",
+  dailyCost:"—", hotelCost:"—", foodCost:"—",
+  tip:"Consulte sempre fontes oficiais.", territories:null, climate:"temperate",
+  checklist:[{group:"Atenção",items:[{ico:"🚫",l:"NÃO VIAJE. Consulte o Itamaraty."}]}]
+},
+"Israel": {
+  flag:"🇮🇱", region:"Oriente Médio", cont:"AS",
+  photos:[{url:"https://images.unsplash.com/photo-1548013146-72479768bada?w=400&q=75",caption:"Cidade Velha, Jerusalém"}],
+  rotations:[1],
+  months:[2,2,2,2,1,0,0,0,1,2,2,2],
+  bestTime:"Março a maio e outubro a novembro são ideais. Verão muito quente em Jerusalém.",
+  currency:"Shekel (ILS)", symbol:"₪", currencyCode:"ILS",
+  lang:"Hebraico / Árabe", voltage:"230V · Tipo H",
+  conflict:"yellow", conflictText:"<strong>Atenção elevada.</strong> Tensões regionais e conflito em Gaza afetam a segurança. Monitore as recomendações do Itamaraty em tempo real.",
+  borderStatus:"warn", borderNote:"Fronteiras abertas com restrições. Monitoramento constante necessário.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 90 dias.",
+  vaccines:"Hepatite A/B e Febre Tifoide recomendadas.",
+  passport:"Passaporte com 6 meses além da saída.",
+  foods:[{e:"🧆",name:"Hummus",desc:"Pasta de grão-de-bico com tahini, azeite e limão.",must:true},{e:"🥙",name:"Sabich",desc:"Pão pita com berinjela frita, ovo, hummus e salada israelense.",must:true}],
+  etiquette:[{e:"✅",t:"Israelenses são diretos — não interprete como grosseria."},{e:"⚠️",t:"Roupa modesta em bairros ultraortodoxos."},{e:"❌",t:"Não misture carne e laticínios em restaurantes kosher."}],
+  vibe:["Direto","Histórico","Tecnológico","Contraditório"],
+  airport:"TLV", airportCity:"Tel Aviv", flightHours:"~12–14h",
+  flightBRL:"R$ 4.000–10.000", flightNote:"Conexão geralmente necessária",
+  milesSmiles:"44k–72k", milesAzul:"46k–74k", milesLatam:"42k–70k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade variável devido ao conflito.",
+  dailyCost:"R$ 600–1.400", hotelCost:"R$ 350–1.200", foodCost:"R$ 80–250",
+  tip:"Hummus às 7h numa hummusiya árabe na Cidade Velha de Akko. Transcendente.",
+  territories:null, climate:"mediterranean",
+  checklist:[{group:"Atenção",items:[{ico:"⚠️",l:"Monitore o Itamaraty antes da viagem"},{ico:"🏥",l:"Seguro com cobertura para zonas de conflito"}]}]
+},
+
+// ── TEMPLATE PARA EXPANSÃO ───────────────────────────────────────────
+"_template": {
+  flag:"🌍", region:"—", cont:"—",
+  photos:[{url:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=75",caption:"Destino a explorar"}],
+  rotations:[0], months:[1,1,1,1,1,1,1,1,1,1,1,1],
+  bestTime:"Consulte fontes especializadas para este destino.",
+  currency:"—", symbol:"—", currencyCode:null,
+  lang:"—", voltage:"—",
+  conflict:null, borderStatus:"open", borderNote:"",
+  visa:"cond", visaText:"Consulte o Consulado ou Embaixada para informações atualizadas.",
+  vaccines:"Consulte o Ministério da Saúde.", passport:"6 meses de validade recomendados.",
+  foods:[{e:"🍽",name:"Culinária Local",desc:"Explore os sabores típicos — pesquise antes da viagem.",must:false}],
+  etiquette:[{e:"ℹ️",t:"Pesquise os costumes locais. Respeito pela cultura abre todas as portas."}],
+  vibe:["Único","Autêntico"],
+  airport:"—", airportCity:"—", flightHours:"—",
+  flightBRL:"Em breve", flightNote:"",
+  milesSmiles:"—", milesAzul:"—", milesLatam:"—",
+  milesDifficulty:2, milesDiffNote:"Dados em breve.",
+  dailyCost:"Em breve", hotelCost:"—", foodCost:"—",
+  tip:"Adicione dados a countriesData para expandir o conteúdo.",
+  territories:null, climate:"tropical",
+  checklist:[{group:"Documentos",items:[{ico:"📘",l:"Passaporte válido (6 meses)"},{ico:"🏥",l:"Seguro de viagem internacional"}]}]
+}
+};
+
+const VIP = new Set(["Brazil","United States of America","Mexico","France","Japan","Egypt","Thailand","Greece","Turkey","Chile","Switzerland","China"]);
+// ═══════════════════════════════════════════════════════════
+//  GEO MAPPINGS
+// ═══════════════════════════════════════════════════════════
+const CONT_MAP={"Brazil":"SA","Argentina":"SA","Chile":"SA","Colombia":"SA","Peru":"SA","Venezuela":"SA","Bolivia":"SA","Ecuador":"SA","Paraguay":"SA","Uruguay":"SA","Guyana":"SA","Suriname":"SA","Fr. Guiana":"SA","Trinidad and Tobago":"SA","Falkland Is.":"SA","France":"EU","Germany":"EU","Italy":"EU","Spain":"EU","Portugal":"EU","United Kingdom":"EU","Poland":"EU","Netherlands":"EU","Belgium":"EU","Switzerland":"EU","Austria":"EU","Sweden":"EU","Norway":"EU","Denmark":"EU","Finland":"EU","Greece":"EU","Czech Rep.":"EU","Romania":"EU","Hungary":"EU","Serbia":"EU","Croatia":"EU","Ukraine":"EU","Belarus":"EU","Slovakia":"EU","Bulgaria":"EU","Moldova":"EU","Lithuania":"EU","Latvia":"EU","Estonia":"EU","Slovenia":"EU","Bosnia and Herz.":"EU","Albania":"EU","Luxembourg":"EU","Ireland":"EU","Iceland":"EU","Russia":"EU","Malta":"EU","Kosovo":"EU","Montenegro":"EU","Macedonia":"EU","Cyprus":"EU","Turkey":"AS","China":"AS","Japan":"AS","India":"AS","South Korea":"AS","Indonesia":"AS","Vietnam":"AS","Thailand":"AS","Malaysia":"AS","Philippines":"AS","Myanmar":"AS","Cambodia":"AS","Laos":"AS","Bangladesh":"AS","Pakistan":"AS","Afghanistan":"AS","Iran":"AS","Iraq":"AS","Saudi Arabia":"AS","Syria":"AS","Yemen":"AS","United Arab Emirates":"AS","Israel":"AS","Jordan":"AS","Kazakhstan":"AS","Uzbekistan":"AS","Mongolia":"AS","Nepal":"AS","Sri Lanka":"AS","Bhutan":"AS","Brunei":"AS","Singapore":"AS","Taiwan":"AS","N. Korea":"AS","Kyrgyzstan":"AS","Tajikistan":"AS","Turkmenistan":"AS","Azerbaijan":"AS","Armenia":"AS","Georgia":"AS","Lebanon":"AS","Kuwait":"AS","Bahrain":"AS","Qatar":"AS","Oman":"AS","Palestine":"AS","Timor-Leste":"AS","Maldives":"AS","Nigeria":"AF","South Africa":"AF","Egypt":"AF","Kenya":"AF","Ethiopia":"AF","Ghana":"AF","Morocco":"AF","Tanzania":"AF","Algeria":"AF","Sudan":"AF","Angola":"AF","Mozambique":"AF","Madagascar":"AF","Cameroon":"AF","Niger":"AF","Mali":"AF","Senegal":"AF","Tunisia":"AF","Libya":"AF","Somalia":"AF","Uganda":"AF","Zimbabwe":"AF","Zambia":"AF","Rwanda":"AF","Botswana":"AF","Namibia":"AF","Chad":"AF","Mauritania":"AF","D.R. Congo":"AF","Congo":"AF","Ivory Coast":"AF","Burkina Faso":"AF","Guinea":"AF","Benin":"AF","Togo":"AF","Sierra Leone":"AF","Liberia":"AF","Central African Rep.":"AF","Eritrea":"AF","Djibouti":"AF","Malawi":"AF","Lesotho":"AF","Swaziland":"AF","Gabon":"AF","Eq. Guinea":"AF","S. Sudan":"AF","Burundi":"AF","Cape Verde":"AF","Comoros":"AF","United States of America":"NA","Canada":"NA","Mexico":"NA","Cuba":"NA","Haiti":"NA","Dominican Rep.":"NA","Guatemala":"NA","Honduras":"NA","El Salvador":"NA","Nicaragua":"NA","Costa Rica":"NA","Panama":"NA","Jamaica":"NA","Belize":"NA","Bahamas":"NA","Australia":"OC","New Zealand":"OC","Papua New Guinea":"OC","Fiji":"OC","Solomon Is.":"OC","Vanuatu":"OC","Samoa":"OC","Tonga":"OC","Antarctica":"AN","Greenland":"NA","Fr. Guiana":"SA"};
+const TERR={"Fr. Guiana":"France","Greenland":"Denmark"};
+const ID_NAME={4:"Afghanistan",8:"Albania",12:"Algeria",24:"Angola",32:"Argentina",36:"Australia",40:"Austria",50:"Bangladesh",56:"Belgium",64:"Bhutan",68:"Bolivia",76:"Brazil",100:"Bulgaria",108:"Burundi",116:"Cambodia",120:"Cameroon",124:"Canada",140:"Central African Rep.",144:"Sri Lanka",148:"Chad",152:"Chile",156:"China",170:"Colombia",174:"Comoros",178:"Congo",180:"D.R. Congo",188:"Costa Rica",191:"Croatia",192:"Cuba",196:"Cyprus",203:"Czech Rep.",204:"Benin",208:"Denmark",214:"Dominican Rep.",218:"Ecuador",222:"El Salvador",226:"Eq. Guinea",231:"Ethiopia",232:"Eritrea",233:"Estonia",246:"Finland",250:"France",254:"Fr. Guiana",262:"Djibouti",266:"Gabon",268:"Georgia",276:"Germany",288:"Ghana",300:"Greece",304:"Greenland",320:"Guatemala",324:"Guinea",328:"Guyana",332:"Haiti",340:"Honduras",348:"Hungary",352:"Iceland",356:"India",360:"Indonesia",364:"Iran",368:"Iraq",372:"Ireland",376:"Israel",380:"Italy",388:"Jamaica",398:"Kazakhstan",400:"Jordan",404:"Kenya",408:"N. Korea",410:"South Korea",414:"Kuwait",418:"Laos",422:"Lebanon",426:"Lesotho",428:"Latvia",430:"Liberia",434:"Libya",440:"Lithuania",442:"Luxembourg",450:"Madagascar",454:"Malawi",458:"Malaysia",466:"Mali",478:"Mauritania",484:"Mexico",496:"Mongolia",498:"Moldova",499:"Montenegro",504:"Morocco",508:"Mozambique",516:"Namibia",524:"Nepal",528:"Netherlands",554:"New Zealand",558:"Nicaragua",562:"Niger",566:"Nigeria",578:"Norway",586:"Pakistan",591:"Panama",598:"Papua New Guinea",600:"Paraguay",604:"Peru",608:"Philippines",616:"Poland",620:"Portugal",634:"Qatar",642:"Romania",643:"Russia",646:"Rwanda",682:"Saudi Arabia",686:"Senegal",688:"Serbia",694:"Sierra Leone",703:"Slovakia",704:"Vietnam",705:"Slovenia",706:"Somalia",710:"South Africa",716:"Zimbabwe",724:"Spain",729:"S. Sudan",736:"Sudan",740:"Suriname",748:"Swaziland",752:"Sweden",756:"Switzerland",760:"Syria",762:"Tajikistan",764:"Thailand",768:"Togo",780:"Trinidad and Tobago",784:"United Arab Emirates",788:"Tunisia",792:"Turkey",795:"Turkmenistan",800:"Uganda",804:"Ukraine",807:"Macedonia",818:"Egypt",826:"United Kingdom",834:"Tanzania",840:"United States of America",854:"Burkina Faso",858:"Uruguay",860:"Uzbekistan",862:"Venezuela",887:"Yemen",894:"Zambia",10:"Antarctica",31:"Azerbaijan",51:"Armenia",70:"Bosnia and Herz."};
+const CZOOM={EU:{k:3.8,lon:15,lat:53},NA:{k:2.5,lon:-100,lat:49},SA:{k:3.0,lon:-60,lat:-13},AF:{k:2.2,lon:20,lat:5},AS:{k:1.9,lon:95,lat:32},OC:{k:3.2,lon:140,lat:-25},AN:{k:3.0,lon:0,lat:-80}};
+const CLBL={EU:"Europa",NA:"América do Norte",SA:"América do Sul",AF:"África",AS:"Ásia",OC:"Oceania",AN:"Antártida"};
+const MONTHS=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const DOT_COORDS={"Brazil":[-47.9,-15.8],"United States of America":[-77,38.9],"Mexico":[-99.1,19.4],"France":[2.3,48.8],"Japan":[139.7,35.7],"Egypt":[31.2,30.0],"Thailand":[100.5,13.7],"Greece":[23.7,37.9],"Turkey":[32.9,39.9],"Chile":[-70.7,-33.5],"Switzerland":[8.5,47.4],"China":[116.4,39.9]};
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let W=window.innerWidth, H=window.innerHeight;
+let curCont=null, selEl=null, curCountry=null, panelOpen=false, milesOpen=false;
+let visited=new Set(JSON.parse(localStorage.getItem("tv_v")||"[]"));
+let chkState=JSON.parse(localStorage.getItem("tv_chk")||"{}");
+let liveRates={};
+const saveVisited=()=>localStorage.setItem("tv_v",JSON.stringify([...visited]));
+const saveChk=()=>localStorage.setItem("tv_chk",JSON.stringify(chkState));
+
+// ═══════════════════════════════════════════════════════════
+//  D3
+// ═══════════════════════════════════════════════════════════
+const MH=H-52;
+const svg=d3.select("#map-svg").attr("viewBox",`0 0 ${W} ${MH}`);
+const g=svg.append("g");
+const proj=d3.geoNaturalEarth1().scale(W/6.2).translate([W/2,MH/2]);
+const pG=d3.geoPath().projection(proj);
+const gN=id=>ID_NAME[parseInt(id)]||null;
+const gC=n=>{if(!n)return null;const p=TERR[n];return CONT_MAP[p||n]||null;};
+const cls=c=>c?`cont-${c}`:"";
+
+// ═══════════════════════════════════════════════════════════
+//  LOAD MAP
+// ═══════════════════════════════════════════════════════════
+(async()=>{
+  try{
+    const r=await fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
+    if(!r.ok)throw new Error();
+    const world=await r.json();
+    buildMap(world);
+  }catch{
+    document.querySelector(".ld-mark").textContent="⚠ Erro ao carregar mapa";
+    setTimeout(()=>document.getElementById("loading").classList.add("hide"),1500);
+  }
+})();
+
+function buildMap(world){
+  const feats=topojson.feature(world,world.objects.countries).features;
+  g.selectAll(".land").data(feats).enter().append("path")
+    .attr("class",d=>{const n=gN(d.id);const c=gC(n);return`land ${cls(c)}`;})
+    .attr("d",pG).attr("data-name",d=>gN(d.id)||"").attr("data-cont",d=>gC(gN(d.id))||"")
+    .on("mousemove",function(ev){
+      const raw=this.getAttribute("data-name")||"—";
+      const dn=TERR[raw]||raw; const d=countriesData[dn];
+      const tt=document.getElementById("tt");
+      tt.innerHTML=`<span class="tt-fl">${d?d.flag:"🌍"}</span><span>${raw}</span>`;
+      tt.style.opacity=1;tt.style.left=(ev.clientX+15)+"px";tt.style.top=(ev.clientY-13)+"px";
+    })
+    .on("mouseleave",()=>{document.getElementById("tt").style.opacity=0;})
+    .on("click",function(ev){
+      ev.stopPropagation();
+      const name=this.getAttribute("data-name");
+      const cont=this.getAttribute("data-cont");
+      if(!name)return;
+      if(!curCont){if(cont)zoomToCont(cont);}
+      else{selectCountry(TERR[name]||name,this);}
+    });
+  // Pulse dots
+  const dg=svg.append("g").attr("id","dots").style("pointer-events","none");
+  Object.entries(DOT_COORDS).forEach(([name,[lon,lat]])=>{
+    const px=proj([lon,lat]);if(!px)return;
+    const gr=dg.append("g").attr("class","pdot").attr("transform",`translate(${px[0]},${px[1]})`).attr("data-for",name);
+    gr.append("circle").attr("class","pd-c").attr("fill","var(--gold)").attr("r",2.6);
+    gr.append("circle").attr("class","pd-r").attr("r",6.5);
+  });
+  applyVisitedFill();
+  buildSearchList();
+  updateCounter();
+  fetchRates();
+  setTimeout(()=>document.getElementById("loading").classList.add("hide"),700);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ZOOM
+// ═══════════════════════════════════════════════════════════
+function getTransform(cfg,shifted){
+  const cx=shifted?W*0.30:W/2, cy=MH/2;
+  const c=proj([cfg.lon,cfg.lat]); if(!c)return null;
+  return {tx:cx-cfg.k*c[0],ty:cy-cfg.k*c[1],k:cfg.k};
+}
+function applyTr(t,dur=950){
+  const s=`translate(${t.tx},${t.ty}) scale(${t.k})`;
+  g.transition().duration(dur).ease(d3.easeCubicInOut).attr("transform",s);
+  d3.select("#dots").transition().duration(dur).ease(d3.easeCubicInOut).attr("transform",s);
+}
+function scaleDots(k){
+  d3.selectAll(".pd-c").transition().duration(950).attr("r",2.6/Math.sqrt(k));
+  d3.selectAll(".pd-r").transition().duration(950).attr("r",6.5/Math.sqrt(k));
+}
+function zoomToCont(cont){
+  curCont=cont;
+  const cfg=CZOOM[cont]||{k:2,lon:0,lat:20};
+  const t=getTransform(cfg,false);if(t)applyTr(t);
+  g.selectAll(".land").each(function(){
+    const c=this.getAttribute("data-cont");
+    d3.select(this).classed("dimmed",c!==cont);
+  });
+  scaleDots(cfg.k);
+  updateBC(cont,null);
+  document.getElementById("reset-btn").classList.remove("hidden");
+  document.getElementById("dashboard").classList.add("gone");
+  document.getElementById("hint").style.opacity=0;
+}
+function selectCountry(name,el){
+  g.selectAll(".land").classed("selected",false);
+  d3.select(el).classed("selected",true); selEl=el; curCountry=name;
+  if(curCont){const cfg=CZOOM[curCont]||{k:2,lon:0,lat:20};const t=getTransform(cfg,true);if(t)applyTr(t,600);}
+  updateBC(curCont,name);
+  openPanel(name);
+}
+function resetView(){
+  curCont=null;selEl=null;curCountry=null;
+  g.transition().duration(950).ease(d3.easeCubicInOut).attr("transform","");
+  d3.select("#dots").transition().duration(950).ease(d3.easeCubicInOut).attr("transform","");
+  g.selectAll(".land").classed("dimmed",false).classed("selected",false);
+  scaleDots(1);closePanel();
+  document.getElementById("reset-btn").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("gone");
+  updateBC(null,null);
+}
+function homeReset(){resetView();closeMiles();}
+function legendZoom(code){resetView();setTimeout(()=>zoomToCont(code),80);}
+
+// ═══════════════════════════════════════════════════════════
+//  BREADCRUMB
+// ═══════════════════════════════════════════════════════════
+function updateBC(cont,country){
+  const bc=document.getElementById("bc");
+  const bcc=document.getElementById("bc-cont");
+  const bcy=document.getElementById("bc-ctry");
+  if(!cont){bc.classList.remove("vis");return;}
+  bc.classList.add("vis");
+  bcc.textContent=CLBL[cont]||cont;bcc.style.display="inline";
+  document.getElementById("bc-s1").style.display="inline";
+  if(country){
+    bcy.textContent=country;bcy.style.display="inline";
+    document.getElementById("bc-s2").style.display="inline";
+    bcc.classList.remove("bc-cur");bcy.classList.add("bc-cur");
+  } else {
+    bcy.style.display="none";document.getElementById("bc-s2").style.display="none";
+    bcc.classList.add("bc-cur");
+  }
+  document.getElementById("pb-cont").textContent=CLBL[cont]||"—";
+  document.getElementById("pb-ctry").textContent=country||"—";
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PANEL RENDERING
+// ═══════════════════════════════════════════════════════════
+let curTab=0;
+function switchTab(i){
+  curTab=i;
+  document.querySelectorAll(".pt").forEach((t,j)=>t.classList.toggle("on",j===i));
+  document.querySelectorAll(".pane").forEach((p,j)=>p.classList.toggle("on",j===i));
+}
+
+function openPanel(name){
+  panelOpen=true;switchTab(0);
+  const d=countriesData[name]||countriesData["_template"];
+
+  // Visited button
+  const vb=document.getElementById("visited-btn");
+  vb.textContent=visited.has(name)?"✓ Visitado":"☐ Visitado";
+  vb.classList.toggle("on",visited.has(name));
+
+  // Panel breadcrumb
+  document.getElementById("pb-cont").textContent=CLBL[d.cont]||"—";
+  document.getElementById("pb-ctry").textContent=name;
+
+  // ── Tab 0: Check-in ──────────────────────────────────────────────────
+  // Polaroid gallery
+  const gl=document.getElementById("polaroid-gallery");
+  gl.innerHTML=(d.photos||[]).map((p,i)=>{
+    const rot=(d.rotations||[])[i]||0;
+    return`<div class="polaroid" style="--rot:${rot}deg"><img src="${p.url}" loading="lazy" alt="${p.caption}"><div class="polaroid-cap">${p.caption}</div></div>`;
+  }).join("");
+  document.getElementById("p-flag").textContent=d.flag;
+  document.getElementById("p-name").textContent=name;
+  document.getElementById("p-region").textContent=(d.region||"—").toUpperCase();
+
+  // Live rate card
+  const rate=liveRates[d.currencyCode];
+  const rateHTML=rate?`<div class="rate-badge">1 ${d.symbol} = R$ ${rate.toFixed(2)}</div>`:"";
+
+  document.getElementById("ess-grid").innerHTML=`
+    <div class="ess-c"><div class="ess-ico">💱</div><div class="ess-lbl">Moeda</div><div class="ess-val">${d.currency}</div>${rateHTML}</div>
+    <div class="ess-c"><div class="ess-ico">🗣</div><div class="ess-lbl">Idioma</div><div class="ess-val">${d.lang}</div><div class="ess-sub">Baixe o tradutor offline</div></div>
+    <div class="ess-c" style="grid-column:1/-1"><div class="ess-ico">🔌</div><div class="ess-lbl">Voltagem & Tomada</div><div class="ess-val">${d.voltage}</div><div class="ess-sub">Verifique adaptador para seus aparelhos</div></div>`;
+
+  buildMonths(d.months);
+  document.getElementById("best-q").textContent=d.bestTime||"";
+  const tb=document.getElementById("terr-box");
+  if(d.territories){tb.style.display="block";tb.innerHTML=d.territories;}else{tb.style.display="none";}
+
+  // ── Tab 1: Burocracia ─────────────────────────────────────────────────
+  let buro="";
+  // Border status
+  const bs=d.borderStatus||"open";
+  const bsLabel={open:"🟢 Fronteiras Abertas",warn:"🟡 Restrições de Entrada",closed:"🔴 Fronteiras Fechadas"}[bs];
+  buro+=`<div class="border-status"><span class="bs-dot ${bs}"></span><span class="bs-txt ${bs}">${bsLabel}</span>${d.borderNote?`<span style="font-size:.56rem;color:var(--muted);margin-left:auto">${d.borderNote}</span>`:""}</div>`;
+  // Conflict
+  if(d.conflict){
+    const cl=d.conflict;
+    const clLabel=cl==="red"?"⛔ Alto Risco — Não Viaje":cl==="yellow"?"⚠ Atenção Elevada":"✓ Destino Seguro";
+    buro+=`<div class="conflict-card ${cl}"><div class="conflict-badge ${cl}">${clLabel}</div><div class="conflict-body">${d.conflictText||""}</div></div>`;
+  }
+  // Visa
+  const vc=d.visa==="free"?"free":d.visa==="req"?"req":"cond";
+  const vl=d.visa==="free"?"✓ Isento de Visto":d.visa==="req"?"✕ Visto Obrigatório":"⚠ Visto Condicional";
+  buro+=`<div class="visa-c ${vc}"><div class="visa-badge2 ${vc}">${vl}</div><div class="visa-body2">${d.visaText}</div></div>`;
+  buro+=`<div class="req-row"><span class="req-ico">💉</span><div><div class="req-lbl">Vacinas</div><div class="req-v">${d.vaccines}</div></div></div>`;
+  buro+=`<div class="req-row"><span class="req-ico">📕</span><div><div class="req-lbl">Passaporte</div><div class="req-v">${d.passport}</div></div></div>`;
+  document.getElementById("buro-body").innerHTML=buro;
+
+  // ── Tab 2: Cultura ────────────────────────────────────────────────────
+  document.getElementById("food-list").innerHTML=(d.foods||[]).map(f=>`
+    <div class="food-c"><div class="food-em">${f.e}</div><div>
+      ${f.must?'<div class="food-must">★ Imperdível</div>':''}
+      <div class="food-nm">${f.name}</div><div class="food-dsc">${f.desc}</div>
+    </div></div>`).join("");
+  document.getElementById("etiq-list").innerHTML=(d.etiquette||[]).map(r=>`<div class="etiq-row"><span class="etiq-ico">${r.e}</span><span>${r.t}</span></div>`).join("");
+  document.getElementById("vibe-wrap").innerHTML=(d.vibe||[]).map(v=>`<span class="vibe-p">${v}</span>`).join("");
+
+  // ── Tab 3: Voos ───────────────────────────────────────────────────────
+  document.getElementById("rt-dest-c").textContent=d.airport||"—";
+  document.getElementById("rt-dest-city").textContent=d.airportCity||"—";
+  document.getElementById("rt-hrs").textContent=d.flightHours||"";
+  document.getElementById("price-2").innerHTML=`
+    <div class="pr-box"><div class="pr-lbl">Passagem (R$)</div><div class="pr-main" style="font-size:1.1rem">${d.flightBRL}</div><div class="pr-sub">${d.flightNote||""}</div></div>
+    <div class="pr-box hl"><div class="pr-lbl">Em Milhas ✈</div><div class="pr-main">${d.milesSmiles}</div><div class="pr-sub">Smiles · ida e volta</div></div>`;
+  document.getElementById("prog-rows").innerHTML=`
+    <div class="prog-row"><span class="prog-n">Smiles (Gol)</span><span class="prog-cl">Eco</span><span class="prog-mi">${d.milesSmiles} mi</span></div>
+    <div class="prog-row"><span class="prog-n">TudoAzul (Azul)</span><span class="prog-cl">Eco</span><span class="prog-mi">${d.milesAzul} mi</span></div>
+    <div class="prog-row"><span class="prog-n">Latam Pass</span><span class="prog-cl">Eco</span><span class="prog-mi">${d.milesLatam} mi</span></div>`;
+
+  // Miles difficulty
+  const diff=d.milesDifficulty||2;
+  const diffLabel=["","Fácil","Médio","Difícil"][diff];
+  const diffColors=["","var(--sa)","var(--gold)","var(--as)"];
+  const segs=[1,2,3].map(i=>`<div class="diff-seg ${i<=diff?'lit':''}" style="background:${diffColors[diff]}"></div>`).join("");
+  document.getElementById("miles-diff").innerHTML=`
+    <div class="diff-lbl-title">Dificuldade para Emissão de Milhas</div>
+    <div class="diff-bar-wrap">${segs}</div>
+    <div class="diff-label" style="color:${diffColors[diff]}">${diffLabel}</div>
+    <div class="diff-desc">${d.milesDiffNote||""}</div>`;
+
+  document.getElementById("cost-t").innerHTML=`
+    <div class="ct-row"><span class="ct-lbl">Custo médio/dia</span><span class="ct-val">${d.dailyCost}</span></div>
+    <div class="ct-row"><span class="ct-lbl">Hospedagem/noite</span><span class="ct-val">${d.hotelCost}</span></div>
+    <div class="ct-row"><span class="ct-lbl">Alimentação/dia</span><span class="ct-val">${d.foodCost}</span></div>
+    <div class="ct-row"><span class="ct-lbl">Passagem (R$)</span><span class="ct-val hi">${d.flightBRL}</span></div>`;
+  document.getElementById("tip-box-3").innerHTML=d.tip?
+    `<div class="tip-b"><div class="tip-lbl">💡 Dica Insider</div><div class="tip-tx">"${d.tip}"</div></div>`:"";
+
+  // ── Tab 4: Checklist ──────────────────────────────────────────────────
+  buildChecklist(name, d);
+
+  // Open panel
+  document.getElementById("panel").classList.add("open");
+  document.getElementById("p-scroll").scrollTop=0;
+  document.getElementById("map-wrap").classList.add("shift");
+}
+
+function closePanel(){
+  panelOpen=false;curCountry=null;
+  document.getElementById("panel").classList.remove("open");
+  document.getElementById("map-wrap").classList.remove("shift");
+  if(selEl){d3.select(selEl).classed("selected",false);selEl=null;}
+}
+
+function buildMonths(scores){
+  const colors=["#2a2a2a","#c8a850","#32a870"];
+  const heights=[12,24,38];
+  document.getElementById("months-row").innerHTML=scores.map((s,i)=>`
+    <div class="mo-cell">
+      <div class="mo-bar" style="background:${colors[s]};height:${heights[s]}px" title="${MONTHS[i]}: ${['Evitar','Bom','Ótimo'][s]}"></div>
+      <div class="mo-l">${MONTHS[i][0]}</div>
+    </div>`).join("");
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CHECKLIST
+// ═══════════════════════════════════════════════════════════
+function buildChecklist(name, d){
+  const groups=d.checklist||[];
+  const climateNote={tropical:"☀️ Clima tropical — priorize roupas leves, protetor solar e repelente.",desert:"🏜 Clima desértico — roupas de manga longa para sol intenso, hidratação constante.",temperate:"🌤 Clima temperado — roupas em camadas para manhãs frias e tardes amenas.",alpine:"🏔 Clima alpino — casaco impermeável, botas e roupas térmicas.",varied:"🌈 Clima variado — pesquise a região e temporada específica do seu destino.",mediterranean:"🌿 Clima mediterrâneo — verão seco e quente, inverno ameno."}[d.climate||"varied"];
+  document.getElementById("chk-tip").textContent=climateNote||"";
+  const key=`chk_${name}`;
+  if(!chkState[key])chkState[key]={};
+  document.getElementById("chk-lists").innerHTML=groups.map((gr,gi)=>`
+    <div class="chk-group">
+      <div class="chk-group-title">${gr.group}</div>
+      ${gr.items.map((item,ii)=>{
+        const id=`${key}_${gi}_${ii}`;
+        const done=!!chkState[key][id];
+        return`<div class="chk-item ${done?'done':''}" onclick="toggleChk('${name}','${id}',this)">
+          <div class="chk-box">${done?'✓':''}</div>
+          <span class="chk-ico">${item.ico}</span>
+          <span class="chk-label">${item.l}</span>
+        </div>`;
+      }).join("")}
+    </div>`).join("");
+}
+function toggleChk(name,id,el){
+  const key=`chk_${name}`;
+  if(!chkState[key])chkState[key]={};
+  chkState[key][id]=!chkState[key][id];
+  el.classList.toggle("done",chkState[key][id]);
+  const box=el.querySelector(".chk-box");
+  box.textContent=chkState[key][id]?'✓':'';
+  saveChk();
+}
+function chkAll(on){
+  if(!curCountry)return;
+  const key=`chk_${curCountry}`;
+  if(!chkState[key])chkState[key]={};
+  document.querySelectorAll(".chk-item").forEach(el=>{
+    el.classList.toggle("done",on);
+    const box=el.querySelector(".chk-box");
+    box.textContent=on?'✓':'';
+    const id=el.getAttribute("onclick").match(/'([^']+)'/g)?.[1];
+    if(id)chkState[key][id.replace(/'/g,"")]=on;
+  });
+  saveChk();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ROUTE CALCULATOR (realistic)
+// ═══════════════════════════════════════════════════════════
+// Flight cost zones based on origin airport code prefix
+const ZONES={
+  "GRU":{EU:[4500,12000,40000,70000],NA:[3200,8500,35000,60000],SA:[800,3000,10000,30000],AS:[4800,14000,52000,92000],AF:[4200,11000,48000,80000],OC:[7000,18000,65000,110000]},
+  "BSB":{EU:[4800,12500,42000,72000],NA:[3500,9000,37000,62000],SA:[600,2500,8000,25000],AS:[5000,14500,54000,94000],AF:[4500,11500,50000,82000],OC:[7500,18500,68000,112000]},
+  "GIG":{EU:[4600,12200,41000,71000],NA:[3400,8800,36000,61000],SA:[700,2800,9000,28000],AS:[4900,14200,53000,93000],AF:[4300,11200,49000,81000],OC:[7200,18200,66000,111000]},
+};
+const DEFAULT_ZONE={EU:[4500,12000,40000,72000],NA:[3200,8500,35000,62000],SA:[800,3000,10000,30000],AS:[4800,14000,52000,92000],AF:[4200,11000,48000,82000],OC:[7000,18000,65000,112000]};
+
+function calcRoute(){
+  const orig=(document.getElementById("origin-inp").value||"GRU").trim().toUpperCase().substring(0,4);
+  if(!curCountry)return;
+  const d=countriesData[curCountry]||countriesData["_template"];
+  const cont=CONT_MAP[curCountry]||d.cont||"EU";
+  const zone=(ZONES[orig]||DEFAULT_ZONE)[cont]||[4000,10000,40000,70000];
+  document.getElementById("rt-orig-c").textContent=orig;
+  document.getElementById("rt-orig-city").textContent=orig==="GRU"?"São Paulo":orig==="BSB"?"Brasília":orig==="GIG"?"Rio de Janeiro":orig;
+  const result=document.getElementById("route-result");
+  if(d.flightBRL==="Indisponível"||d.flightBRL.includes("Consulte")){
+    result.innerHTML=`<div style="font-size:.58rem;color:var(--muted);text-align:center;margin-top:6px">Dados de rota não disponíveis para este destino.</div>`;
+    return;
+  }
+  result.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
+      <div style="background:var(--card);border:1px solid var(--gb);padding:9px;border-radius:3px;text-align:center">
+        <div style="font-size:.34rem;letter-spacing:.15em;color:var(--gold3);text-transform:uppercase;margin-bottom:4px">Econômica (R$)</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--fg)">R$ ${zone[0].toLocaleString('pt-BR')}–${zone[1].toLocaleString('pt-BR')}</div>
+      </div>
+      <div style="background:var(--gold4);border:1px solid rgba(200,168,80,.22);padding:9px;border-radius:3px;text-align:center">
+        <div style="font-size:.34rem;letter-spacing:.15em;color:var(--gold3);text-transform:uppercase;margin-bottom:4px">Em Milhas ✈</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold)">${zone[2].toLocaleString('pt-BR')}–${zone[3].toLocaleString('pt-BR')}</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GAMIFICATION
+// ═══════════════════════════════════════════════════════════
+function toggleVisited(){
+  if(!curCountry)return;
+  const btn=document.getElementById("visited-btn");
+  if(visited.has(curCountry)){visited.delete(curCountry);btn.textContent="☐ Visitado";btn.classList.remove("on");}
+  else{
+    visited.add(curCountry);btn.textContent="✓ Visitado";btn.classList.add("on");
+    btn.style.transform="scale(1.1)";setTimeout(()=>btn.style.transform="",300);
+  }
+  saveVisited();updateCounter();applyVisitedFill();
+}
+function updateCounter(){document.getElementById("ctr-n").textContent=visited.size;}
+function applyVisitedFill(){
+  if(!g||!g.selectAll)return;
+  g.selectAll(".land").each(function(){
+    const n=this.getAttribute("data-name");const dn=TERR[n]||n;
+    const theme=document.documentElement.getAttribute("data-theme");
+    if(visited.has(dn)){
+      d3.select(this).classed("visited-mark",true)
+        .style("fill",theme==="light"?"#b8d4c0":"#1a2e20");
+    } else {
+      d3.select(this).classed("visited-mark",false).style("fill",null);
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LIVE RATES
+// ═══════════════════════════════════════════════════════════
+async function fetchRates(){
+  try{
+    const r=await fetch("https://api.exchangerate-api.com/v4/latest/USD");
+    if(!r.ok)throw new Error();
+    const data=await r.json();
+    const brl=data.rates.BRL;
+    liveRates={
+      USD:brl, EUR:brl/data.rates.EUR, JPY:brl/data.rates.JPY,
+      CHF:brl/data.rates.CHF, GBP:brl/data.rates.GBP, AUD:brl/data.rates.AUD,
+      CAD:brl/data.rates.CAD, MXN:brl/data.rates.MXN, CLP:brl/data.rates.CLP,
+      TRY:brl/data.rates.TRY, THB:brl/data.rates.THB, JPY:brl/data.rates.JPY,
+      EGP:brl/data.rates.EGP, CNY:brl/data.rates.CNY, ILS:brl/data.rates.ILS,
+      UAH:brl/data.rates.UAH
+    };
+    document.getElementById("ds-usd").textContent=`R$ ${brl.toFixed(2)}`;
+    document.getElementById("ds-eur").textContent=`R$ ${(brl/data.rates.EUR).toFixed(2)}`;
+    document.getElementById("ds-jpy").textContent=`R$ ${(brl/data.rates.JPY*100).toFixed(2)}`;
+  }catch{/* API unavailable */}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SEARCH WITH ALIASES
+// ═══════════════════════════════════════════════════════════
+let allNames=[];
+function buildSearchList(){
+  g.selectAll(".land").each(function(){const n=this.getAttribute("data-name");if(n&&!allNames.includes(n))allNames.push(n);});
+  allNames.sort();
+}
+const sInp=document.getElementById("si");
+const sBx=document.getElementById("sug");
+function searchQuery(q){
+  const ql=q.toLowerCase().trim();
+  // Direct match
+  let res=allNames.filter(n=>n.toLowerCase().includes(ql));
+  // Alias match
+  const aliasMatch=ALIASES[ql];
+  if(aliasMatch&&!res.includes(aliasMatch))res.unshift(aliasMatch);
+  // Partial alias match
+  Object.keys(ALIASES).forEach(k=>{
+    if(k.includes(ql)){
+      const v=ALIASES[k];
+      if(!res.includes(v))res.push(v);
+    }
+  });
+  return [...new Set(res)].slice(0,8);
+}
+sInp.addEventListener("input",()=>{
+  const q=sInp.value.trim();
+  if(q.length<2){sBx.classList.remove("open");sBx.innerHTML="";return;}
+  const m=searchQuery(q);
+  if(!m.length){sBx.classList.remove("open");return;}
+  sBx.innerHTML=m.map(n=>{
+    const dn=TERR[n]||n;const d=countriesData[dn];const c=CONT_MAP[n]||"";const cl=CLBL[c]||c;
+    return`<div class="sg-row" tabindex="0" onclick="goTo('${n.replace(/'/g,"\\'")}')"><span class="sg-fl">${d?d.flag:"🌍"}</span><span>${n}</span><span class="sg-ct">${cl}</span></div>`;
+  }).join("");
+  sBx.classList.add("open");
+});
+sInp.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){sBx.classList.remove("open");sInp.blur();}
+  if(e.key==="Enter"){
+    const q=sInp.value.trim();const m=searchQuery(q);if(m.length)goTo(m[0]);
+  }
+});
+document.addEventListener("click",e=>{if(!document.getElementById("sw").contains(e.target))sBx.classList.remove("open");});
+function goTo(name){
+  sBx.classList.remove("open");sInp.value="";
+  const cont=CONT_MAP[name];let found=null;
+  g.selectAll(".land").each(function(){if(!found&&this.getAttribute("data-name")===name)found=this;});
+  if(!curCont&&cont){zoomToCont(cont);setTimeout(()=>{if(found)selectCountry(TERR[name]||name,found);},1000);}
+  else if(found)selectCountry(TERR[name]||name,found);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════════════════
+function toggleTheme(){
+  const html=document.documentElement;
+  const next=html.getAttribute("data-theme")==="light"?"dark":"light";
+  html.setAttribute("data-theme",next);
+  localStorage.setItem("tv_theme",next);
+  document.getElementById("theme-btn").textContent=next==="dark"?"🌙":"☀️";
+  setTimeout(applyVisitedFill,50);
+}
+(()=>{
+  const s=localStorage.getItem("tv_theme")||"dark";
+  document.documentElement.setAttribute("data-theme",s);
+  document.getElementById("theme-btn").textContent=s==="dark"?"🌙":"☀️";
+})();
+
+// ═══════════════════════════════════════════════════════════
+//  MILES HUB
+// ═══════════════════════════════════════════════════════════
+function toggleMiles(){
+  milesOpen=!milesOpen;
+  document.getElementById("miles-hub").classList.toggle("open",milesOpen);
+  document.getElementById("miles-tab").setAttribute("aria-expanded",String(milesOpen));
+}
+function closeMiles(){milesOpen=false;document.getElementById("miles-hub").classList.remove("open");}
+function toggleAcc(hdr){const item=hdr.closest(".acc");item.classList.toggle("is-open");}
+
+// ═══════════════════════════════════════════════════════════
+//  KEYBOARD
+// ═══════════════════════════════════════════════════════════
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    if(panelOpen)closePanel();
+    else if(milesOpen)closeMiles();
+    else if(curCont)resetView();
+  }
+});
+svg.on("click",ev=>{if(ev.target.tagName==="svg"&&panelOpen)closePanel();});
+document.querySelectorAll(".leg").forEach(el=>{
+  el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" ")el.click();});
+});
+
+// ═══════════════════════════════════════════════════════════
+//  RESIZE
+// ═══════════════════════════════════════════════════════════
+window.addEventListener("resize",()=>{
+  W=window.innerWidth;H=window.innerHeight;const mH=H-52;
+  svg.attr("viewBox",`0 0 ${W} ${mH}`);
+  proj.scale(W/6.2).translate([W/2,mH/2]);
+  g.selectAll(".land").attr("d",pG);
+  d3.selectAll(".pdot").each(function(){
+    const n=this.getAttribute("data-for");const c=DOT_COORDS[n];
+    if(c){const px=proj(c);if(px)d3.select(this).attr("transform",`translate(${px[0]},${px[1]})`); }
+  });
+});
+</script>
+</body>
+</html>
