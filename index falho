@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRAVELING — Explore o Mundo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+<style>
+/* ═══ TOKENS ═══════════════════════════════════════════════════════════════ */
+:root {
+  --gold:#c8a850; --gold2:#dfc070; --gold3:#7a6030; --gold4:rgba(200,168,80,.12);
+  --eu:#b8924a; --eu-g:rgba(184,146,74,.22);
+  --na:#3a9cb0; --na-g:rgba(58,156,176,.22);
+  --sa:#32a870; --sa-g:rgba(50,168,112,.22);
+  --af:#c87840; --af-g:rgba(200,120,64,.22);
+  --as:#a04040; --as-g:rgba(160,64,64,.22);
+  --oc:#5a7cc8; --oc-g:rgba(90,124,200,.22);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+[data-theme="dark"] {
+  --bg:#161616; --bg2:#1e1e1e; --bg3:#252525; --bg4:#2e2e2e;
+  --fg:rgba(240,233,218,.96); --muted:rgba(240,233,218,.42); --dim:rgba(240,233,218,.68);
+  --glass:rgba(22,22,22,.90); --gb:rgba(200,168,80,.14);
+  --land:#2a2a2a; --border:#3a3a3a;
+  --tbar:rgba(18,18,18,.96); --card:rgba(255,255,255,.05);
+  --inp-bg:rgba(30,30,30,.92); --inp-b:rgba(200,168,80,.18);
+  --scr:rgba(120,95,45,.45); --shadow:rgba(0,0,0,.45);
+}
+[data-theme="light"] {
+  --bg:#fdfaf3; --bg2:#f5f0e6; --bg3:#ede8da; --bg4:#e4ddd0;
+  --fg:rgba(28,20,8,.88); --muted:rgba(28,20,8,.36); --dim:rgba(28,20,8,.58);
+  --glass:rgba(253,250,243,.94); --gb:rgba(160,120,40,.16);
+  --land:#d4ccb4; --border:#bfb898;
+  --tbar:rgba(253,250,243,.97); --card:rgba(0,0,0,.028);
+  --inp-bg:rgba(248,244,234,.95); --inp-b:rgba(160,120,40,.22);
+  --scr:rgba(160,120,40,.25); --shadow:rgba(60,40,0,.12);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);}
+body{font-family:'Montserrat',sans-serif;font-weight:300;transition:background .35s,color .35s;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+::-webkit-scrollbar{width:2px;}
+::-webkit-scrollbar-thumb{background:var(--scr);border-radius:2px;}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+/* ═══ LOADING ═══════════════════════════════════════════════════════════════ */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .9s ease;}
+#loading.hide{opacity:0;pointer-events:none;}
+.ld-mark{font-family:'Playfair Display',serif;font-size:1.8rem;letter-spacing:.65em;color:var(--fg);margin-bottom:4px;animation:fIn .7s ease both;}
+.ld-sub{font-size:.41rem;letter-spacing:.45em;color:var(--muted);text-transform:uppercase;margin-bottom:28px;animation:fIn .7s ease .18s both;}
+.ld-bar{width:160px;height:1px;background:rgba(200,168,80,.15);overflow:hidden;position:relative;}
+.ld-bar::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:ldSl 1.2s ease infinite;}
+@keyframes ldSl{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes fIn{from{opacity:0}to{opacity:1}}
+@keyframes fDn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ TOPBAR ════════════════════════════════════════════════════════════════ */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px 0 16px;
+  background:var(--tbar);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--gb);z-index:400;
+}
+#logo{
+  font-family:'Playfair Display',serif;font-size:1.05rem;letter-spacing:.52em;
+  font-weight:400;cursor:pointer;user-select:none;
+  opacity:0;animation:fDn .8s ease .4s forwards;
+  transition:opacity .2s;padding:6px 4px;
+}
+#logo:hover{opacity:.8!important;}
+#logo em{color:var(--gold);font-style:normal;}
+#topbar-right{display:flex;align-items:center;gap:9px;opacity:0;animation:fIn .7s ease .95s forwards;}
+.tb-btn{
+  display:flex;align-items:center;gap:5px;
+  border:1px solid var(--gb);color:var(--muted);font-size:.42rem;
+  letter-spacing:.19em;text-transform:uppercase;padding:5px 11px;
+  transition:all .22s;white-space:nowrap;border-radius:3px;
+}
+.tb-btn:hover{border-color:var(--gold);color:var(--gold2);}
+.tb-btn.hidden{display:none!important;}
+#counter-badge{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 11px;background:var(--gold4);
+  border:1px solid rgba(200,168,80,.18);border-radius:3px;
+  font-size:.42rem;letter-spacing:.13em;color:var(--gold);white-space:nowrap;
+}
+.ctr-n{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--gold2);font-weight:400;line-height:1;}
+#theme-btn{
+  width:30px;height:30px;border:1px solid var(--gb);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;transition:all .22s;
+}
+#theme-btn:hover{border-color:var(--gold);background:var(--gold4);}
+
+/* ═══ SEARCH ════════════════════════════════════════════════════════════════ */
+#sw{position:relative;}
+#si{
+  background:var(--inp-bg);border:1px solid var(--inp-b);outline:none;
+  color:var(--fg);font-family:'Montserrat',sans-serif;font-size:.5rem;
+  font-weight:300;letter-spacing:.13em;padding:6px 28px 6px 10px;
+  width:110px;transition:width .4s var(--ease),border-color .25s;
+  text-transform:uppercase;caret-color:var(--gold);border-radius:3px;
+}
+#si::placeholder{color:var(--muted);}
+#si:focus{width:180px;border-color:rgba(200,168,80,.42);}
+.si-ico{position:absolute;right:8px;top:50%;transform:translateY(-50%);color:var(--gold3);font-size:.65rem;pointer-events:none;}
+#sug{
+  position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:var(--glass);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border:1px solid var(--gb);max-height:220px;overflow-y:auto;display:none;z-index:500;border-radius:3px;
+}
+#sug.open{display:block;}
+.sg-row{
+  padding:8px 11px;font-size:.51rem;letter-spacing:.09em;color:var(--dim);
+  cursor:pointer;text-transform:uppercase;display:flex;align-items:center;gap:8px;
+  transition:background .1s,color .1s;
+}
+.sg-row:hover,.sg-row:focus{background:var(--gold4);color:var(--gold2);}
+.sg-fl{font-size:.88rem;flex-shrink:0;line-height:1;}
+.sg-ct{font-size:.37rem;color:var(--gold3);margin-left:auto;letter-spacing:.09em;}
+
+/* ═══ BREADCRUMB ════════════════════════════════════════════════════════════ */
+#bc{position:fixed;top:59px;left:42px;z-index:200;display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .3s;pointer-events:none;}
+#bc.vis{opacity:1;pointer-events:all;}
+.bc-i{font-size:.4rem;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;cursor:pointer;transition:color .2s;background:none;border:none;}
+.bc-i:hover{color:var(--gold);}
+.bc-cur{color:var(--gold2)!important;}
+.bc-sep{font-size:.34rem;color:var(--gold3);}
+
+/* ═══ MAP ═══════════════════════════════════════════════════════════════════ */
+#map-wrap{position:fixed;inset:0;top:52px;transition:transform .72s var(--ease);}
+#map-wrap.shift{transform:translateX(-20%);}
+#map-svg{width:100%;height:100%;display:block;}
+.land{fill:var(--land);stroke:var(--border);stroke-width:.3px;cursor:pointer;transition:fill .15s,stroke .15s,filter .15s;}
+[data-theme="dark"] .land.dimmed{fill:#141414;stroke:#202020;stroke-width:.2px;opacity:.45;}
+[data-theme="light"] .land.dimmed{fill:#e2ddd0;stroke:#ccc6b4;stroke-width:.2px;opacity:.5;}
+.land.cont-EU:hover{fill:#3a2e10;stroke:var(--eu);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--eu-g));}
+.land.cont-NA:hover{fill:#0f3040;stroke:var(--na);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--na-g));}
+.land.cont-SA:hover{fill:#0e3420;stroke:var(--sa);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--sa-g));}
+.land.cont-AF:hover{fill:#321a08;stroke:var(--af);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--af-g));}
+.land.cont-AS:hover{fill:#321414;stroke:var(--as);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--as-g));}
+.land.cont-OC:hover{fill:#152440;stroke:var(--oc);stroke-width:.85px;filter:drop-shadow(0 0 4px var(--oc-g));}
+.land:not([class*="cont-"]):hover{filter:brightness(1.5);}
+[data-theme="light"] .land.cont-EU:hover{fill:#d8cc8c;stroke:var(--eu);}
+[data-theme="light"] .land.cont-NA:hover{fill:#88bcd4;stroke:var(--na);}
+[data-theme="light"] .land.cont-SA:hover{fill:#88d4ac;stroke:var(--sa);}
+[data-theme="light"] .land.cont-AF:hover{fill:#d4a870;stroke:var(--af);}
+[data-theme="light"] .land.cont-AS:hover{fill:#d49090;stroke:var(--as);}
+[data-theme="light"] .land.cont-OC:hover{fill:#90a4d8;stroke:var(--oc);}
+.land.selected{stroke:var(--gold)!important;stroke-width:1.2px!important;filter:drop-shadow(0 0 8px rgba(200,168,80,.4))!important;}
+.land.visited-mark{opacity:.9;}
+.pdot{pointer-events:none;}
+.pd-c{animation:pdC 3s ease-in-out infinite;}
+.pd-r{fill:none;stroke:var(--gold);stroke-width:.6;animation:pdR 3s ease-in-out infinite;}
+@keyframes pdC{0%,100%{r:2.6;opacity:.72;}50%{r:4;opacity:.18;}}
+@keyframes pdR{0%,100%{r:6.5;opacity:.38;}50%{r:10;opacity:0;}}
+
+/* ═══ LEGEND ════════════════════════════════════════════════════════════════ */
+#legend{position:fixed;bottom:38px;left:38px;z-index:100;opacity:0;animation:fIn .8s ease 2s forwards;}
+.leg{display:flex;align-items:center;gap:7px;margin-bottom:7px;cursor:pointer;transition:opacity .2s;}
+.leg:hover{opacity:.6;}
+.leg:focus-visible{outline:1px solid var(--gold);}
+.ldot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.ltx{font-size:.38rem;letter-spacing:.19em;color:var(--muted);text-transform:uppercase;}
+
+/* ═══ DASHBOARD ══════════════════════════════════════════════════════════════ */
+#dashboard{
+  position:fixed;bottom:42px;left:50%;transform:translateX(-50%);
+  z-index:90;display:flex;gap:11px;
+  opacity:0;animation:fIn .9s ease 2.5s forwards;
+  pointer-events:none;transition:opacity .35s;
+}
+#dashboard.gone{opacity:0!important;pointer-events:none!important;}
+.dsh-c{
+  background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--gb);padding:9px 15px;min-width:94px;text-align:center;border-radius:3px;
+}
+.dsh-lbl{font-size:.36rem;letter-spacing:.19em;color:var(--gold3);text-transform:uppercase;margin-bottom:4px;}
+.dsh-val{font-size:.86rem;color:var(--fg);font-family:'Cormorant Garamond',serif;font-weight:400;}
+.dsh-sub{font-size:.34rem;color:var(--muted);margin-top:2px;}
+
+/* ═══ MILES HUB ══════════════════════════════════════════════════════════════ */
+#miles-tab{
+  position:fixed;left:0;top:50%;transform:translateY(-50%);
+  width:28px;height:170px;
+  background:var(--bg2);border-right:1px solid var(--gb);
+  display:flex;align-items:center;justify-content:center;
+  z-index:200;cursor:pointer;
+  opacity:0;animation:fIn .8s ease 2s forwards;transition:border-color .25s;
+}
+#miles-tab:hover{border-right-color:rgba(200,168,80,.28);}
+#miles-tab span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:.4rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;white-space:nowrap;transition:color .25s;}
+#miles-tab:hover span{color:rgba(200,168,80,.55);}
+#miles-hub{
+  position:fixed;left:-320px;top:52px;bottom:0;width:310px;
+  background:var(--glass);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+  border-right:1px solid var(--gb);z-index:190;
+  transition:left .5s var(--ease);overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--scr) transparent;
+}
+#miles-hub.open{left:0;}
+.mh-head{
+  padding:16px 18px 12px;border-bottom:1px solid var(--gb);
+  position:sticky;top:0;background:var(--glass);backdrop-filter:blur(20px);z-index:2;
+  display:flex;align-items:flex-start;justify-content:space-between;
+}
+.mh-title{font-family:'Playfair Display',serif;font-size:.92rem;color:var(--gold);font-style:italic;}
+.mh-sub{font-size:.37rem;letter-spacing:.17em;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.mh-x{font-size:.8rem;color:var(--muted);transition:color .2s;padding:2px 4px;}
+.mh-x:hover{color:var(--gold);}
+.mh-body{padding:4px 0 36px;}
+.acc{border-bottom:1px solid rgba(200,168,80,.08);}
+.acc-h{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;cursor:pointer;transition:background .12s;}
+.acc-h:hover{background:var(--gold4);}
+.acc-hl{display:flex;align-items:center;gap:9px;}
+.acc-ico{font-size:.9rem;}
+.acc-ti{font-size:.57rem;color:var(--fg);letter-spacing:.05em;font-weight:400;}
+.acc-su{font-size:.37rem;color:var(--muted);letter-spacing:.1em;margin-top:1px;}
+.acc-ar{font-size:.46rem;color:var(--gold3);transition:transform .28s;}
+.acc.is-open .acc-ar{transform:rotate(180deg);}
+.acc-bd{display:none;padding:2px 18px 14px;}
+.acc.is-open .acc-bd{display:block;}
+.acc-p{font-size:.61rem;color:var(--dim);line-height:1.85;margin-bottom:7px;}
+.acc-ul{list-style:none;}
+.acc-ul li{font-size:.6rem;color:var(--dim);padding:5px 0;border-bottom:1px solid rgba(200,168,80,.06);display:flex;gap:7px;line-height:1.55;}
+.acc-ul li:last-child{border:none;}
+.acc-ul li::before{content:"›";color:var(--gold3);flex-shrink:0;}
+.acc-tag{display:inline-block;font-size:.37rem;letter-spacing:.1em;padding:3px 7px;border:1px solid rgba(200,168,80,.16);color:var(--gold3);text-transform:uppercase;margin:3px 2px 0 0;border-radius:2px;}
+.gl-row{display:flex;gap:9px;padding:6px 0;border-bottom:1px solid rgba(200,168,80,.06);font-size:.59rem;}
+.gl-row:last-child{border:none;}
+.gl-term{color:var(--gold2);font-weight:500;min-width:80px;flex-shrink:0;}
+.gl-def{color:var(--dim);line-height:1.55;}
+
+/* ═══ MAIN PANEL ════════════════════════════════════════════════════════════ */
+#panel{
+  position:fixed;right:0;top:52px;bottom:0;
+  width:40vw;min-width:420px;max-width:640px;
+  background:var(--glass);backdrop-filter:blur(44px);-webkit-backdrop-filter:blur(44px);
+  border-left:1px solid var(--gb);z-index:350;
+  transform:translateX(100%);transition:transform .7s var(--ease);
+  display:flex;flex-direction:column;
+  box-shadow:-8px 0 40px var(--shadow);
+}
+#panel.open{transform:translateX(0);}
+#p-bar{display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid var(--gb);flex-shrink:0;background:var(--glass);backdrop-filter:blur(16px);}
+#p-x{width:24px;height:24px;border:1px solid var(--gb);display:flex;align-items:center;justify-content:center;font-size:.78rem;color:var(--muted);transition:all .2s;border-radius:3px;flex-shrink:0;}
+#p-x:hover{border-color:var(--gold);color:var(--gold);background:var(--gold4);}
+#p-bc-inner{font-size:.39rem;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;display:flex;gap:5px;align-items:center;}
+#p-bc-inner .sep{color:var(--gold3);}
+#visited-btn{
+  margin-left:auto;display:flex;align-items:center;gap:5px;
+  border:1px solid var(--gb);color:var(--muted);
+  font-size:.38rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:4px 9px;transition:all .22s;border-radius:3px;white-space:nowrap;
+}
+#visited-btn:hover,#visited-btn.on{border-color:var(--sa);color:var(--sa);background:rgba(50,168,112,.06);}
+#p-tabs{display:flex;border-bottom:1px solid var(--gb);flex-shrink:0;background:var(--bg2);}
+.pt{
+  flex:1;padding:9px 3px;font-size:.37rem;letter-spacing:.11em;
+  color:var(--muted);text-transform:uppercase;text-align:center;
+  cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;
+}
+.pt:hover{color:var(--dim);}
+.pt.on{color:var(--gold);border-bottom-color:var(--gold);}
+#p-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--scr) transparent;}
+.pane{display:none;}.pane.on{display:block;}
+
+/* ── TAB 0: CHECK-IN ─────────────────────────────────────────────────────── */
+.polaroid-gallery{
+  display:flex;gap:0;overflow-x:auto;padding:14px 16px 10px;
+  scrollbar-width:none;background:var(--bg2);border-bottom:1px solid var(--gb);
+}
+.polaroid-gallery::-webkit-scrollbar{display:none;}
+.polaroid{
+  flex-shrink:0;width:140px;
+  background:white;padding:6px 6px 22px;
+  box-shadow:0 3px 14px rgba(0,0,0,.35),0 1px 4px rgba(0,0,0,.2);
+  margin-right:10px;transform:rotate(var(--rot));
+  transition:transform .25s,box-shadow .25s;cursor:default;position:relative;
+}
+[data-theme="light"] .polaroid{box-shadow:0 3px 14px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.1);}
+.polaroid:hover{transform:rotate(0deg) scale(1.04);box-shadow:0 8px 30px rgba(0,0,0,.5);z-index:2;}
+.polaroid img{width:100%;height:90px;object-fit:cover;display:block;background:#222;}
+.polaroid-cap{font-family:'Montserrat',sans-serif;font-size:.38rem;color:#444;text-align:center;margin-top:5px;letter-spacing:.06em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.ctry-head{padding:12px 18px 8px;border-bottom:1px solid var(--gb);}
+.ctry-flag{font-size:2rem;margin-bottom:5px;line-height:1;}
+.ctry-name{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:500;color:var(--fg);line-height:1.1;margin-bottom:2px;}
+.ctry-region{font-size:.39rem;letter-spacing:.3em;color:var(--gold3);text-transform:uppercase;}
+.tab-body{padding:14px 18px;}
+.sec-lbl{font-size:.38rem;letter-spacing:.21em;color:var(--gold3);text-transform:uppercase;margin-bottom:9px;font-weight:500;}
+.ess-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.ess-c{background:var(--card);border:1px solid var(--gb);padding:10px 12px;border-radius:3px;}
+.ess-ico{font-size:.95rem;margin-bottom:4px;}
+.ess-lbl{font-size:.35rem;letter-spacing:.17em;color:var(--gold3);text-transform:uppercase;margin-bottom:3px;}
+.ess-val{font-size:.68rem;color:var(--fg);font-weight:400;line-height:1.3;}
+.ess-sub{font-size:.5rem;color:var(--dim);margin-top:2px;}
+.rate-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(50,168,112,.08);border:1px solid rgba(50,168,112,.18);padding:3px 8px;border-radius:2px;font-size:.44rem;color:var(--sa);margin-top:4px;font-weight:500;}
+.months-row{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;margin-bottom:5px;}
+.mo-cell{text-align:center;}
+.mo-bar{border-radius:2px;margin-bottom:2px;transition:opacity .2s;}
+.mo-bar:hover{opacity:.75;}
+.mo-l{font-size:.33rem;color:var(--muted);}
+.mo-leg{display:flex;gap:12px;margin-top:5px;margin-bottom:12px;}
+.mol-i{display:flex;align-items:center;gap:4px;font-size:.35rem;color:var(--muted);}
+.mol-d{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.best-q{font-size:.63rem;color:var(--dim);line-height:1.85;font-style:italic;border-left:2px solid var(--gold3);padding-left:10px;margin-top:10px;}
+.terr-box{margin-top:12px;padding:10px 12px;background:var(--gold4);border:1px solid rgba(200,168,80,.12);border-radius:3px;font-size:.6rem;color:var(--dim);line-height:1.7;}
+
+/* ── TAB 1: BUROCRACIA ───────────────────────────────────────────────────── */
+.conflict-card{padding:11px 13px;border-radius:3px;margin-bottom:12px;border:1px solid;}
+.conflict-card.green{background:rgba(50,168,112,.06);border-color:rgba(50,168,112,.2);}
+.conflict-card.yellow{background:rgba(200,168,80,.06);border-color:rgba(200,168,80,.2);}
+.conflict-card.red{background:rgba(200,50,50,.07);border-color:rgba(200,50,50,.22);}
+.conflict-badge{font-size:.41rem;letter-spacing:.17em;text-transform:uppercase;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.conflict-badge::before{content:'●';flex-shrink:0;}
+.conflict-badge.green{color:#32a870;}
+.conflict-badge.yellow{color:#c8a850;}
+.conflict-badge.red{color:#e05050;}
+.conflict-body{font-size:.6rem;color:var(--dim);line-height:1.78;}
+.border-status{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:3px;margin-bottom:12px;border:1px solid var(--gb);background:var(--card);}
+.bs-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;animation:bsPulse 2s ease-in-out infinite;}
+@keyframes bsPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.bs-txt{font-size:.42rem;letter-spacing:.13em;text-transform:uppercase;font-weight:500;}
+.bs-dot.open{background:#32a870;}
+.bs-dot.warn{background:#c8a850;}
+.bs-dot.closed{background:#e05050;}
+.bs-txt.open{color:#32a870;}
+.bs-txt.warn{color:#c8a850;}
+.bs-txt.closed{color:#e05050;}
+.visa-c{padding:11px 13px;border-left:3px solid;margin-bottom:11px;border-radius:0 3px 3px 0;}
+.visa-c.free{border-color:var(--sa);background:rgba(50,168,112,.05);}
+.visa-c.req{border-color:var(--as);background:rgba(160,64,64,.05);}
+.visa-c.cond{border-color:var(--eu);background:rgba(184,146,74,.05);}
+.visa-badge2{font-size:.42rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.visa-badge2::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.visa-badge2.free{color:var(--sa);}
+.visa-badge2.req{color:var(--as);}
+.visa-badge2.cond{color:var(--eu);}
+.visa-body2{font-size:.61rem;color:var(--dim);line-height:1.8;}
+.visa-body2 strong{color:var(--fg);font-weight:500;}
+.req-row{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid rgba(200,168,80,.06);}
+.req-row:last-child{border:none;}
+.req-ico{font-size:.85rem;flex-shrink:0;}
+.req-lbl{font-size:.36rem;letter-spacing:.13em;color:var(--gold3);text-transform:uppercase;margin-bottom:2px;}
+.req-v{font-size:.6rem;color:var(--dim);line-height:1.5;}
+
+/* ── TAB 2: CULTURA ─────────────────────────────────────────────────────── */
+.food-c{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(200,168,80,.06);}
+.food-c:last-child{border:none;}
+.food-em{font-size:1.8rem;line-height:1;flex-shrink:0;}
+.food-must{font-size:.33rem;letter-spacing:.13em;color:var(--gold3);text-transform:uppercase;margin-bottom:2px;}
+.food-nm{font-family:'Cormorant Garamond',serif;font-size:.86rem;font-style:italic;color:var(--fg);margin-bottom:2px;}
+.food-dsc{font-size:.59rem;color:var(--dim);line-height:1.7;}
+.etiq-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid rgba(200,168,80,.05);font-size:.6rem;color:var(--dim);line-height:1.6;}
+.etiq-row:last-child{border:none;}
+.etiq-ico{font-size:.78rem;flex-shrink:0;line-height:1.2;}
+.vibe-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+.vibe-p{font-size:.37rem;letter-spacing:.1em;padding:3px 8px;border:1px solid var(--gb);color:var(--muted);text-transform:uppercase;border-radius:2px;}
+
+/* ── TAB 3: VOOS ────────────────────────────────────────────────────────── */
+.route-vis{background:var(--card);border:1px solid var(--gb);padding:14px;margin-bottom:14px;border-radius:3px;text-align:center;}
+.route-row{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:12px;}
+.route-ap{text-align:center;}
+.route-code{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--fg);font-weight:400;line-height:1;}
+.route-city{font-size:.36rem;letter-spacing:.13em;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.route-mid{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.route-dash{height:1px;width:100%;background:repeating-linear-gradient(90deg,var(--gold3) 0,var(--gold3) 4px,transparent 4px,transparent 9px);}
+.route-plane{font-size:1rem;color:var(--gold);}
+.route-hrs{font-size:.34rem;letter-spacing:.13em;color:var(--muted);text-transform:uppercase;}
+.origin-wrap{display:flex;gap:7px;margin-bottom:12px;}
+#origin-inp{
+  flex:1;background:var(--inp-bg);border:1px solid var(--inp-b);outline:none;
+  color:var(--fg);font-family:'Montserrat',sans-serif;font-size:.52rem;
+  font-weight:300;letter-spacing:.11em;padding:7px 10px;caret-color:var(--gold);border-radius:3px;text-transform:uppercase;
+}
+#origin-inp::placeholder{color:var(--muted);}
+#calc-btn{
+  background:var(--gold4);border:1px solid rgba(200,168,80,.22);color:var(--gold);
+  font-size:.44rem;letter-spacing:.13em;text-transform:uppercase;padding:7px 12px;
+  transition:all .22s;border-radius:3px;
+}
+#calc-btn:hover{background:rgba(200,168,80,.18);border-color:var(--gold);}
+.price-2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
+.pr-box{padding:11px;background:var(--card);border:1px solid var(--gb);text-align:center;border-radius:3px;}
+.pr-box.hl{border-color:rgba(200,168,80,.22);background:var(--gold4);}
+.pr-lbl{font-size:.35rem;letter-spacing:.15em;color:var(--gold3);text-transform:uppercase;margin-bottom:6px;}
+.pr-main{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--fg);font-weight:400;line-height:1;}
+.pr-box.hl .pr-main{color:var(--gold);}
+.pr-sub{font-size:.44rem;color:var(--dim);margin-top:2px;}
+.prog-row{display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid rgba(200,168,80,.05);}
+.prog-row:last-child{border:none;}
+.prog-n{font-size:.57rem;color:var(--fg);font-weight:400;flex:1;}
+.prog-mi{font-size:.58rem;color:var(--gold);font-weight:500;}
+.prog-cl{font-size:.36rem;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;}
+.miles-diff{margin-top:12px;padding:11px 13px;background:var(--card);border:1px solid var(--gb);border-radius:3px;}
+.diff-lbl-title{font-size:.36rem;letter-spacing:.19em;color:var(--gold3);text-transform:uppercase;margin-bottom:8px;}
+.diff-bar-wrap{display:flex;gap:4px;margin-bottom:5px;}
+.diff-seg{flex:1;height:6px;border-radius:2px;opacity:.3;transition:opacity .3s;}
+.diff-seg.lit{opacity:1;}
+.diff-label{font-size:.5rem;color:var(--fg);font-weight:500;}
+.diff-desc{font-size:.56rem;color:var(--dim);margin-top:3px;}
+.cost-t{width:100%;margin-top:11px;}
+.ct-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(200,168,80,.05);}
+.ct-row:last-child{border:none;}
+.ct-lbl{font-size:.51rem;color:var(--muted);}
+.ct-val{font-size:.63rem;color:var(--dim);}
+.ct-val.hi{color:var(--gold2);}
+
+/* ── TAB 4: CHECKLIST ───────────────────────────────────────────────────── */
+.chk-group{margin-bottom:14px;}
+.chk-group-title{font-size:.37rem;letter-spacing:.2em;color:var(--gold3);text-transform:uppercase;margin-bottom:8px;font-weight:500;}
+.chk-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:3px;cursor:pointer;transition:background .12s;user-select:none;}
+.chk-item:hover{background:var(--gold4);}
+.chk-box{width:15px;height:15px;border:1px solid var(--gb);border-radius:2px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;font-size:.5rem;color:transparent;}
+.chk-item.done .chk-box{background:var(--sa);border-color:var(--sa);color:white;}
+.chk-label{font-size:.6rem;color:var(--dim);line-height:1.4;transition:color .18s;}
+.chk-item.done .chk-label{color:var(--muted);text-decoration:line-through;}
+.chk-ico{font-size:.8rem;flex-shrink:0;}
+.chk-tip{font-size:.59rem;color:var(--dim);font-style:italic;border-left:2px solid var(--gold3);padding-left:9px;margin-top:3px;margin-bottom:10px;line-height:1.7;}
+
+/* ── TIP BOX ─────────────────────────────────────────────────────────────── */
+.tip-b{margin-top:13px;padding:10px 12px;background:var(--gold4);border-left:2px solid var(--gold3);border-radius:0 3px 3px 0;}
+.tip-lbl{font-size:.35rem;letter-spacing:.15em;color:var(--gold3);text-transform:uppercase;margin-bottom:3px;}
+.tip-tx{font-size:.6rem;color:var(--dim);line-height:1.75;font-style:italic;}
+
+/* ═══ TOOLTIP ═══════════════════════════════════════════════════════════════ */
+#tt{
+  position:fixed;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--gb);padding:5px 11px;font-size:.49rem;letter-spacing:.11em;
+  color:var(--fg);text-transform:uppercase;pointer-events:none;z-index:700;
+  opacity:0;transition:opacity .1s;white-space:nowrap;border-radius:3px;
+  display:flex;align-items:center;gap:6px;
+}
+.tt-fl{font-size:.85rem;}
+
+/* ═══ HINT ══════════════════════════════════════════════════════════════════ */
+#hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);font-size:.37rem;letter-spacing:.19em;color:var(--muted);text-transform:uppercase;pointer-events:none;opacity:0;animation:fIn 1s ease 2.8s forwards;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div id="loading"><div class="ld-mark">TRAVELING</div><div class="ld-sub">Explore o mundo com inteligência</div><div class="ld-bar"></div></div>
+
+<header id="topbar">
+  <button id="logo" onclick="homeReset()" aria-label="Voltar ao início">TR<em>A</em>VELING</button>
+  <div id="topbar-right">
+    <div id="counter-badge" title="Países visitados">🌍 <span style="font-size:.42rem;color:var(--muted)">Explorador:</span> <span class="ctr-n" id="ctr-n">0</span><span style="font-size:.38rem;color:var(--muted)">/193</span></div>
+    <button class="tb-btn hidden" id="reset-btn" onclick="resetView()">⊕ Mundo</button>
+    <button id="theme-btn" onclick="toggleTheme()" aria-label="Alternar tema">🌙</button>
+    <div id="sw"><input id="si" type="search" placeholder="Buscar país..." autocomplete="off" spellcheck="false" aria-label="Buscar país"><span class="si-ico" aria-hidden="true">⌕</span><div id="sug" role="listbox"></div></div>
+  </div>
+</header>
+
+<nav id="bc">
+  <button class="bc-i" onclick="resetView()">Mundo</button>
+  <span class="bc-sep" id="bc-s1" style="display:none">›</span>
+  <span class="bc-i bc-cur" id="bc-cont" style="display:none"></span>
+  <span class="bc-sep" id="bc-s2" style="display:none">›</span>
+  <span class="bc-i bc-cur" id="bc-ctry" style="display:none"></span>
+</nav>
+
+<div id="map-wrap"><svg id="map-svg"></svg></div>
+
+<button id="miles-tab" onclick="toggleMiles()" aria-label="Abrir painel de milhas" aria-expanded="false"><span>Milhas & Cartões</span></button>
+
+<aside id="miles-hub">
+  <div class="mh-head"><div><div class="mh-title">Milhas & Cartões</div><div class="mh-sub">Hub de conscientização</div></div><button class="mh-x" onclick="closeMiles()">✕</button></div>
+  <div class="mh-body">
+    <div class="acc"><div class="acc-h" onclick="toggleAcc(this)"><div class="acc-hl"><span class="acc-ico">💳</span><div><div class="acc-ti">Cartões de Elite 2025</div><div class="acc-su">Melhor custo-benefício</div></div></div><span class="acc-ar">▾</span></div>
+      <div class="acc-bd"><ul class="acc-ul">
+        <li><strong>Nubank Ultravioleta:</strong> 1pt/R$1 + transferência 1:1 Smiles. Sem anuidade acima de R$5k/mês.</li>
+        <li><strong>Itaú Personnalité Visa Infinite:</strong> 2,4pts/R$1 internacionais. LoungeKey ilimitado.</li>
+        <li><strong>XP Visa Infinite:</strong> 2,5pts/R$1 com conversão livre Smiles, TudoAzul e Livelo.</li>
+        <li><strong>Bradesco Aeternum:</strong> 2,8pts/R$1 + 30.000pts boas-vindas. O melhor premium do Brasil.</li>
+        <li><strong>C6 Carbon:</strong> 2pts/R$1 com anuidade revertida em milhas.</li>
+      </ul></div></div>
+    <div class="acc"><div class="acc-h" onclick="toggleAcc(this)"><div class="acc-hl"><span class="acc-ico">📅</span><div><div class="acc-ti">Estratégia do Mês</div><div class="acc-su">Transferências com bônus</div></div></div><span class="acc-ar">▾</span></div>
+      <div class="acc-bd"><p class="acc-p">Bônus de transferência chegam a 100%. Assine alertas em MaxMilhas e Melhores Destinos.</p><ul class="acc-ul">
+        <li><strong>Livelo → Smiles:</strong> Bônus de 30–80% em campanhas sazonais.</li>
+        <li><strong>Itaú → TudoAzul:</strong> Transferência 1:1,25 em promoções mensais.</li>
+        <li><strong>Bradesco → Latam Pass:</strong> Bônus de até 60% em datas especiais.</li>
+      </ul><div style="margin-top:7px"><span class="acc-tag">Concentre gastos</span><span class="acc-tag">Use portais</span><span class="acc-tag">Bônus sazonais</span></div></div></div>
+    <div class="acc"><div class="acc-h" onclick="toggleAcc(this)"><div class="acc-hl"><span class="acc-ico">🏆</span><div><div class="acc-ti">Clube de Milhas</div><div class="acc-su">Estratégias avançadas</div></div></div><span class="acc-ar">▾</span></div>
+      <div class="acc-bd"><ul class="acc-ul">
+        <li>Concentre contas fixas (IPTU, IPVA, luz, internet) no cartão premium.</li>
+        <li>Portais de shopping: Livelo Store, Smiles Store com 4–20pts/R$1.</li>
+        <li>Compras no exterior com cartão de bônus em dólar — rendimento 2–3x maior.</li>
+        <li>Peça upgrade em vez de comprar executiva — melhor CPM.</li>
+      </ul></div></div>
+    <div class="acc"><div class="acc-h" onclick="toggleAcc(this)"><div class="acc-hl"><span class="acc-ico">📖</span><div><div class="acc-ti">Glossário Rápido</div><div class="acc-su">Para iniciantes</div></div></div><span class="acc-ar">▾</span></div>
+      <div class="acc-bd">
+        <div class="gl-row"><span class="gl-term">Milha / Ponto</span><span class="gl-def">Unidade dos programas. 1 milha ≠ 1 ponto — a conversão varia.</span></div>
+        <div class="gl-row"><span class="gl-term">Voo-prêmio</span><span class="gl-def">Passagem emitida inteiramente com milhas, sem custo em dinheiro.</span></div>
+        <div class="gl-row"><span class="gl-term">Upgrade</span><span class="gl-def">Econômica → Executiva usando milhas. Melhor custo-benefício.</span></div>
+        <div class="gl-row"><span class="gl-term">CPM</span><span class="gl-def">Custo por Milha. Bom CPM: abaixo de R$0,03.</span></div>
+        <div class="gl-row"><span class="gl-term">LoungeKey</span><span class="gl-def">Acesso a salas VIP em aeroportos. Cartões Infinite geralmente incluem.</span></div>
+        <div class="gl-row"><span class="gl-term">Expiração</span><span class="gl-def">Milhas vencem em 18–36 meses. Qualquer movimentação renova o prazo.</span></div>
+      </div></div>
+  </div>
+</aside>
+
+<nav id="legend">
+  <div class="leg" onclick="legendZoom('EU')" tabindex="0"><div class="ldot" style="background:var(--eu)"></div><span class="ltx">Europa</span></div>
+  <div class="leg" onclick="legendZoom('NA')" tabindex="0"><div class="ldot" style="background:var(--na)"></div><span class="ltx">América do Norte</span></div>
+  <div class="leg" onclick="legendZoom('SA')" tabindex="0"><div class="ldot" style="background:var(--sa)"></div><span class="ltx">América do Sul</span></div>
+  <div class="leg" onclick="legendZoom('AF')" tabindex="0"><div class="ldot" style="background:var(--af)"></div><span class="ltx">África</span></div>
+  <div class="leg" onclick="legendZoom('AS')" tabindex="0"><div class="ldot" style="background:var(--as)"></div><span class="ltx">Ásia</span></div>
+  <div class="leg" onclick="legendZoom('OC')" tabindex="0"><div class="ldot" style="background:var(--oc)"></div><span class="ltx">Oceania</span></div>
+</nav>
+
+<aside id="panel">
+  <div id="p-bar">
+    <button id="p-x" onclick="closePanel()">✕</button>
+    <div id="p-bc-inner"><span id="pb-cont">—</span><span class="sep">›</span><span id="pb-ctry">—</span></div>
+    <button id="visited-btn" onclick="toggleVisited()">☐ Visitado</button>
+  </div>
+  <div id="p-tabs">
+    <div class="pt on" onclick="switchTab(0)">📍 Check-in</div>
+    <div class="pt" onclick="switchTab(1)">🛂 Burocracia</div>
+    <div class="pt" onclick="switchTab(2)">🎭 Cultura</div>
+    <div class="pt" onclick="switchTab(3)">✈️ Voos</div>
+    <div class="pt" onclick="switchTab(4)">🎒 Checklist</div>
+  </div>
+  <div id="p-scroll">
+    <div class="pane on" id="pane-0">
+      <div class="polaroid-gallery" id="polaroid-gallery"></div>
+      <div class="ctry-head"><div id="p-flag" class="ctry-flag"></div><div id="p-name" class="ctry-name">—</div><div id="p-region" class="ctry-region">—</div></div>
+      <div class="tab-body">
+        <div class="ess-grid" id="ess-grid"></div>
+        <div class="sec-lbl">Melhor época para visitar</div>
+        <div class="months-row" id="months-row"></div>
+        <div class="mo-leg"><div class="mol-i"><div class="mol-d" style="background:#32a870"></div>Ótimo</div><div class="mol-i"><div class="mol-d" style="background:#c8a850"></div>Bom</div><div class="mol-i"><div class="mol-d" style="background:#333"></div>Evitar</div></div>
+        <div class="best-q" id="best-q"></div>
+        <div id="terr-box" class="terr-box" style="display:none"></div>
+      </div>
+    </div>
+    <div class="pane" id="pane-1"><div class="tab-body" id="buro-body"></div></div>
+    <div class="pane" id="pane-2">
+      <div class="tab-body">
+        <div class="sec-lbl">O prato que define a nação</div>
+        <div id="food-list"></div>
+        <div class="sec-lbl" style="margin-top:14px">O que nunca fazer</div>
+        <div id="etiq-list"></div>
+        <div class="sec-lbl" style="margin-top:12px">A vibe do lugar</div>
+        <div class="vibe-wrap" id="vibe-wrap"></div>
+      </div>
+    </div>
+    <div class="pane" id="pane-3">
+      <div class="tab-body">
+        <div class="route-vis">
+          <div class="route-row">
+            <div class="route-ap"><div class="route-code" id="rt-orig-c">GRU</div><div class="route-city" id="rt-orig-city">São Paulo</div></div>
+            <div class="route-mid"><div class="route-dash"></div><div class="route-plane">✈</div><div class="route-dash"></div><div class="route-hrs" id="rt-hrs">—</div></div>
+            <div class="route-ap"><div class="route-code" id="rt-dest-c">—</div><div class="route-city" id="rt-dest-city">—</div></div>
+          </div>
+          <div class="origin-wrap"><input id="origin-inp" type="text" placeholder="Origem (IATA, ex: GRU)" value="GRU" maxlength="4"><button id="calc-btn" onclick="calcRoute()">Calcular</button></div>
+          <div id="route-result"></div>
+        </div>
+        <div class="price-2" id="price-2"></div>
+        <div class="sec-lbl">Por programa de milhas</div>
+        <div id="prog-rows"></div>
+        <div class="miles-diff" id="miles-diff"></div>
+        <div class="sec-lbl" style="margin-top:12px">Custo estimado da viagem</div>
+        <div class="cost-t" id="cost-t"></div>
+        <div id="tip-box-3"></div>
+      </div>
+    </div>
+    <div class="pane" id="pane-4">
+      <div class="tab-body">
+        <div class="chk-tip" id="chk-tip"></div>
+        <div id="chk-lists"></div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button onclick="chkAll(true)" style="flex:1;padding:7px;border:1px solid var(--gb);border-radius:3px;font-size:.42rem;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--gb)'">✓ Marcar tudo</button>
+          <button onclick="chkAll(false)" style="flex:1;padding:7px;border:1px solid var(--gb);border-radius:3px;font-size:.42rem;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);transition:all .2s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--gb)'">✗ Limpar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div id="tt" role="tooltip"></div>
+<div id="hint">Clique num continente · depois num país para explorar</div>
+<script>
+const ALIASES = {
+  "alemanha":"Germany","franca":"France","estados unidos":"United States of America","eua":"United States of America",
+  "japao":"Japan","china":"China","india":"India","russia":"Russia","turquia":"Turkey","grecia":"Greece",
+  "suica":"Switzerland","espanha":"Spain","italia":"Italy","reino unido":"United Kingdom","inglaterra":"United Kingdom",
+  "australia":"Australia","canada":"Canada","mexico":"Mexico","argentina":"Argentina","chile":"Chile",
+  "colombia":"Colombia","peru":"Peru","egito":"Egypt","tailandia":"Thailand","coreia do sul":"South Korea",
+  "indonesia":"Indonesia","filipinas":"Philippines","vietna":"Vietnam","singapura":"Singapore",
+  "malasia":"Malaysia","noruega":"Norway","suecia":"Sweden","dinamarca":"Denmark","finlandia":"Finland",
+  "polonia":"Poland","hungria":"Hungary","austria":"Austria","belgica":"Belgium","holanda":"Netherlands",
+  "paises baixos":"Netherlands","portugal":"Portugal","croacia":"Croatia","romenia":"Romania",
+  "bulgaria":"Bulgaria","ucrania":"Ukraine","marrocos":"Morocco","africa do sul":"South Africa",
+  "nigeria":"Nigeria","quenia":"Kenya","etiopia":"Ethiopia","tanzania":"Tanzania",
+  "arabia saudita":"Saudi Arabia","emirados arabes":"United Arab Emirates","dubai":"United Arab Emirates",
+  "israel":"Israel","jordania":"Jordan","ira":"Iran","iraque":"Iraq","paquistao":"Pakistan",
+  "bangladesh":"Bangladesh","nova zelandia":"New Zealand","papua nova guine":"Papua New Guinea",
+  "fiji":"Fiji","cazaquistao":"Kazakhstan","mongolia":"Mongolia","nepal":"Nepal","sri lanka":"Sri Lanka",
+  "cuba":"Cuba","haiti":"Haiti","jamaica":"Jamaica","guatemala":"Guatemala","costa rica":"Costa Rica",
+  "panama":"Panama","venezuela":"Venezuela","bolivia":"Bolivia","equador":"Ecuador",
+  "paraguai":"Paraguay","uruguai":"Uruguay","guiana":"Guyana","suriname":"Suriname",
+  "senegal":"Senegal","ghana":"Ghana","angola":"Angola","mocambique":"Mozambique",
+  "madagascar":"Madagascar","camarao":"Cameroon","sudao":"Sudan","libia":"Libya","tunisia":"Tunisia",
+  "argelia":"Algeria","somalia":"Somalia","uganda":"Uganda","ruanda":"Rwanda","namibia":"Namibia",
+  "zimbabue":"Zimbabwe","zambia":"Zambia","luxemburgo":"Luxembourg","irlanda":"Ireland",
+  "islandia":"Iceland","chipre":"Cyprus","malta":"Malta","albania":"Albania","servia":"Serbia",
+  "eslovenia":"Slovenia","eslovaquia":"Slovakia","letonia":"Latvia","lituania":"Lithuania",
+  "estonia":"Estonia","bielorrussia":"Belarus","moldova":"Moldova","montenegro":"Montenegro",
+  "bosnia":"Bosnia and Herz.","georgia":"Georgia","armenia":"Armenia","azerbaijao":"Azerbaijan",
+  "coreia do norte":"N. Korea","siria":"Syria","iemen":"Yemen","kuwait":"Kuwait","catar":"Qatar",
+  "oma":"Oman","libano":"Lebanon","laos":"Laos","camboja":"Cambodia","birmania":"Myanmar",
+  "brunei":"Brunei","taiwan":"Taiwan","coreia":"South Korea","uruguai":"Uruguay",
+  "republica dominicana":"Dominican Rep.","africa":"South Africa","emirados":"United Arab Emirates"
+};
+
+// ═══════════════════════════════════════════════════════════
+//  COUNTRY DATABASE
+// ═══════════════════════════════════════════════════════════
+const countriesData = {
+
+"Brazil": {
+  flag:"🇧🇷", region:"América do Sul", cont:"SA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=400&q=75", caption:"Cristo Redentor"},
+    {url:"https://images.unsplash.com/photo-1554188248-986adbb73be4?w=400&q=75", caption:"Amazônia"},
+    {url:"https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f?w=400&q=75", caption:"Carnaval"}
+  ], rotations:[-2,1,-1],
+  months:[1,1,1,2,2,2,2,2,1,1,1,1],
+  bestTime:"Abril a setembro é a temporada seca no Sudeste — ideal para Rio e SP. Nordeste brilha de outubro a março com sol garantido. Carnaval (fev) é a festa maior, mas preços triplicam.",
+  currency:"Real Brasileiro (BRL)", symbol:"R$", currencyCode:"BRL",
+  lang:"Português", voltage:"127V/220V · Tipo N",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas normalmente.",
+  visa:"free", visaText:"Destino <strong>doméstico</strong> — nenhum requisito de visto para brasileiros.",
+  vaccines:"Febre Amarela obrigatória para Amazônia e Centro-Oeste. Hepatite A/B recomendadas.",
+  passport:"RG ou Passaporte válidos. Sem prazo mínimo além da estadia.",
+  foods:[
+    {e:"🫘",name:"Feijoada",desc:"Feijão preto com carnes de porco, paio e linguiça. Sextas-feiras são sagradas.",must:true},
+    {e:"🦐",name:"Acarajé",desc:"Bolinho frito em dendê com vatapá, camarão e caruru. Ícone da Bahia.",must:true},
+    {e:"🧀",name:"Pão de Queijo",desc:"Bolinho de polvilho e queijo minas — crocante por fora, cremoso por dentro.",must:false},
+    {e:"🍭",name:"Brigadeiro",desc:"Trufa de chocolate e leite condensado. O doce nacional.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Cumprimentos com beijo na bochecha e abraço são esperados."},
+    {e:"⚠️",t:"Pontualidade social é flexível — mas não em negócios."},
+    {e:"❌",t:"Nunca compare com Argentina em tom depreciativo."},
+    {e:"❌",t:"Evite discutir salários em conversas sociais informais."}
+  ],
+  vibe:["Caloroso","Festivo","Diverso","Criativo","Imprevisível"],
+  airport:"GRU", airportCity:"São Paulo", flightHours:"Doméstico",
+  flightBRL:"R$ 350–1.400", flightNote:"Voos domésticos frequentes",
+  milesSmiles:"10k–28k", milesAzul:"8k–25k", milesLatam:"10k–30k",
+  milesDifficulty:1, milesDiffNote:"Emissão fácil — muitos voos disponíveis em todas as companhias.",
+  dailyCost:"R$ 200–500", hotelCost:"R$ 120–600", foodCost:"R$ 30–120",
+  tip:"Caldo de cana gelado com pastel de feira num sábado de manhã. R$ 8. Inesquecível.",
+  territories:null, climate:"tropical",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📄",l:"RG ou Passaporte válido"},{ico:"📋",l:"Seguro de viagem (para aventuras)"},{ico:"💳",l:"Cartão de crédito com IOF"}]},
+    {group:"Roupas (Clima Tropical)", items:[{ico:"👕",l:"Camisetas leves e frescas"},{ico:"🩳",l:"Shorts e bermudas"},{ico:"🧴",l:"Protetor solar FPS 50+"},{ico:"🕶️",l:"Óculos de sol polarizados"},{ico:"👒",l:"Chapéu ou boné"},{ico:"🧥",l:"Casaco leve para ar-condicionado"}]},
+    {group:"Saúde", items:[{ico:"💊",l:"Repelente de insetos (DEET)"},{ico:"💉",l:"Vacina febre amarela (Amazônia)"},{ico:"🩺",l:"Kit de primeiros socorros"}]},
+    {group:"Tecnologia", items:[{ico:"🔌",l:"Adaptador Tipo N"},{ico:"📱",l:"Google Maps offline baixado"},{ico:"🌐",l:"Chip de dados local ou eSIM"}]}
+  ]
+},
+
+"Argentina": {
+  flag:"🇦🇷", region:"América do Sul", cont:"SA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1612294037637-ec328d0e075e?w=400&q=75", caption:"Buenos Aires"},
+    {url:"https://images.unsplash.com/photo-1562832135-14a35d25edef?w=400&q=75", caption:"Patagônia"},
+    {url:"https://images.unsplash.com/photo-1586625702037-f2f2ebcc1e74?w=400&q=75", caption:"Cataratas do Iguaçu"}
+  ], rotations:[-1,2,0],
+  months:[2,2,1,1,1,0,0,1,1,2,2,2],
+  bestTime:"Outubro a março (verão austral) é perfeito para Buenos Aires e norte. Patagônia e El Calafate brilham de novembro a março. Julho é verão no hemisfério norte — temporada de ski em Bariloche.",
+  currency:"Peso Argentino (ARS)", symbol:"$", currencyCode:"ARS",
+  lang:"Espanhol", voltage:"220V · Tipo I",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros. RG ou passaporte válidos são aceitos.",
+  vaccines:"Sem exigência. Febre Amarela recomendada para a região de fronteiras.",
+  passport:"RG ou Passaporte válidos. Sem prazo mínimo específico.",
+  foods:[
+    {e:"🥩",name:"Asado",desc:"Churrasco argentino com cortes nobres em fogo de lenha. A religião nacional do domingo.",must:true},
+    {e:"🥟",name:"Empanada Salteña",desc:"Massa assada recheada com carne, ovo, azeitona e cominho. A melhor vem de Salta.",must:true},
+    {e:"🍦",name:"Dulce de Leche",desc:"Doce de leite caramelado. Vai em tudo: medialunas, helado, facturas.",must:false},
+    {e:"🥩",name:"Milanesa Napolitana",desc:"Bife empanado com molho de tomate, jamón e queijo derretido. O comfort food portenho.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Beijo na bochecha ao cumprimentar qualquer pessoa, incluindo homens."},
+    {e:"✅",t:"Mate é compartilhado — aceite a cuia e passe adiante após tomar."},
+    {e:"⚠️",t:"Discussões sobre o Malvinas/Falklands são muito sensíveis — evite."},
+    {e:"❌",t:"Nunca compare o churrasco argentino com o brasileiro — orgulho local."}
+  ],
+  vibe:["Apaixonado","Orgulhoso","Europeu","Dramático","Cultural"],
+  airport:"EZE", airportCity:"Buenos Aires", flightHours:"~3h",
+  flightBRL:"R$ 900–3.500", flightNote:"Voos diretos frequentes de GRU e GIG",
+  milesSmiles:"12k–32k", milesAzul:"10k–28k", milesLatam:"12k–30k",
+  milesDifficulty:1, milesDiffNote:"Destino próximo com excelente disponibilidade. Fácil emissão em todas as companhias.",
+  dailyCost:"R$ 250–650", hotelCost:"R$ 120–600", foodCost:"R$ 40–150",
+  tip:"Asado num domingo com família argentina em Palermo. Cinco horas de grelha, vinho Malbec e conversa — a melhor experiência da América do Sul.",
+  territories:null, climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte ou RG válido"},{ico:"💳",l:"Cartão de crédito e reais para câmbio"},{ico:"🏥",l:"Seguro viagem"}]},
+    {group:"Roupas (Variado)", items:[{ico:"🧥",l:"Casaco impermeável (Patagônia)"},{ico:"👕",l:"Roupas em camadas"},{ico:"🥾",l:"Bota de trekking para trilhas"},{ico:"👗",l:"Roupa elegante para Buenos Aires"}]},
+    {group:"Prático", items:[{ico:"💵",l:"Dólares em espécie (câmbio blue)"},{ico:"📱",l:"App do Banco Nação para câmbio oficial"},{ico:"🍷",l:"Reserve wine tours em Mendoza com antecedência"}]}
+  ]
+},
+
+"Colombia": {
+  flag:"🇨🇴", region:"América do Sul", cont:"SA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1534905716978-c00a40f2025d?w=400&q=75", caption:"Cartagena das Índias"},
+    {url:"https://images.unsplash.com/photo-1583735062-cb47be5b27d6?w=400&q=75", caption:"Medellín"},
+    {url:"https://images.unsplash.com/photo-1575862042688-7c5e5baa01a1?w=400&q=75", caption:"Valle del Cocora"}
+  ], rotations:[1,-2,0],
+  months:[2,2,2,1,0,0,0,0,1,1,2,2],
+  bestTime:"Dezembro a março — temporada seca perfeita para Cartagena e Costa Caribenha. Medellín tem clima de eterna primavera o ano todo (22°C médios). Julho–agosto: segundas férias secas.",
+  currency:"Peso Colombiano (COP)", symbol:"$", currencyCode:"COP",
+  lang:"Espanhol", voltage:"110V · Tipo A/B",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 90 dias.",
+  vaccines:"Febre Amarela obrigatória para regiões amazônicas. Hepatite A/B recomendadas.",
+  passport:"Passaporte com 6 meses de validade além da entrada.",
+  foods:[
+    {e:"🫘",name:"Bandeja Paisa",desc:"Prato farto: feijão, arroz, carne moída, ovo, chicharrón, chorizo e patacones. Antioquia.",must:true},
+    {e:"🫔",name:"Arepas de Chócolo",desc:"Tortilha de milho doce grelhada com queijo costeño. Café da manhã colombiano perfeito.",must:true},
+    {e:"🍺",name:"Aguardiente Antioqueño",desc:"Licor de cana com anis. O destilado nacional que aquece qualquer festa.",must:false},
+    {e:"🍲",name:"Sancocho de Gallina",desc:"Caldo encorpado de galinha com yuca, plátano e papa. Reconfortante e farto.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Colombianos são extremamente calorosos — prepare-se para convites espontâneos."},
+    {e:"✅",t:"Café colombiano é oferta de boas-vindas — nunca recuse."},
+    {e:"⚠️",t:"Esquerda o passado violento — o país mudou muito. Pergunte antes de usar estereótipos."},
+    {e:"❌",t:"Nunca chame colombiano de narcotraficante como piada — é ofensivo."}
+  ],
+  vibe:["Caloroso","Festivo","Resiliente","Musical","Diverso"],
+  airport:"BOG", airportCity:"Bogotá / Medellín", flightHours:"~5–6h",
+  flightBRL:"R$ 1.800–5.500", flightNote:"Voos com ou sem escala disponíveis",
+  milesSmiles:"18k–38k", milesAzul:"20k–40k", milesLatam:"16k–36k",
+  milesDifficulty:1, milesDiffNote:"Boa disponibilidade pelo programa LATAM Pass. Frequentes promoções.",
+  dailyCost:"R$ 220–580", hotelCost:"R$ 100–450", foodCost:"R$ 35–130",
+  tip:"Café de altura da região cafeeira servido numa finca histórica ao amanhecer, olhando para um vale de wax palms. Impossível descrever.",
+  territories:null, climate:"tropical",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte válido"},{ico:"🏥",l:"Seguro viagem"},{ico:"💵",l:"Pesos colombianos em espécie"}]},
+    {group:"Roupas", items:[{ico:"🧥",l:"Casaco leve para Bogotá (altitude 2.600m)"},{ico:"👕",l:"Roupas leves para Cartagena"},{ico:"🧴",l:"Protetor solar e repelente DEET"}]},
+    {group:"Saúde", items:[{ico:"💉",l:"Vacina Febre Amarela (Amazônia)"},{ico:"💊",l:"Repelente (dengue e zika)"},{ico:"💧",l:"Água mineral apenas"}]}
+  ]
+},
+
+"Peru": {
+  flag:"🇵🇪", region:"América do Sul", cont:"SA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1526392060635-9d6019884377?w=400&q=75", caption:"Machu Picchu"},
+    {url:"https://images.unsplash.com/photo-1531065208531-4036c0dba3ca?w=400&q=75", caption:"Cusco"},
+    {url:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=400&q=75", caption:"Lima"}
+  ], rotations:[-1,1,2],
+  months:[2,2,1,1,1,0,0,0,1,2,2,2],
+  bestTime:"Maio a outubro — temporada seca perfeita para Machu Picchu e Caminho Inca. Reserve o Caminho Inca com 6 meses de antecedência. Novembro a abril: chuvas intensas na serra.",
+  currency:"Sol Peruano (PEN)", symbol:"S/", currencyCode:"PEN",
+  lang:"Espanhol / Quéchua", voltage:"220V · Tipo A/C",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 90 dias.",
+  vaccines:"Febre Amarela obrigatória para Amazônia. Hepatite A/B e Febre Tifoide recomendadas.",
+  passport:"Passaporte com 6 meses de validade.",
+  foods:[
+    {e:"🐟",name:"Ceviche Clásico",desc:"Peixe cru marinado em leche de tigre (limão, ají, cebola). O prato nacional com Denominação de Origem.",must:true},
+    {e:"🐄",name:"Lomo Saltado",desc:"Salteado de carne bovina com tomate, cebola, soja e batata frita. Fusão sino-peruana.",must:true},
+    {e:"🥔",name:"Papa a la Huancaína",desc:"Batata cozida com molho cremoso de ají amarelo e queijo fresco. Entrada obrigatória.",must:false},
+    {e:"🍹",name:"Pisco Sour",desc:"Coquetel com pisco peruano, limão, açúcar e clara de ovo. Disputa com Chile é eterna.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Peruanos são formais em contextos profissionais. Use 'usted' inicialmente."},
+    {e:"✅",t:"Mastigação de folha de coca é cultural e legal — alivia a altitude."},
+    {e:"⚠️",t:"Machu Picchu tem capacidade limitada — reserve bilhetes online com meses de antecedência."},
+    {e:"❌",t:"Nunca diga que o Pisco Sour é invenção chilena para um peruano."}
+  ],
+  vibe:["Ancestral","Culinário","Diverso","Espiritual","Hospitaleiro"],
+  airport:"LIM", airportCity:"Lima", flightHours:"~5–6h",
+  flightBRL:"R$ 1.600–5.000", flightNote:"Voos com escala geralmente em BOG",
+  milesSmiles:"20k–42k", milesAzul:"22k–44k", milesLatam:"18k–40k",
+  milesDifficulty:1, milesDiffNote:"Boa disponibilidade pelo LATAM Pass. Lima é hub regional.",
+  dailyCost:"R$ 200–550", hotelCost:"R$ 100–500", foodCost:"R$ 35–150",
+  tip:"Ceviche às 12h num mercado local de Lima com um vaso de chicha morada gelada. Melhor R$15 que você já gastou.",
+  territories:null, climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte válido"},{ico:"🎟️",l:"Ingressos Machu Picchu (reserve online)"},{ico:"🎟️",l:"Ingresso Huayna Picchu (se quiser subir)"}]},
+    {group:"Altitude (Cusco 3.400m)", items:[{ico:"🌿",l:"Chá de coca para mal de altitude"},{ico:"💊",l:"Diamox (consulte médico antes)"},{ico:"🚶",l:"Descanse as primeiras 24h chegando"},{ico:"💧",l:"Hidrate-se constantemente"}]},
+    {group:"Equipamento", items:[{ico:"🥾",l:"Bota de trekking para trilhas"},{ico:"🧥",l:"Casaco impermeável (chuvas na serra)"},{ico:"🧴",l:"Protetor solar FPS 70+ (altitude = UV extremo)"}]}
+  ]
+},
+
+"United Kingdom": {
+  flag:"🇬🇧", region:"Europa Ocidental", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&q=75", caption:"London Bridge"},
+    {url:"https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=400&q=75", caption:"Escócia Highlands"},
+    {url:"https://images.unsplash.com/photo-1520986606214-8b456906c813?w=400&q=75", caption:"Stonehenge"}
+  ], rotations:[0,-2,1],
+  months:[0,1,1,2,2,2,2,2,2,1,0,0],
+  bestTime:"Maio a setembro — o melhor da Grã-Bretanha com dias longos e temperatura agradável (15–22°C). Junho tem o Wimbledon e o solstício. Inverno é cinzento mas tem mercados natalinos encantadores.",
+  currency:"Libra Esterlina (GBP)", symbol:"£", currencyCode:"GBP",
+  lang:"Inglês", voltage:"230V · Tipo G",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. eTA obrigatória para brasileiros desde 2024.",
+  visa:"cond", visaText:"<strong>eTA obrigatória</strong> (Electronic Travel Authorisation) para brasileiros desde jan/2024. Custo: £10. Aprovação em minutos pelo app UK Visas.",
+  vaccines:"Sem exigência. Covid-19 e Influenza recomendadas.",
+  passport:"Validade mínima de 6 meses além do retorno.",
+  foods:[
+    {e:"🐟",name:"Fish and Chips",desc:"Peixe empanado frito com batata chips e vinagre de malte. Tradição vitoriana intocável.",must:true},
+    {e:"🍳",name:"Full English Breakfast",desc:"Ovo, bacon, salsichas, feijão, cogumelos, tomate grelhado e torrada. Energia para o dia.",must:true},
+    {e:"🫖",name:"Afternoon Tea",desc:"Chá Earl Grey com scones, clotted cream, geléia e sanduíches finos. Ritual das 16h.",must:false},
+    {e:"🥧",name:"Shepherd's Pie",desc:"Carne moída de cordeiro coberta com purê de batata gratinado. Pub food clássico.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Queue (fila) é sagrada. Nunca fure — é o crime social mais grave."},
+    {e:"✅",t:"'Sorry' e 'Cheers' são usados constantemente — incorpore ao vocabulário."},
+    {e:"⚠️",t:"Não pergunte salários, idade ou peso — temas extremamente privados."},
+    {e:"❌",t:"Nunca elogie a culinária britânica comparando-a à francesa — sensível."}
+  ],
+  vibe:["Reservado","Irônico","Histórico","Peculiar","Educado"],
+  airport:"LHR", airportCity:"Londres Heathrow", flightHours:"~11–12h",
+  flightBRL:"R$ 4.500–12.000", flightNote:"Voos diretos LATAM e British Airways de GRU",
+  milesSmiles:"44k–72k", milesAzul:"46k–74k", milesLatam:"42k–70k",
+  milesDifficulty:2, milesDiffNote:"Alta demanda para Londres. Temporada de verão e festas têm disponibilidade reduzida — reserve com 5+ meses.",
+  dailyCost:"R$ 980–2.200", hotelCost:"R$ 500–2.000", foodCost:"R$ 120–380",
+  tip:"Pint de real ale num pub vitoriano em Notting Hill numa tarde chuvosa de segunda-feira. A autenticidade que nenhum guia mostra.",
+  territories:"🌐 <strong>Gibraltar</strong>, <strong>Ilhas Cayman</strong> e <strong>Bermudas</strong> são territórios ultramarinos — requerem verificação de entrada separada.",
+  climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + eTA aprovada"},{ico:"🏥",l:"Seguro de saúde internacional (NHS não cobre turistas)"},{ico:"💳",l:"Cartão sem tarifa internacional"}]},
+    {group:"Roupas (Temperado/Chuvoso)", items:[{ico:"🧥",l:"Casaco impermeável (ESSENCIAL)"},{ico:"☂️",l:"Guarda-chuva compacto sempre à mão"},{ico:"👟",l:"Tênis impermeável para calçamento londrina"},{ico:"🧣",l:"Cachecol (vento do Tâmisa é cortante)"}]},
+    {group:"Tecnologia", items:[{ico:"🔌",l:"Adaptador Tipo G (3 pinos — diferente de tudo)"},{ico:"🌐",l:"Chip UK ou eSIM"},{ico:"🚇",l:"Oyster Card ou Contactless para o Tube"}]}
+  ]
+},
+
+"Germany": {
+  flag:"🇩🇪", region:"Europa Central", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=400&q=75", caption:"Portão de Brandemburgo"},
+    {url:"https://images.unsplash.com/photo-1609175827687-c2f9cd6c9d0a?w=400&q=75", caption:"Castelo Neuschwanstein"},
+    {url:"https://images.unsplash.com/photo-1581918218833-f139b3a1c3f5?w=400&q=75", caption:"Oktoberfest Munique"}
+  ], rotations:[-1,2,-2],
+  months:[0,0,1,2,2,2,1,1,2,2,1,0],
+  bestTime:"Maio a setembro — verão alemão com dias longos e festivais. Oktoberfest em Munique acontece final de setembro a início de outubro. Dezembro: mercados de Natal medievais são incomparáveis.",
+  currency:"Euro (EUR)", symbol:"€", currencyCode:"EUR",
+  lang:"Alemão", voltage:"230V · Tipo F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Via VFS Global com 2–3 meses de antecedência. Taxa: €80. Válido por 90 dias em 180.",
+  vaccines:"Sem exigência. Tétano atualizado recomendado.",
+  passport:"Validade de 3 meses além da saída da área Schengen.",
+  foods:[
+    {e:"🥩",name:"Schweinshaxe",desc:"Joelho de porco assado até a pele ficar crocante. Com chucrute e mostarda. Munique.",must:true},
+    {e:"🌭",name:"Bratwurst",desc:"Salsicha de porco grelhada servida num brötchen. Variações por região — experimente todas.",must:true},
+    {e:"🥨",name:"Brezn",desc:"Pretzel de trigo com sal grosso — textura crocante por fora e macia por dentro.",must:false},
+    {e:"🎂",name:"Schwarzwälder Kirschtorte",desc:"Bolo Floresta Negra com cerejas, chantilly e kirsch. O clássico da confeitaria alemã.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Pontualidade é absolutamente obrigatória — 5 minutos de atraso é ofensa."},
+    {e:"✅",t:"Contato visual direto é sinal de respeito e honestidade."},
+    {e:"⚠️",t:"Não cruze na faixa de pedestres com sinal vermelho — alemães levam a sério."},
+    {e:"❌",t:"Nunca brinque ou minimize assuntos relacionados à Segunda Guerra Mundial."}
+  ],
+  vibe:["Preciso","Eficiente","Direto","Organizado","Cervejeiro"],
+  airport:"FRA", airportCity:"Frankfurt / Berlim", flightHours:"~12h",
+  flightBRL:"R$ 4.000–11.000", flightNote:"Lufthansa e LATAM fazem GRU–FRA direto",
+  milesSmiles:"40k–68k", milesAzul:"42k–70k", milesLatam:"40k–65k",
+  milesDifficulty:2, milesDiffNote:"Frankfurt é hub da Lufthansa com boa disponibilidade Star Alliance. LATAM parceiro ideal.",
+  dailyCost:"R$ 750–1.800", hotelCost:"R$ 350–1.500", foodCost:"R$ 100–300",
+  tip:"Stein de cerveja artesanal numa Biergarten centenária de Munique em uma tarde de agosto. Alemanha em sua essência.",
+  territories:null, climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem (exigido Schengen)"},{ico:"💳",l:"Cartão sem tarifa internacional"}]},
+    {group:"Roupas (Temperado)", items:[{ico:"🧥",l:"Casaco impermeável"},{ico:"🧣",l:"Cachecol para outono/inverno"},{ico:"👟",l:"Tênis confortável (você anda muito)"}]},
+    {group:"Tecnologia", items:[{ico:"🔌",l:"Adaptador Tipo F"},{ico:"🌐",l:"Chip europeu ou eSIM"},{ico:"🚇",l:"DB Navigator App para trens"}]}
+  ]
+},
+
+"Italy": {
+  flag:"🇮🇹", region:"Europa Meridional", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&q=75", caption:"Coliseu de Roma"},
+    {url:"https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=400&q=75", caption:"Veneza"},
+    {url:"https://images.unsplash.com/photo-1533165208030-e33f56e40ba4?w=400&q=75", caption:"Costa Amalfitana"}
+  ], rotations:[1,-1,2],
+  months:[0,0,1,2,2,2,2,1,2,2,1,0],
+  bestTime:"Abril–maio e setembro–outubro — temperatura perfeita, menos turistas. Julho–agosto: calor intenso (38°C em Roma), museus lotados e preços no pico. Natal em Roma é mágico.",
+  currency:"Euro (EUR)", symbol:"€", currencyCode:"EUR",
+  lang:"Italiano", voltage:"230V · Tipo F/L",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Via VFS Global. Taxa: €80. Aplique 2–3 meses antes.",
+  vaccines:"Sem exigência. Hepatite A recomendada.",
+  passport:"Validade de 3 meses além da saída Schengen.",
+  foods:[
+    {e:"🍕",name:"Pizza Napoletana",desc:"Massa fermentada 48h, molho San Marzano, Fior di Latte. Certificada pela UNESCO. Nápoles.",must:true},
+    {e:"🍝",name:"Cacio e Pepe",desc:"Apenas spaghetti, pecorino romano e pimenta-do-reino. A perfeição na simplicidade. Roma.",must:true},
+    {e:"🍨",name:"Gelato Artigianale",desc:"Gelado artesanal cremoso. Procure o sinal 'artigianale' e fuja dos montes coloridos..",must:false},
+    {e:"🥩",name:"Bistecca alla Fiorentina",desc:"T-bone de Chianina 5cm de espessura, sangue, azeite e alecrim. Florença.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Café expresso fica de pé no balcão — sentar aumenta o preço e não é costume."},
+    {e:"✅",t:"Falar com as mãos é comunicação, não teatro — é genuíno."},
+    {e:"⚠️",t:"Cappuccino após as 11h da manhã é sinal de turista — os italianos não fazem isso."},
+    {e:"❌",t:"Nunca peça ketchup na pizza. Nunca. Sério."}
+  ],
+  vibe:["Apaixonado","Artístico","Caótico","Delicioso","Dramático"],
+  airport:"FCO", airportCity:"Roma / Milão", flightHours:"~11–12h",
+  flightBRL:"R$ 4.200–11.500", flightNote:"ITA Airways e LATAM de GRU",
+  milesSmiles:"40k–68k", milesAzul:"42k–70k", milesLatam:"40k–65k",
+  milesDifficulty:2, milesDiffNote:"Alta demanda verão/Natal. Reserve com 6 meses para julho–agosto.",
+  dailyCost:"R$ 700–1.600", hotelCost:"R$ 300–1.400", foodCost:"R$ 100–320",
+  tip:"Cacio e Pepe às 13h num trattoria sem cardápio turístico no Trastevere. Mesa compartilhada, vinho da casa, conta de €18. Roma verdadeira.",
+  territories:null, climate:"mediterranean",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem"},{ico:"🎟️",l:"Ingressos Coliseu e Vaticano pré-reservados"}]},
+    {group:"Roupas (Mediterrâneo)", items:[{ico:"👗",l:"Roupas elegantes (italianos se vestem bem)"},{ico:"🧣",l:"Lenço para cobrir ombros em igrejas"},{ico:"👟",l:"Sandálias confortáveis"},{ico:"🕶️",l:"Óculos de sol"}]},
+    {group:"Prático", items:[{ico:"💶",l:"Euros em espécie para mercados e galerias"},{ico:"🚂",l:"Trenitalia App para trens regionais"},{ico:"📵",l:"Desligue o celular em igrejas"}]}
+  ]
+},
+
+"Spain": {
+  flag:"🇪🇸", region:"Europa Meridional", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&q=75", caption:"Sagrada Família"},
+    {url:"https://images.unsplash.com/photo-1558642891-54be180ea339?w=400&q=75", caption:"Alhambra de Granada"},
+    {url:"https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=400&q=75", caption:"San Sebastián"}
+  ], rotations:[-2,1,0],
+  months:[0,1,1,2,2,2,2,1,2,2,1,0],
+  bestTime:"Maio–junho e setembro–outubro são perfeitos. Julho–agosto: 42°C em Sevilha e Madri — impossível. Inverno em Barcelona é ameno e sem turistas.",
+  currency:"Euro (EUR)", symbol:"€", currencyCode:"EUR",
+  lang:"Espanhol (Castelhano)", voltage:"230V · Tipo F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Via VFS Global. Taxa: €80.",
+  vaccines:"Sem exigência. Hepatite A recomendada.",
+  passport:"Validade de 3 meses além da saída Schengen.",
+  foods:[
+    {e:"🥘",name:"Paella Valenciana",desc:"Arroz de açafrão com frango, coelho, feijão verde e rosmarinhos. Valencia, não Barcelona.",must:true},
+    {e:"🍖",name:"Jamón Ibérico de Bellota",desc:"Presunto curado 36+ meses de porco ibérico criado em montanheira. A obra-prima da charcutaria.",must:true},
+    {e:"🫙",name:"Pintxos Bascos",desc:"Tapas do País Basco — pequenas obras de arte gastronômica em cima de pão. San Sebastián.",must:false},
+    {e:"🥤",name:"Horchata Valenciana",desc:"Bebida cremosa de chufa (taro) gelada. Refrescante e única no mundo.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Jantar começa às 21–22h — restaurantes vazios às 19h são para turistas."},
+    {e:"✅",t:"Siesta (14h–17h) ainda existe fora das grandes cidades — respeite."},
+    {e:"⚠️",t:"Catalão, Basco e Galego têm orgulho regional muito intenso — respeite as línguas."},
+    {e:"❌",t:"Não coma paella com frutos do mar em Valencia — é heresia regional."}
+  ],
+  vibe:["Apaixonado","Festivo","Regional","Noturno","Artístico"],
+  airport:"MAD", airportCity:"Madri / Barcelona", flightHours:"~11–12h",
+  flightBRL:"R$ 4.200–11.500", flightNote:"Iberia e LATAM de GRU. Rota histórica.",
+  milesSmiles:"40k–68k", milesAzul:"42k–70k", milesLatam:"40k–65k",
+  milesDifficulty:2, milesDiffNote:"Alta demanda verão — reserve com 5+ meses. Iberia é parceira Latam Pass.",
+  dailyCost:"R$ 600–1.400", hotelCost:"R$ 280–1.200", foodCost:"R$ 90–280",
+  tip:"Pintxos às 20h em San Sebastián com txakoli gelado — o bar cultural mais rico da Europa. Cada garfo custa €2.",
+  territories:null, climate:"mediterranean",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem"},{ico:"💳",l:"Cartão sem tarifa"}]},
+    {group:"Roupas (Mediterrâneo/Variado)", items:[{ico:"👗",l:"Roupas leves (verão muito quente)"},{ico:"🧥",l:"Casaco para noites em Madri"},{ico:"👟",l:"Tênis confortável"},{ico:"🩱",l:"Fato de banho para praias"}]},
+    {group:"Prático", items:[{ico:"🚆",l:"RENFE App para trens AVE"},{ico:"📱",l:"Cabify ou Bolt (alternativa ao Uber)"},{ico:"💶",l:"Euros para mercados e bares de tapas"}]}
+  ]
+},
+
+"Portugal": {
+  flag:"🇵🇹", region:"Europa Ocidental", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=400&q=75", caption:"Lisboa"},
+    {url:"https://images.unsplash.com/photo-1558538337-aab544368de8?w=400&q=75", caption:"Porto"},
+    {url:"https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=400&q=75", caption:"Algarve"}
+  ], rotations:[1,-1,-2],
+  months:[0,0,1,2,2,2,2,2,2,2,1,0],
+  bestTime:"Abril a outubro perfeito. Setembro–outubro é o melhor: calor sem multidão e preços do Algarve mais baixos. Lisboa no inverno tem 15°C — muito tranquila.",
+  currency:"Euro (EUR)", symbol:"€", currencyCode:"EUR",
+  lang:"Português", voltage:"230V · Tipo F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Solicite no Consulado Português com 2–3 meses de antecedência. Taxa: €80.",
+  vaccines:"Sem exigência. Hepatite A recomendada.",
+  passport:"Validade de 3 meses além da saída Schengen.",
+  foods:[
+    {e:"🐟",name:"Bacalhau à Brás",desc:"Bacalhau desfiado com ovos mexidos, batata palha e azeitonas. 365 receitas, esta é a favorita.",must:true},
+    {e:"🥐",name:"Pastel de Nata",desc:"Tartelete de massa folhada com creme de ovo caramelado. Patrimônio da humanidade.",must:true},
+    {e:"🍷",name:"Vinho Verde",desc:"Vinho levemente frizante e ácido de Minho. Beber fresco no verão é perfeição.",must:false},
+    {e:"🦑",name:"Polvo à Lagareiro",desc:"Polvo assado com azeite, batatas a murro e alho. A Costa Azul num prato.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Portuguesa é língua comum — comunicação flui naturalmente para brasileiros."},
+    {e:"✅",t:"Pontualidade social relaxada — mas em restaurantes, reserve sempre com hora marcada."},
+    {e:"⚠️",t:"'Saudade' não se traduz — deixe o conceito te tocar no Fado de Alfama."},
+    {e:"❌",t:"Não compare 'sotaque português' como engraçado — é sensível para eles."}
+  ],
+  vibe:["Melancólico","Histórico","Acolhedor","Saudoso","Tranquilo"],
+  airport:"LIS", airportCity:"Lisboa", flightHours:"~10–11h",
+  flightBRL:"R$ 4.000–11.000", flightNote:"TAP Portugal e LATAM fazem voo direto GRU–LIS",
+  milesSmiles:"40k–68k", milesAzul:"42k–70k", milesLatam:"40k–65k",
+  milesDifficulty:2, milesDiffNote:"Lisboa é hub da TAP com boa disponibilidade. LATAM parceira.",
+  dailyCost:"R$ 600–1.400", hotelCost:"R$ 280–1.200", foodCost:"R$ 90–260",
+  tip:"Pastel de nata quente às 8h na Pastéis de Belém com bica expresso e canela. A experiência mais portuguesa que existe.",
+  territories:"🏝 <strong>Açores</strong> e <strong>Madeira</strong> são regiões autônomas — mesmo visto Schengen, voos próprios de Lisboa.",
+  climate:"mediterranean",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem"},{ico:"💳",l:"Cartão sem tarifa"}]},
+    {group:"Roupas", items:[{ico:"🧥",l:"Casaco para noites frescas de Lisboa"},{ico:"🩱",l:"Fato de banho para Algarve"},{ico:"👟",l:"Tênis para calçadas de paralelepípedos"}]},
+    {group:"Prático", items:[{ico:"🚃",l:"Viva Viagem Card para metro e tram"},{ico:"📱",l:"Bolt para transporte (mais barato que táxi)"},{ico:"🐟",l:"Reserve restaurantes de bacalhau bons antecipado"}]}
+  ]
+},
+
+"Australia": {
+  flag:"🇦🇺", region:"Oceania", cont:"OC",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=75", caption:"Ópera de Sydney"},
+    {url:"https://images.unsplash.com/photo-1529108190281-9a4f620bc2d8?w=400&q=75", caption:"Grande Barreira de Coral"},
+    {url:"https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=400&q=75", caption:"Uluru / Ayers Rock"}
+  ], rotations:[-1,2,0],
+  months:[2,1,1,1,1,2,2,2,1,1,1,2],
+  bestTime:"Inverno austral (junho–agosto) é perfeito para o Outback e Queensland (sem chuvas). Verão (dez–fev) é ótimo para Sydney e Melbourne, mas o Outback fica inacessível pelo calor.",
+  currency:"Dólar Australiano (AUD)", symbol:"A$", currencyCode:"AUD",
+  lang:"Inglês", voltage:"230V · Tipo I",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. eVisa obrigatória.",
+  visa:"req", visaText:"<strong>eVisa (ETA) obrigatória</strong> para brasileiros. Solicite online ou via agência. Taxa: ~AUD 20. Aprovação em dias.",
+  vaccines:"Sem exigência específica. Febre Amarela obrigatória se vier de zona endêmica.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🥑",name:"Smashed Avocado Toast",desc:"A metáfora da cultura brunch australiana. Café da manhã de fim de semana em qualquer café.",must:false},
+    {e:"🦘",name:"Kangaroo Steak",desc:"Carne de canguru magra e nutritiva. Sabor entre bovino e caça. Experiência única.",must:true},
+    {e:"🍪",name:"Tim Tam Slamma",desc:"Morder os dois lados do biscoito e usá-lo como canudo no café. Tradição australiana.",must:false},
+    {e:"🥧",name:"Pavlova",desc:"Merengue crocante com chantilly e frutas da estação. Disputa com Nova Zelândia sobre a origem.",must:true}
+  ],
+  etiquette:[
+    {e:"✅",t:"Australianos são descontraídos e igualitários — chame o chefe pelo primeiro nome."},
+    {e:"✅",t:"'Arvo' (tarde), 'brekkie' (café da manhã) — aprenda o slang local."},
+    {e:"⚠️",t:"Sol australiano é perigoso — SPF 50+ é questão de saúde pública."},
+    {e:"❌",t:"Nunca brinde sozinho — espere todos serem servidos e mantenha contato visual."}
+  ],
+  vibe:["Descontraído","Aventureiro","Solar","Multicultural","Igualitário"],
+  airport:"SYD", airportCity:"Sydney", flightHours:"~25–28h",
+  flightBRL:"R$ 7.000–18.000", flightNote:"Geralmente com escala em Dubai, Singapura ou LA",
+  milesSmiles:"65k–110k", milesAzul:"68k–112k", milesLatam:"62k–108k",
+  milesDifficulty:3, milesDiffNote:"Destino muito distante com poucos assentos de milhas. Use LATAM oneworld com Qantas. Reserve 8+ meses antes.",
+  dailyCost:"R$ 850–2.000", hotelCost:"R$ 450–1.800", foodCost:"R$ 130–380",
+  tip:"Mergulho snorkeling na Grande Barreira de Coral ao amanhecer antes dos barcos turísticos chegarem. Um mundo à parte.",
+  territories:null, climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + eVisa aprovada"},{ico:"🏥",l:"Seguro saúde internacional (OBRIGATÓRIO)"},{ico:"💳",l:"Cartão sem tarifa internacional"}]},
+    {group:"Roupas (Variado)", items:[{ico:"🩱",l:"Roupa de banho UV (rash guard) para snorkel"},{ico:"🧥",l:"Casaco para Melbourne (4 estações por dia)"},{ico:"🧴",l:"Protetor solar FPS 50+ SEMPRE"}]},
+    {group:"Aventura", items:[{ico:"🤿",l:"Reserve mergulho na Barreira de Coral"},{ico:"🦘",l:"Visita ao zoológico ou parque de wildlife"},{ico:"🚗",l:"Campervan para road trip é a experiência definitiva"}]}
+  ]
+},
+
+"Canada": {
+  flag:"🇨🇦", region:"América do Norte", cont:"NA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=400&q=75", caption:"Cataratas do Niágara"},
+    {url:"https://images.unsplash.com/photo-1519832979-6fa011b87667?w=400&q=75", caption:"Banff National Park"},
+    {url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=75", caption:"Quebec City"}
+  ], rotations:[0,-2,1],
+  months:[0,0,1,2,2,2,2,2,2,1,0,0],
+  bestTime:"Junho a setembro — verão canadense é curto mas intenso. Setembro tem as folhagens de outono — espetáculo natural. Inverno: neve profunda mas experiências de ski incríveis em Whistler.",
+  currency:"Dólar Canadense (CAD)", symbol:"C$", currencyCode:"CAD",
+  lang:"Inglês / Francês", voltage:"120V · Tipo A/B",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. eTA obrigatória.",
+  visa:"cond", visaText:"<strong>eTA obrigatória</strong> (Electronic Travel Authorization) para brasileiros. Custo: CAD 7. Aprovação online em minutos.",
+  vaccines:"Sem exigência. Covid-19 e Influenza recomendadas.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🍟",name:"Poutine",desc:"Batata frita com queijo cheddar fresco e molho gravy. Invenção québécoise obrigatória.",must:true},
+    {e:"🦞",name:"Lobster Rolls",desc:"Lagosta das Marítimas com manteiga e limão em pão brioche. Nova Escócia.",must:true},
+    {e:"🍁",name:"Maple Syrup Experience",desc:"Cabane à sucre (barracão de bordo) no Quebec — degustação cultural completa.",must:false},
+    {e:"🥩",name:"Alberta Beef",desc:"Bife de Alberta é considerado o melhor da América do Norte por churrasqueiros profissionais.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"'Sorry' é o saudação informal canadense. Usam-no para tudo."},
+    {e:"✅",t:"No Quebec, inicie sempre em francês — mesmo com inglês perfeito é gesto de respeito."},
+    {e:"⚠️",t:"Distinção entre canadense e americano é muito importante para eles."},
+    {e:"❌",t:"Nunca compare o sistema de saúde canadense como inferior ao americano — orgulho nacional."}
+  ],
+  vibe:["Educado","Multicultural","Natural","Tranquilo","Inclusivo"],
+  airport:"YYZ", airportCity:"Toronto / Vancouver", flightHours:"~9–11h",
+  flightBRL:"R$ 3.500–9.000", flightNote:"Air Canada e LATAM de GRU",
+  milesSmiles:"35k–60k", milesAzul:"38k–62k", milesLatam:"35k–58k",
+  milesDifficulty:2, milesDiffNote:"Boa disponibilidade para Toronto. Vancouver tem menos opções. Reserve 4+ meses.",
+  dailyCost:"R$ 850–2.000", hotelCost:"R$ 450–1.600", foodCost:"R$ 120–360",
+  tip:"Ver as Aurora Boreais em Yukon ou Northwest Territories entre setembro e março. Reserva com 1 ano de antecedência para os melhores campos.",
+  territories:null, climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + eTA aprovada"},{ico:"🏥",l:"Seguro saúde internacional"},{ico:"💳",l:"Cartão sem tarifa"}]},
+    {group:"Roupas (Frio Intenso)", items:[{ico:"🧥",l:"Casaco de inverno técnico (até -30°C)"},{ico:"🧤",l:"Luvas e gorro impermeáveis"},{ico:"🥾",l:"Bota impermeável com solado antiderrapante"}]},
+    {group:"Aventura", items:[{ico:"🎿",l:"Ski pass em Whistler ou Banff"},{ico:"🦫",l:"Tour de vida selvagem (alces, ursos, baleias)"},{ico:"🌌",l:"Reserve aurora boreal com guia especializado"}]}
+  ]
+},
+
+"India": {
+  flag:"🇮🇳", region:"Sul da Ásia", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&q=75", caption:"Taj Mahal"},
+    {url:"https://images.unsplash.com/photo-1561361058-c24cecae35ca?w=400&q=75", caption:"Varanasi"},
+    {url:"https://images.unsplash.com/photo-1602301701061-68aabe9f56f7?w=400&q=75", caption:"Kerala"}
+  ], rotations:[-2,1,-1],
+  months:[2,2,2,1,0,0,0,0,1,1,2,2],
+  bestTime:"Outubro a março — a Índia do norte é perfeita (Taj Mahal, Delhi, Rajastão). Kerala e Goa são ótimos no inverno. Monção (jun–set): interior é impraticável mas o sul tem charms.",
+  currency:"Rúpia Indiana (INR)", symbol:"₹", currencyCode:"INR",
+  lang:"Hindi / Inglês (+ 21 idiomas oficiais)", voltage:"230V · Tipo C/D/M",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. e-Visa obrigatória.",
+  visa:"req", visaText:"<strong>e-Visa obrigatória</strong> para brasileiros. Custo: USD 25 (até 30 dias) ou USD 44 (até 1 ano). Aprovação em 3–5 dias úteis.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A/B, Febre Tifoide, Raiva obrigatoriamente recomendadas.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🍛",name:"Butter Chicken",desc:"Frango marinado em tandoor com molho cremoso de tomate e manteiga. Delhi, 1948.",must:true},
+    {e:"🫓",name:"Masala Dosa",desc:"Crepe crocante de arroz fermentado recheado com batata temperada. Sul da Índia.",must:true},
+    {e:"🍚",name:"Biryani Hyderabadi",desc:"Arroz basmati em camadas com cordeiro marinado e especiarias. Cozido lento em dum.",must:false},
+    {e:"🍬",name:"Gulab Jamun",desc:"Bolinhos de leite reduzido em calda de rosas e cardamomo. Sobremesa mais amada.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Namaste (palmas juntas) é cumprimento universal respeitoso."},
+    {e:"✅",t:"Tire o sapato ao entrar em templos, casas e muitos restaurantes."},
+    {e:"⚠️",t:"Vaca é sagrada — não consuma carne bovina e evite falar sobre ela."},
+    {e:"❌",t:"Nunca coma com a mão esquerda — é considerada impura culturalmente."}
+  ],
+  vibe:["Intenso","Espiritual","Colorido","Caótico","Ancestral"],
+  airport:"DEL", airportCity:"Nova Delhi / Mumbai", flightHours:"~18–20h",
+  flightBRL:"R$ 5.000–14.000", flightNote:"Conexão no Oriente Médio geralmente",
+  milesSmiles:"52k–86k", milesAzul:"54k–88k", milesLatam:"50k–84k",
+  milesDifficulty:3, milesDiffNote:"Poucas parcerias diretas. Rota via Emirates ou Qatar Airways oferece mais opções.",
+  dailyCost:"R$ 180–500", hotelCost:"R$ 80–700", foodCost:"R$ 20–120",
+  tip:"Amanhecer de barco no Ganges em Varanasi com cerimônia Ganga Aarti. A experiência espiritual mais intensa do planeta.",
+  territories:null, climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + e-Visa impressa"},{ico:"🏥",l:"Seguro saúde internacional com repatriamento"},{ico:"💊",l:"Medicamentos com receita traduzida"}]},
+    {group:"Saúde — CRÍTICO", items:[{ico:"💉",l:"Hepatite A e Tifoide vacinadas"},{ico:"💊",l:"Azitromicina para infecções (prescrição)"},{ico:"💊",l:"Loperamida para diarreia do viajante"},{ico:"🚰",l:"NUNCA beba água da torneira — apenas lacrada"}]},
+    {group:"Higiene", items:[{ico:"🧴",l:"Álcool gel — use constantemente"},{ico:"💊",l:"Imosec ou equivalente para estômago"},{ico:"🦟",l:"Repelente DEET 30%+ (dengue e malária)"}]}
+  ]
+},
+
+"South Korea": {
+  flag:"🇰🇷", region:"Ásia Oriental", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1538485399081-7191377e8241?w=400&q=75", caption:"Seoul à noite"},
+    {url:"https://images.unsplash.com/photo-1548115184-bc6544d06a58?w=400&q=75", caption:"Gyeongbokgung"},
+    {url:"https://images.unsplash.com/photo-1565462900119-a3afc5b8a1f5?w=400&q=75", caption:"Ilha de Jeju"}
+  ], rotations:[1,-1,2],
+  months:[1,1,2,2,1,1,0,0,2,2,1,0],
+  bestTime:"Cerejeiras em abril e folhagens em outubro — os melhores períodos. Junho–agosto é verão quente e úmido. Dezembro–fevereiro: ski nas montanhas de Pyeongchang.",
+  currency:"Won Sul-Coreano (KRW)", symbol:"₩", currencyCode:"KRW",
+  lang:"Coreano", voltage:"220V · Tipo F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 90 dias.",
+  vaccines:"Sem exigência. Hepatite A/B recomendadas.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🌶️",name:"Kimchi",desc:"Repolho fermentado com pasta de pimenta, alho e gengibre. 500 tipos, base de toda refeição.",must:true},
+    {e:"🥩",name:"Korean BBQ (삼겹살)",desc:"Barriga de porco grelhada na mesa com 10+ banchan. O rito social coreano.",must:true},
+    {e:"🍲",name:"Bibimbap",desc:"Tigela de arroz com legumes coloridos, kimchi, ovo e gochujang. Nutrição e estética.",must:false},
+    {e:"🍜",name:"Ramyeon Coreano",desc:"Macarrão instantâneo preparado na panelinha com ovo. Às 2h da manhã após noite de norebang.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Receba objetos e comida com as duas mãos — gesto de respeito fundamental."},
+    {e:"✅",t:"Mais velho sempre serve o mais novo — nunca encha sua própria taça."},
+    {e:"⚠️",t:"Coreia do Norte é assunto muito sensível — aborde com cuidado."},
+    {e:"❌",t:"Nunca escreva nome de alguém em tinta vermelha — símbolo de morte."}
+  ],
+  vibe:["Tecnológico","Pop","Intenso","Organizado","Moderno"],
+  airport:"ICN", airportCity:"Seoul Incheon", flightHours:"~22–25h",
+  flightBRL:"R$ 5.200–14.000", flightNote:"Korean Air ou conexão em Doha/Dubai",
+  milesSmiles:"52k–86k", milesAzul:"54k–88k", milesLatam:"50k–84k",
+  milesDifficulty:3, milesDiffNote:"Emissão complexa — use LATAM via oneworld e Korean Air. Reserve com 6+ meses.",
+  dailyCost:"R$ 380–900", hotelCost:"R$ 180–900", foodCost:"R$ 50–200",
+  tip:"Korean BBQ às 23h com soju gelado num restaurante minúsculo de Hongdae onde o dono grelha na sua mesa. Seoul verdadeiro.",
+  territories:null, climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte válido"},{ico:"🏥",l:"Seguro saúde internacional"},{ico:"💴",l:"Won em espécie para mercados e street food"}]},
+    {group:"Tecnologia", items:[{ico:"📱",l:"T-money Card para metrô e ônibus"},{ico:"🌐",l:"SIM coreano (SKT ou KT) ou pocket WiFi"},{ico:"🍎",l:"Kakao Maps (melhor que Google para Coreia)"}]},
+    {group:"Cultura", items:[{ico:"🎤",l:"Reserve Norebang (karaokê privê) à noite"},{ico:"🏨",l:"Experimente um Jjimjilbang (sauna/spa 24h)"},{ico:"👘",l:"Alugue hanbok em Gyeongbokgung"}]}
+  ]
+},
+
+"Morocco": {
+  flag:"🇲🇦", region:"Norte da África", cont:"AF",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=400&q=75", caption:"Marrakech"},
+    {url:"https://images.unsplash.com/photo-1548625361-2d81f1d7671e?w=400&q=75", caption:"Chefchaouen"},
+    {url:"https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=400&q=75", caption:"Deserto do Saara"}
+  ], rotations:[-1,2,0],
+  months:[2,2,2,2,1,0,0,0,1,2,2,2],
+  bestTime:"Março–maio e setembro–novembro são perfeitos. Verão no deserto bate 48°C. Ramadã muda toda dinâmica — informe-se sobre datas.",
+  currency:"Dirham Marroquino (MAD)", symbol:"MAD", currencyCode:"MAD",
+  lang:"Árabe / Francês / Berbere", voltage:"220V · Tipo C/E",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 90 dias.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A/B, Febre Tifoide recomendadas.",
+  passport:"Passaporte com 6 meses de validade além da entrada.",
+  foods:[
+    {e:"🫕",name:"Tajine de Cordeiro",desc:"Ensopado de cordeiro com ameixa, amêndoa e mel cozido em panela de barro cônico. Ancestral.",must:true},
+    {e:"🫙",name:"Couscous de Sexta",desc:"Sêmola no vapor com legumes e cordeiro. Prato familiar sagrado das sextas-feiras em Marrocos.",must:true},
+    {e:"🥐",name:"Msemen",desc:"Massa folhada quadrada crocante com mel e argan. O café da manhã berbere.",must:false},
+    {e:"🍵",name:"Atay (Chá de Menta)",desc:"Chá verde com hortelã fresca e muito açúcar. Servido em três taças — recuse para ofender.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Regateio nos souks é esperado — comece oferecendo 30% do preço pedido."},
+    {e:"✅",t:"Aceite sempre o chá de menta quando oferecido — três taças é o protocolo."},
+    {e:"⚠️",t:"Fotografar pessoas requer permissão — especialmente mulheres veladas."},
+    {e:"❌",t:"Mostrar afeto público entre casais é desaprovado na cultura islâmica local."}
+  ],
+  vibe:["Sensorial","Colorido","Milenar","Hospitaleiro","Aromático"],
+  airport:"CMN", airportCity:"Casablanca / Marrakech", flightHours:"~11–13h",
+  flightBRL:"R$ 3.800–10.000", flightNote:"Conexão Europa ou direto com Royal Air Maroc",
+  milesSmiles:"46k–74k", milesAzul:"48k–76k", milesLatam:"44k–72k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade moderada. Conexão em Lisboa ou Paris é a rota mais prática.",
+  dailyCost:"R$ 200–550", hotelCost:"R$ 100–600", foodCost:"R$ 30–120",
+  tip:"Noite num riad tradicional na medina de Fez com jantar no terraço. Estrelas, muezzin ao longe e tajine. Outro mundo.",
+  territories:null, climate:"desert",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte válido"},{ico:"🏥",l:"Seguro saúde internacional"},{ico:"💵",l:"Dirhams em espécie para souks"}]},
+    {group:"Roupas (Respeito Cultural)", items:[{ico:"👗",l:"Roupas que cubram joelhos e ombros"},{ico:"🧣",l:"Lenço para cobrir cabeça em mesquitas"},{ico:"🧥",l:"Casaco para noites do deserto (frias)"},{ico:"🥾",l:"Sandálias para areia e calçamentos"}]},
+    {group:"Saúde", items:[{ico:"🚰",l:"Água mineral embalada apenas"},{ico:"💊",l:"Remédio para problemas estomacais"},{ico:"🧴",l:"Protetor solar e proteção labial"}]}
+  ]
+},
+
+"South Africa": {
+  flag:"🇿🇦", region:"África Austral", cont:"AF",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=400&q=75", caption:"Table Mountain"},
+    {url:"https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=400&q=75", caption:"Kruger National Park"},
+    {url:"https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400&q=75", caption:"Garden Route"}
+  ], rotations:[2,-1,0],
+  months:[2,2,2,1,1,1,1,1,1,2,2,2],
+  bestTime:"Maio a setembro (inverno austral seco) para safári no Kruger — animais se concentram na água. Outubro a abril: verão com chuvas, mas Cape Town está perfeita de novembro a março.",
+  currency:"Rand Sul-Africano (ZAR)", symbol:"R", currencyCode:"ZAR",
+  lang:"Inglês / Zulu / Xhosa (11 línguas oficiais)", voltage:"230V · Tipo M",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 30 dias.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Malária profilaxia para Kruger/Limpopo.",
+  passport:"Passaporte com 30 dias além da saída + 2 páginas em branco obrigatórias.",
+  foods:[
+    {e:"🥩",name:"Braai",desc:"Churrasco sul-africano ritual — boerewors, sosaties e chops. Cultura religiosa de fim de semana.",must:true},
+    {e:"🫕",name:"Bunny Chow",desc:"Pão branco escavado recheado com curry de cordeiro ou frango. Criação de Durban, 1940s.",must:true},
+    {e:"🍢",name:"Biltong",desc:"Carne seca temperada com coentro e vinagre. Snack nacional onipresente.",must:false},
+    {e:"🍮",name:"Malva Pudding",desc:"Pudim de damasco assado com molho de creme quente. A sobremesa boer mais amada.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"'Lekker' significa 'ótimo' em tudo — incorpore ao vocabulário."},
+    {e:"✅",t:"Diversidade racial e cultural é sensível — aborde com abertura e empatia."},
+    {e:"⚠️",t:"Segurança é assunto sério — siga sempre as recomendações locais."},
+    {e:"❌",t:"Não fotografe favelas sem permissão explícita e guia local."}
+  ],
+  vibe:["Diverso","Resiliente","Natural","Vibrante","Contrastante"],
+  airport:"JNB", airportCity:"Joanesburgo / Cape Town", flightHours:"~10–11h",
+  flightBRL:"R$ 4.000–11.000", flightNote:"Ethiopian Airlines e LATAM de GRU",
+  milesSmiles:"48k–78k", milesAzul:"50k–80k", milesLatam:"46k–76k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade moderada. Ethiopian Airlines (Star Alliance) é a melhor conexão.",
+  dailyCost:"R$ 300–800", hotelCost:"R$ 150–900", foodCost:"R$ 60–250",
+  tip:"Safari ao amanhecer no Kruger com guia a pé. Ver leões acordando a 50 metros. Não existe adrenalina comparável.",
+  territories:null, climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte com 2+ páginas em branco"},{ico:"🏥",l:"Seguro saúde internacional + repatriamento"},{ico:"💊",l:"Antimalária (Kruger/Limpopo)"}]},
+    {group:"Safari", items:[{ico:"🟤",l:"Roupas em tons neutros (bege, verde, marrom)"},{ico:"🔭",l:"Binóculo para avistar fauna"},{ico:"🌅",l:"Reserve game drives ao amanhecer (melhor hora)"},{ico:"🦟",l:"Repelente DEET 40%+ (malária)"}]},
+    {group:"Segurança", items:[{ico:"🚗",l:"Não pare em semáforos à noite em Johannesburg"},{ico:"🔒",l:"Guarde objetos de valor no cofre do hotel"},{ico:"📱",l:"Tenha número de emergência local salvo"}]}
+  ]
+},
+
+"United Arab Emirates": {
+  flag:"🇦🇪", region:"Oriente Médio", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=75", caption:"Burj Khalifa"},
+    {url:"https://images.unsplash.com/photo-1548813831-7e88a35af2e9?w=400&q=75", caption:"Dubai Marina"},
+    {url:"https://images.unsplash.com/photo-1551639325-98f3b0bb99e3?w=400&q=75", caption:"Sheikh Zayed Mosque"}
+  ], rotations:[-2,1,0],
+  months:[2,2,2,1,0,0,0,0,0,1,2,2],
+  bestTime:"Outubro a março — 22–28°C perfeitos para Dubai e Abu Dhabi. Verão (jun–set) é inabitável sem ar-condicionado: 48°C com umidade. Ramadã muda horários de restaurantes.",
+  currency:"Dirham dos EAU (AED)", symbol:"AED", currencyCode:"AED",
+  lang:"Árabe / Inglês", voltage:"220V · Tipo G",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Visa on Arrival disponível.",
+  visa:"cond", visaText:"<strong>Visto na chegada</strong> para brasileiros — gratuito por até 30 dias. Extensão de 30 dias por AED 600 na imigração.",
+  vaccines:"Sem exigência. Hepatite A/B recomendadas.",
+  passport:"Passaporte com 6 meses de validade.",
+  foods:[
+    {e:"🥙",name:"Shawarma Al Reef",desc:"Frango marinado em especiarias com toum (aioli árabe) num pão árabe. O lanche da madrugada.",must:true},
+    {e:"🍚",name:"Mandi de Cordeiro",desc:"Cordeiro cozido 6h sobre arroz de especiarias em forno de pedra. Tradição yemenita em Dubai.",must:true},
+    {e:"🥐",name:"Luqaimat",desc:"Bolinhos fritos com mel de datas e gergelim. Sobremesa de rua dos souks.",must:false},
+    {e:"☕",name:"Kahwa Arábica",desc:"Café árabe com cardamomo servido em xícara pequena. Gesto de hospitalidade dos Emirados.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Aceite sempre café árabe (kahwa) quando oferecido — é gesto sagrado de hospitalidade."},
+    {e:"✅",t:"Vista-se com modéstia em shopping centers e espaços públicos."},
+    {e:"⚠️",t:"Ramadã: proibido comer, beber ou fumar em público durante o dia."},
+    {e:"❌",t:"Consumo de álcool é restrito a hotéis e restaurantes licenciados. Nunca em público."}
+  ],
+  vibe:["Opulento","Moderno","Contrastante","Ambicioso","Multicultural"],
+  airport:"DXB", airportCity:"Dubai", flightHours:"~14–16h",
+  flightBRL:"R$ 3.500–10.000", flightNote:"Emirates faz GRU–DXB direto (14h de voo)",
+  milesSmiles:"46k–76k", milesAzul:"48k–78k", milesLatam:"44k–74k",
+  milesDifficulty:2, milesDiffNote:"Emirates Skywards tem muitos assentos. Dubai é hub com conexões para toda Ásia.",
+  dailyCost:"R$ 800–2.400", hotelCost:"R$ 400–3.000", foodCost:"R$ 120–500",
+  tip:"Café da manhã num cafe de dunes do deserto Liwa com o sol nascendo sobre as dunas douradas. Antes das 7h — de graça.",
+  territories:null, climate:"desert",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte com 6 meses validade"},{ico:"🏥",l:"Seguro saúde internacional"},{ico:"💳",l:"Cartão de crédito (aceitação universal)"}]},
+    {group:"Roupas (Modéstia/Calor)", items:[{ico:"👗",l:"Roupas que cubram joelhos e ombros em público"},{ico:"👗",l:"Roupas de praia apenas em praias e resorts"},{ico:"🕶️",l:"Óculos de sol de qualidade"},{ico:"👟",l:"Sapato fechado para templos e mesquitas"}]},
+    {group:"Prático", items:[{ico:"📱",l:"Careem App (Uber local)"},{ico:"🗺️",l:"Dubai Metro Card para transporte"},{ico:"🚫",l:"VPNS são ilegais — cuidado com uso"}]}
+  ]
+},
+
+"New Zealand": {
+  flag:"🇳🇿", region:"Oceania", cont:"OC",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1507699622108-4be3abd695ad?w=400&q=75", caption:"Milford Sound"},
+    {url:"https://images.unsplash.com/photo-1477281765962-ef34e8bb0967?w=400&q=75", caption:"Hobbiton"},
+    {url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=75", caption:"Fiordland"}
+  ], rotations:[1,-2,0],
+  months:[2,2,1,1,1,0,0,1,1,2,2,2],
+  bestTime:"Dezembro a março (verão austral) — o melhor da NZ: trilhas, praias e tempo favorável. Junho–agosto: ski nas Southern Alps. Milford Sound é deslumbrante o ano todo mas verão tem menos chuvas.",
+  currency:"Dólar Neozelandês (NZD)", symbol:"NZ$", currencyCode:"NZD",
+  lang:"Inglês / Maori / Língua de Sinais NZ", voltage:"230V · Tipo I",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. NZeTA obrigatória.",
+  visa:"cond", visaText:"<strong>NZeTA obrigatória</strong> (New Zealand Electronic Travel Authority). Custo: NZD 23 (app) ou NZD 17 (online). Aprovação em 72h.",
+  vaccines:"Sem exigência. Febre Amarela obrigatória se vier de zona endêmica.",
+  passport:"Passaporte com 3 meses além da saída da Nova Zelândia.",
+  foods:[
+    {e:"🥧",name:"Pavlova",desc:"Merengue crocante com chantilly e kiwi. A sobremesa que a Nova Zelândia e a Austrália brigam para chamar de própria.",must:true},
+    {e:"🦞",name:"Crayfish (Kōura)",desc:"Lagostim local grelhado com manteiga. Marlborough Sounds oferece o melhor.",must:true},
+    {e:"🥩",name:"Cordeiro Neozelandês",desc:"O melhor cordeiro do mundo — pastagem verde, sem hormônios. Roast leg é obrigatório.",must:false},
+    {e:"🍺",name:"Craft Beer NZ",desc:"Cerveja artesanal de lúpulo local (Nelson Sauvin) é referência mundial de IPA.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Kia Ora é saudação Maori — usada por todos os neozelandeses. Retribua."},
+    {e:"✅",t:"Hongi (pressionar narizes) é o cumprimento tradicional Maori — é honra ser convidado."},
+    {e:"⚠️",t:"Biosegurança é lei — declare tudo na chegada. Multas de NZD 400 por alimentos não declarados."},
+    {e:"❌",t:"Nunca pisar num mapa da Nova Zelândia — é ofensa em contextos formais."}
+  ],
+  vibe:["Natural","Aventureiro","Amigável","Limpo","Cinematográfico"],
+  airport:"AKL", airportCity:"Auckland / Queenstown", flightHours:"~25–30h",
+  flightBRL:"R$ 8.000–20.000", flightNote:"Conexão em Sydney, LA ou Singapura. Rota longa.",
+  milesSmiles:"68k–115k", milesAzul:"70k–118k", milesLatam:"65k–112k",
+  milesDifficulty:3, milesDiffNote:"Destino muito distante. Use LATAM via oneworld com Qantas/Air New Zealand. Reserve 1 ano antes.",
+  dailyCost:"R$ 900–2.100", hotelCost:"R$ 500–1.800", foodCost:"R$ 130–380",
+  tip:"Trilha de Milford Track — 4 dias pelos fiordes com alojamento em lodges históricos. A trilha mais bela do mundo pela National Geographic.",
+  territories:null, climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + NZeTA aprovada"},{ico:"🏥",l:"Seguro saúde (ACC cobre acidentes mas não doenças)"},{ico:"🌿",l:"Declare TODO alimento e produto natural"}]},
+    {group:"Aventura", items:[{ico:"🥾",l:"Bota impermeável para Great Walks"},{ico:"🧥",l:"Casaco impermeável (4 estações por dia)"},{ico:"🎿",l:"Ski pass para Queenstown/Wanaka"},{ico:"🪂",l:"Reserve bungee e skyline de Queenstown antecipado"}]},
+    {group:"Tecnologia", items:[{ico:"📱",l:"Sim NZ ou pocket WiFi"},{ico:"🚗",l:"Alugar carro (lado esquerdo da pista)"},{ico:"🏕️",l:"Campervan é a melhor forma de explorar"}]}
+  ]
+},
+
+"Netherlands": {
+  flag:"🇳🇱", region:"Europa Ocidental", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?w=400&q=75", caption:"Canais de Amsterdã"},
+    {url:"https://images.unsplash.com/photo-1559825481-12a05cc00344?w=400&q=75", caption:"Campos de Tulipas"},
+    {url:"https://images.unsplash.com/photo-1567177662154-dfeb4c93b6ae?w=400&q=75", caption:"Kinderdijk Moinhos"}
+  ], rotations:[-1,2,-2],
+  months:[0,0,1,2,2,1,1,1,1,1,1,0],
+  bestTime:"Tulipas em abril–maio (Keukenhof) é imperdível. Junho–agosto: verão animado. Dezembro: mercados de Natal em todos os canais. Chuva o ano todo — sempre traga capa.",
+  currency:"Euro (EUR)", symbol:"€", currencyCode:"EUR",
+  lang:"Holandês / Inglês (excelente)", voltage:"230V · Tipo F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Via VFS Global. Taxa: €80.",
+  vaccines:"Sem exigência. Hepatite A recomendada.",
+  passport:"Validade de 3 meses além da saída Schengen.",
+  foods:[
+    {e:"🧀",name:"Gouda Velho",desc:"Queijo envelhecido 36+ meses com cristais de lactose. Os Países Baixos têm 650+ variedades.",must:true},
+    {e:"🌯",name:"Kroket",desc:"Croquete de ragout de carne frita em farinha de pão. No automático de rua com mostarda.",must:true},
+    {e:"🥔",name:"Patatje Oorlog",desc:"Batata frita com maionese, sambal e cebola crua. 'Patata guerra' — por que? Ninguém sabe.",must:false},
+    {e:"🥞",name:"Poffertjes",desc:"Mini panquecas fofas com manteiga e açúcar de confeiteiro. Mercados de inverno.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Holandeses são diretos — não interprete honestidade como grosseria."},
+    {e:"✅",t:"Bicicleta é transporte, não turismo. Na ciclovia, pedestre leva multa."},
+    {e:"⚠️",t:"Dutch Treat (pagar a própria conta) é costume em grupos — não espere ser convidado."},
+    {e:"❌",t:"Pisar na ciclovia sem olhar é perigoso — bicicletas têm prioridade absoluta."}
+  ],
+  vibe:["Liberal","Direto","Organizado","Ciclístico","Tolerante"],
+  airport:"AMS", airportCity:"Amsterdam Schiphol", flightHours:"~11–12h",
+  flightBRL:"R$ 4.200–11.000", flightNote:"KLM e LATAM fazem GRU–AMS",
+  milesSmiles:"40k–68k", milesAzul:"42k–70k", milesLatam:"40k–65k",
+  milesDifficulty:2, milesDiffNote:"Schiphol é hub da KLM/Air France. Disponibilidade razoável o ano todo.",
+  dailyCost:"R$ 800–1.800", hotelCost:"R$ 400–1.600", foodCost:"R$ 110–320",
+  tip:"Alugar bicicleta e pedalar pelos campos de tulipas de Lisse em abril ao amanhecer, antes dos turistas. A Holanda mais fotogênica.",
+  territories:null, climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem"},{ico:"💳",l:"Cartão sem tarifa"}]},
+    {group:"Transporte", items:[{ico:"🚲",l:"Alugue bicicleta — é a forma local de se locomover"},{ico:"☂️",l:"Capa de chuva impermeável (chove sempre)"},{ico:"🚂",l:"NS Rail App para trens nacionais"}]},
+    {group:"Prático", items:[{ico:"🌷",l:"Reserve Keukenhof tickets online (lotado)"},{ico:"🎨",l:"Rijksmuseum e Van Gogh Museum — reserve antecipado"},{ico:"💶",l:"Euros para mercados e cafés locais"}]}
+  ]
+},
+
+"Norway": {
+  flag:"🇳🇴", region:"Europa do Norte", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=400&q=75", caption:"Aurora Boreal"},
+    {url:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=75", caption:"Fiordes Noruegueses"},
+    {url:"https://images.unsplash.com/photo-1601439773944-2e0b8d7e72b8?w=400&q=75", caption:"Bergen"}
+  ], rotations:[2,-1,1],
+  months:[0,0,1,2,2,2,2,2,1,1,0,0],
+  bestTime:"Junho–agosto: sol da meia-noite, trilhas abertas nos fiordes. Setembro–outubro: folhagens e primeiros auroras. Dezembro–março: aurora boreal em Tromsø e ski de inverno.",
+  currency:"Coroa Norueguesa (NOK)", symbol:"kr", currencyCode:"NOK",
+  lang:"Norueguês / Inglês (perfeito)", voltage:"230V · Tipo F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Via VFS Global. Taxa: €80.",
+  vaccines:"Sem exigência.",
+  passport:"Validade de 3 meses além da saída Schengen.",
+  foods:[
+    {e:"🐟",name:"Gravlax",desc:"Salmão curado com dill, açúcar e sal. Mais suave que defumado — puro e elegante.",must:true},
+    {e:"🦐",name:"Reke (Camarão Nórdico)",desc:"Camarão cozido no barco e servido direto — com pão e maionese no cais de Bergen.",must:true},
+    {e:"🧆",name:"Fiskekaker",desc:"Bolinhos de peixe norueguês servidos com molho de natas. Culinária doméstica cotidiana.",must:false},
+    {e:"🍫",name:"Kvikk Lunsj",desc:"Chocolate ao leite da Freia com biscoito crocante — o snack obrigatório de todo caminhante.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Noruegueses valorizam privacidade — não inicie conversa no transporte público."},
+    {e:"✅",t:"Friluftsliv (vida ao ar livre) é filosofia de vida — respeite a natureza."},
+    {e:"⚠️",t:"Tudo é extremamente caro — prepare o orçamento com folga extra de 30%."},
+    {e:"❌",t:"Nunca deixe lixo na natureza — multa severa e desrespeito cultural."}
+  ],
+  vibe:["Natural","Silencioso","Organizado","Caro","Épico"],
+  airport:"OSL", airportCity:"Oslo", flightHours:"~13–14h",
+  flightBRL:"R$ 5.000–13.000", flightNote:"SAS e LATAM de GRU com escala",
+  milesSmiles:"44k–72k", milesAzul:"46k–74k", milesLatam:"42k–70k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade moderada. Inclui-se na emissão Schengen geral.",
+  dailyCost:"R$ 1.500–3.800", hotelCost:"R$ 900–3.000", foodCost:"R$ 250–600",
+  tip:"Trilha Trolltunga no amanhecer — 22km de ida e volta para a pedra suspensa 700m acima do fiordo. Reserva obrigatória.",
+  territories:null, climate:"alpine",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem"},{ico:"💳",l:"Cartão sem tarifa (cashless society)"}]},
+    {group:"Aventura ao Ar Livre", items:[{ico:"🧥",l:"Casaco técnico impermeável e respirável"},{ico:"🥾",l:"Bota de trekking com tornozelo (terreno acidentado)"},{ico:"🧤",l:"Luvas mesmo no verão (noites frias)"},{ico:"🏕️",l:"Alltmannretten: acampar em natureza é direito legal"}]},
+    {group:"Aurora Boreal", items:[{ico:"🌌",l:"Vá para Tromsø ou Lofoten entre set–mar"},{ico:"📱",l:"App Space Weather para previsão auroral"},{ico:"📷",l:"Tripé para fotografia noturna de longa exposição"}]}
+  ]
+},
+
+"Iceland": {
+  flag:"🇮🇸", region:"Europa do Norte", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=400&q=75", caption:"Aurora Boreal"},
+    {url:"https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&q=75", caption:"Geyser Strokkur"},
+    {url:"https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400&q=75", caption:"Blue Lagoon"}
+  ], rotations:[-1,1,2],
+  months:[0,0,1,2,2,2,2,2,1,1,0,0],
+  bestTime:"Junho–agosto: sol da meia-noite, trilhas e vulcões acessíveis. Setembro–março: aurora boreal e menos turistas. Inverno fecha muitas estradas F — planeje com cuidado.",
+  currency:"Coroa Islandesa (ISK)", symbol:"kr", currencyCode:"ISK",
+  lang:"Islandês / Inglês (perfeito)", voltage:"230V · Tipo F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Via VFS Global. Taxa: €80.",
+  vaccines:"Sem exigência.",
+  passport:"Validade de 3 meses além da saída Schengen.",
+  foods:[
+    {e:"🐑",name:"Lamb Soup (Kjötsúpa)",desc:"Caldo de cordeiro com raízes — o prato que aquece no inverno ártico.",must:true},
+    {e:"🍞",name:"Rúgbrauð",desc:"Pão de centeio cozido no vapor geotérmico por 24h. Denso e levemente adocicado.",must:false},
+    {e:"🐋",name:"Hákarl (Tubarão Fermentado)",desc:"Tubarão da Groenlândia fermentado 6 meses. Desafio culinário — cheiro de amônia intenso.",must:false},
+    {e:"🍦",name:"Skyr",desc:"Iogurte islandês proteico denso com frutas silvestres. Café da manhã nacional.",must:true}
+  ],
+  etiquette:[
+    {e:"✅",t:"Islandeses são informais — primeiro nome sempre, sem títulos."},
+    {e:"✅",t:"Respeito extremo pela natureza — Huldufólk (elfos) são levados meio a sério."},
+    {e:"⚠️",t:"Temperatura muda em 30 minutos — sempre tenha roupa impermeável no carro."},
+    {e:"❌",t:"Nunca saia das trilhas marcadas — danos irreversíveis à musgo e flora frágil."}
+  ],
+  vibe:["Épico","Silencioso","Natural","Mágico","Isolado"],
+  airport:"KEF", airportCity:"Reykjavik Keflavik", flightHours:"~12–14h",
+  flightBRL:"R$ 5.000–13.000", flightNote:"Icelandair via EUA ou Reykjavik direto sazonal",
+  milesSmiles:"44k–72k", milesAzul:"46k–74k", milesLatam:"42k–70k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade moderada com conexão americana.",
+  dailyCost:"R$ 1.400–3.500", hotelCost:"R$ 800–2.500", foodCost:"R$ 220–550",
+  tip:"Mergulho entre placas tectônicas na fissura Silfra — água glacial de 2°C com visibilidade de 100m. Um outro planeta.",
+  territories:null, climate:"alpine",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem com evacuação médica"},{ico:"💳",l:"Cartão de crédito (Iceland é cashless)"}]},
+    {group:"Roupas — CRÍTICO", items:[{ico:"🧥",l:"Casaco impermeável técnico (vento e chuva constantes)"},{ico:"🧤",l:"Luvas impermeáveis"},{ico:"🥾",l:"Bota de trekking impermeável"},{ico:"🧣",l:"Balaclava para ventos polares"}]},
+    {group:"Aventura", items:[{ico:"🚗",l:"4x4 obrigatório para estradas F (interior)"},{ico:"📱",l:"Safetravel.is — registre sua rota"},{ico:"🌌",l:"App Aurora Forecast para previsão"}]}
+  ]
+},
+
+"Indonesia": {
+  flag:"🇮🇩", region:"Sudeste Asiático", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&q=75", caption:"Bali Tegallalang"},
+    {url:"https://images.unsplash.com/photo-1580619305218-8423a7ef79b4?w=400&q=75", caption:"Borobudur"},
+    {url:"https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=400&q=75", caption:"Komodo Dragon"}
+  ], rotations:[1,-2,0],
+  months:[1,1,2,2,2,2,2,2,2,1,0,0],
+  bestTime:"Maio a setembro — temporada seca perfeita para Bali, Java e Komodo. Abril é excelente antes das multidões. Outubro a março: monção no sul mas o norte de Sulawesi fica ótimo.",
+  currency:"Rupia Indonésia (IDR)", symbol:"Rp", currencyCode:"IDR",
+  lang:"Bahasa Indonesia / Balinês / + 700 línguas", voltage:"220V · Tipo C/F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Visa on Arrival em Bali.",
+  visa:"cond", visaText:"<strong>Visa on Arrival</strong> para brasileiros em Bali e outros pontos principais — USD 35 por 30 dias. Gratuito em alguns aeroportos.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A/B, Raiva (para aventura), Dengue recomendadas.",
+  passport:"Passaporte com 6 meses de validade.",
+  foods:[
+    {e:"🍢",name:"Satay (Sate Ayam)",desc:"Espetinho de frango grelhado com molho de amendoim e kecap manis. Street food nacional.",must:true},
+    {e:"🍛",name:"Nasi Goreng",desc:"Arroz frito com ovo, camarão, molho kecap manis e kerupuk. O prato mais consumido do país.",must:true},
+    {e:"🥘",name:"Rendang",desc:"Carne bovina cozida horas em leite de coco e 40+ especiarias até caramelizar. Padang.",must:false},
+    {e:"🍌",name:"Pisang Goreng",desc:"Banana frita com açúcar de palma. O snack ubíquo em toda ilha.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"'Selamat' (bom dia/tarde) e sorriso abrem qualquer porta — indonésios são muito receptivos."},
+    {e:"✅",t:"Use a mão direita para oferecer e receber — a esquerda é considerada impura."},
+    {e:"⚠️",t:"Bali é hindu, não muçulmana — respeite as cerimônias e vistas com sarongue."},
+    {e:"❌",t:"Nunca toque a cabeça de ninguém — é a parte mais sagrada do corpo."}
+  ],
+  vibe:["Tropical","Espiritual","Diverso","Colorido","Hospitaleiro"],
+  airport:"DPS", airportCity:"Bali Denpasar", flightHours:"~22–26h",
+  flightBRL:"R$ 5.000–13.500", flightNote:"Conexão Singapura, Doha ou Kuala Lumpur",
+  milesSmiles:"54k–90k", milesAzul:"56k–92k", milesLatam:"52k–86k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade razoável via Singapore Airlines ou Qatar Airways.",
+  dailyCost:"R$ 180–500", hotelCost:"R$ 80–800", foodCost:"R$ 20–120",
+  tip:"Assistir ao nascer do sol no topo do vulcão Bromo às 4h da manhã com cratera fumegando abaixo de você. Começo de dia inesquecível.",
+  territories:null, climate:"tropical",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte com 6 meses validade"},{ico:"💵",l:"USD 35 em espécie para Visa on Arrival"},{ico:"🏥",l:"Seguro saúde internacional"}]},
+    {group:"Saúde", items:[{ico:"🦟",l:"Repelente DEET 40%+ (dengue)"},{ico:"💊",l:"Remédio para diarreia (mudança brusca de dieta)"},{ico:"🚰",l:"NUNCA beba água da torneira"}]},
+    {group:"Cultura Bali", items:[{ico:"🧣",l:"Sarongue para templos (obrigatório)"},{ico:"🌺",l:"Respeite as oferendas no chão — não pise"},{ico:"📷",l:"Peça permissão antes de fotografar cerimônias"}]}
+  ]
+},
+
+"Cuba": {
+  flag:"🇨🇺", region:"América Central/Caribe", cont:"NA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1568454537842-d933259bb258?w=400&q=75", caption:"Havana Clássica"},
+    {url:"https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&q=75", caption:"Carros Anos 50"},
+    {url:"https://images.unsplash.com/photo-1601865690284-efdc0b6a7b69?w=400&q=75", caption:"Varadero"}
+  ], rotations:[-1,2,-2],
+  months:[1,1,2,2,2,1,1,1,1,1,1,1],
+  bestTime:"Novembro a abril — temporada seca e fresca (24–28°C). Verão cubano (jun–out) tem calor intenso e temporada de furacões. Festival de Jazz em janeiro é imperdível.",
+  currency:"Peso Cubano (CUP)", symbol:"$", currencyCode:"CUP",
+  lang:"Espanhol", voltage:"110V/220V · Tipo A/B",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Cartão turístico obrigatório.",
+  visa:"cond", visaText:"<strong>Cartão de turista</strong> obrigatório para brasileiros. Obtido na embaixada cubana ou em alguns aeroportos. Custo: USD 25.",
+  vaccines:"Sem exigência específica. Hepatite A, Febre Tifoide recomendadas.",
+  passport:"Passaporte com 6 meses de validade.",
+  foods:[
+    {e:"🍖",name:"Ropa Vieja",desc:"Carne desfiada refogada com tomate, pimentão e cominho. O prato nacional da alma cubana.",must:true},
+    {e:"🍹",name:"Mojito Original",desc:"Rum branco, hortelã, limão, açúcar e gás. Inventado no La Bodeguita del Medio de Hemingway.",must:true},
+    {e:"🫘",name:"Moros y Cristianos",desc:"Arroz preto com feijão preto. Acompanhamento obrigatório em toda refeição cubana.",must:false},
+    {e:"🍨",name:"Coppelia Ice Cream",desc:"Sorvete estatal de Havana — fila de hora, mas a experiência cultural vale cada minuto.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Cubanos são extraordinariamente musicais — dance se convidado, mesmo mal."},
+    {e:"✅",t:"Salsa nas ruas é convite sincero — não recuse sem pelo menos tentar."},
+    {e:"⚠️",t:"Cartões de crédito de bancos americanos não funcionam — leve dinheiro em espécie."},
+    {e:"❌",t:"Política é tema delicado — observe mais, opine menos."}
+  ],
+  vibe:["Musical","Vibrante","Nostálgico","Colorido","Resiliente"],
+  airport:"HAV", airportCity:"Havana José Martí", flightHours:"~7–8h",
+  flightBRL:"R$ 2.200–6.500", flightNote:"Copa via Panamá ou conexão Miami/Cancún",
+  milesSmiles:"22k–45k", milesAzul:"24k–48k", milesLatam:"20k–42k",
+  milesDifficulty:2, milesDiffNote:"Opções limitadas de emissão. Verifique disponibilidade com antecedência.",
+  dailyCost:"R$ 250–700", hotelCost:"R$ 120–600", foodCost:"R$ 50–180",
+  tip:"Noite no Tropicana Club — show ao ar livre de 3h com 200 artistas e rum sem limite. Parece exagero. Não é.",
+  territories:null, climate:"tropical",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Cartão de turista"},{ico:"💵",l:"Euros ou dólares em espécie (muito dinheiro)"},{ico:"🏥",l:"Seguro saúde internacional"}]},
+    {group:"Prático — CRÍTICO", items:[{ico:"💵",l:"Sem cartão de crédito americano — leve TUDO em espécie"},{ico:"🌐",l:"VPN para internet (WiFi limitado e lento)"},{ico:"🔌",l:"Adaptador duplo A/B (tensão inconsistente)"}]},
+    {group:"Roupas (Tropical)", items:[{ico:"👕",l:"Roupas leves e coloridas"},{ico:"🩱",l:"Roupa de banho para Varadero"},{ico:"🧴",l:"Protetor solar e repelente DEET"}]}
+  ]
+},
+
+"Singapore": {
+  flag:"🇸🇬", region:"Sudeste Asiático", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=400&q=75", caption:"Marina Bay Sands"},
+    {url:"https://images.unsplash.com/photo-1565967511849-76a60a516170?w=400&q=75", caption:"Gardens by the Bay"},
+    {url:"https://images.unsplash.com/photo-1549880338-65ddcdfd017b?w=400&q=75", caption:"Chinatown"}
+  ], rotations:[1,-2,0],
+  months:[1,1,1,1,1,1,1,1,1,1,1,1],
+  bestTime:"Fevereiro a abril — período menos chuvoso. Singapura é quente e úmida o ano todo (30–33°C). Festival Chinês de Ano Novo (jan/fev) tem decorações imperdíveis.",
+  currency:"Dólar de Singapura (SGD)", symbol:"S$", currencyCode:"SGD",
+  lang:"Inglês / Mandarim / Malaio / Tamil", voltage:"230V · Tipo G",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 30 dias. Extensões possíveis na Immigration.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A/B recomendadas.",
+  passport:"Passaporte com 6 meses de validade + bilhete de saída.",
+  foods:[
+    {e:"🍜",name:"Laksa",desc:"Sopa de macarrão em caldo de camarão e leite de coco com pasta de especiarias. Herança peranacanã.",must:true},
+    {e:"🐓",name:"Hainanese Chicken Rice",desc:"Frango cozido sobre arroz perfumado em caldo de galinha com ginger sauce. Prato nacional.",must:true},
+    {e:"🍞",name:"Kaya Toast",desc:"Torrada com kaya (geleia de coco e ovo) e manteiga. Café da manhã dos hawker centers.",must:false},
+    {e:"🦀",name:"Chilli Crab",desc:"Caranguejo inteiro no molho de tomate e pimenta. Prato emblemático de Singapura.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Singapura é eficiente ao extremo — pontualidade é absoluta."},
+    {e:"✅",t:"Hawker centers são o coração cultural — coma lá, não em restaurantes turísticos."},
+    {e:"⚠️",t:"Multas altas para lixo, goma de mascar, fumar em locais não permitidos."},
+    {e:"❌",t:"Nunca durian no metrô ou táxi — proibido por lei e assinalizado."}
+  ],
+  vibe:["Eficiente","Multicultural","Limpo","Gastronômico","Futurista"],
+  airport:"SIN", airportCity:"Changi Airport", flightHours:"~21–24h",
+  flightBRL:"R$ 4.800–13.000", flightNote:"Singapore Airlines de GRU via LAX ou direto",
+  milesSmiles:"54k–88k", milesAzul:"56k–90k", milesLatam:"52k–86k",
+  milesDifficulty:2, milesDiffNote:"Changi é hub global. Singapore Airlines tem boas opções de prêmio.",
+  dailyCost:"R$ 700–1.800", hotelCost:"R$ 400–2.000", foodCost:"R$ 60–500",
+  tip:"Jantar num hawker center local com Chilli Crab às 22h com cerveja Tiger gelada. O pôr do sol do Marina Bay por fora. Perfeito.",
+  territories:null, climate:"tropical",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte com 6 meses validade"},{ico:"🎟️",l:"Bilhete de saída comprovado (exigido)"},{ico:"💳",l:"Cartão contactless (Singapura é cashless)"}]},
+    {group:"Prático", items:[{ico:"🚇",l:"EZ-Link Card para MRT (metrô eficiente)"},{ico:"📱",l:"Grab App para transporte"},{ico:"🌿",l:"Singapore Botanic Gardens — entrada gratuita"}]},
+    {group:"Leis Importantes", items:[{ico:"🚭",l:"Fumar só em áreas designadas (multa S$1.000)"},{ico:"🍬",l:"Goma de mascar proibida (exceto medicinal)"},{ico:"🗑️",l:"Jogar lixo: multa de S$300 a $2.000"}]}
+  ]
+},
+
+"Vietnam": {
+  flag:"🇻🇳", region:"Sudeste Asiático", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1528127269322-539801943592?w=400&q=75", caption:"Halong Bay"},
+    {url:"https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=400&q=75", caption:"Hoi An"},
+    {url:"https://images.unsplash.com/photo-1538774542-8dea4b8ee2fd?w=400&q=75", caption:"Hanoi"}
+  ], rotations:[-2,1,-1],
+  months:[1,2,2,2,1,0,0,0,0,1,2,1],
+  bestTime:"Novembro a abril (estação seca no centro e sul). Hanói e Sapa ficam ótimas em setembro–novembro. Hoi An tem cheias em outubro–novembro — consulte antes.",
+  currency:"Dong Vietnamita (VND)", symbol:"₫", currencyCode:"VND",
+  lang:"Vietnamita", voltage:"220V · Tipo A/C",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. e-Visa obrigatória para brasileiros.",
+  visa:"req", visaText:"<strong>e-Visa obrigatória</strong> para brasileiros. Custo: USD 25. Prazo: 3 dias. Válida 90 dias com múltiplas entradas.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A/B, Febre Tifoide, Raiva recomendadas.",
+  passport:"Passaporte com 6 meses de validade.",
+  foods:[
+    {e:"🍜",name:"Phở Bò",desc:"Caldo de boi de 12h+ com macarrão de arroz, carne fatiada, gengibre e anis estrelado. Hanói.",must:true},
+    {e:"🥖",name:"Bánh Mì",desc:"Baguette francesa recheada com patê, carne, picles de daikon e pimenta. Fusão Franco-Vietnamita.",must:true},
+    {e:"🫔",name:"Gỏi cuốn",desc:"Rolinho de verão com camarão, ervas frescas e molho de amendoim. Levinho e refrescante.",must:false},
+    {e:"☕",name:"Cà Phê Trứng",desc:"Café com gema de ovo batida e leite condensado — espuma cremosa sobre expresso. Hanói.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Sorria muito — vietnamitas são calorosos e adoram ver turistas tentando sua língua."},
+    {e:"✅",t:"Barganha em mercados é esperada — comece oferecendo 50% do preço."},
+    {e:"⚠️",t:"Trânsito de moto em Hanói e HCM parece impossível — cruze devagar e firme."},
+    {e:"❌",t:"Nunca aponte os pés para altares ou imagens de Buda — é desrespeitoso."}
+  ],
+  vibe:["Dinâmico","Delicioso","Contrastante","Acolhedor","Veloz"],
+  airport:"HAN", airportCity:"Hanói / Ho Chi Minh", flightHours:"~22–26h",
+  flightBRL:"R$ 4.800–13.500", flightNote:"Conexão Doha, Bangkok ou Singapura",
+  milesSmiles:"54k–90k", milesAzul:"56k–92k", milesLatam:"52k–86k",
+  milesDifficulty:2, milesDiffNote:"Rota via Qatar Airways ou Singapore Airlines com disponibilidade razoável.",
+  dailyCost:"R$ 180–500", hotelCost:"R$ 80–600", foodCost:"R$ 20–100",
+  tip:"Phở às 6h da manhã numa barraca de plástico de Hanói onde a dona faz o caldo desde as 3h. Custo: R$12. Experiência: impagável.",
+  territories:null, climate:"tropical",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + e-Visa aprovada"},{ico:"🏥",l:"Seguro saúde internacional"},{ico:"💵",l:"Dongs em espécie para street food e mercados"}]},
+    {group:"Saúde", items:[{ico:"🦟",l:"Repelente DEET (dengue e malária no norte)"},{ico:"💊",l:"Loperamida e azitromicina (troca alimentar)"},{ico:"🚰",l:"Água mineral embalada apenas"}]},
+    {group:"Transporte", items:[{ico:"🏍️",l:"Alugue moto (CNH internacional)"},{ico:"📱",l:"Grab App — muito mais barato que táxi regular"},{ico:"🚂",l:"Reunification Express Train Hanói→HCM (30h épicas)"}]}
+  ]
+},
+
+"Poland": {
+  flag:"🇵🇱", region:"Europa Central", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1519197924294-4ba991a11128?w=400&q=75", caption:"Cracóvia"},
+    {url:"https://images.unsplash.com/photo-1551636898-47668aa61de2?w=400&q=75", caption:"Varsóvia"},
+    {url:"https://images.unsplash.com/photo-1515369691803-87cbdaa75fcf?w=400&q=75", caption:"Castelo Wawel"}
+  ], rotations:[0,-2,1],
+  months:[0,0,1,2,2,2,2,2,2,1,0,0],
+  bestTime:"Maio a setembro — verão polaco com festivais, dias longos e 20–25°C perfeitos. Cracóvia em dezembro tem mercado de Natal medieval encantador. Inverno rigoroso com neve.",
+  currency:"Zloty (PLN)", symbol:"zł", currencyCode:"PLN",
+  lang:"Polonês", voltage:"230V · Tipo F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Via VFS Global. Taxa: €80.",
+  vaccines:"Sem exigência. Tétano recomendado.",
+  passport:"Validade de 3 meses além da saída Schengen.",
+  foods:[
+    {e:"🥟",name:"Pierogi Ruskie",desc:"Dumplings recheados com batata e queijo branco, servidos com cebola caramelada e bacon.",must:true},
+    {e:"🍖",name:"Bigos",desc:"Ensopado de chucrute e carnes defumadas. O prato de caçador que define o inverno polonês.",must:true},
+    {e:"🥐",name:"Obwarzanek Krakowski",desc:"Rosca de pão fervida e assada — o bagel original. Patrimônio cultural de Cracóvia.",must:false},
+    {e:"🍮",name:"Sernik",desc:"Cheesecake polonês denso com queijo twaróg. A sobremesa favorita do João Paulo II.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Poloneses são formais inicialmente mas extremamente hospitaleiros quando abertos."},
+    {e:"✅",t:"Flores em número ímpar são para vivos — par é para funerais. Importante."},
+    {e:"⚠️",t:"Auschwitz-Birkenau merece silêncio e respeito absoluto — não é atração turística comum."},
+    {e:"❌",t:"Nunca confunda culinária ou costumes poloneses com russos."}
+  ],
+  vibe:["Resiliente","Histórico","Caloroso","Culinário","Europeu"],
+  airport:"WAW", airportCity:"Varsóvia / Cracóvia", flightHours:"~13–14h",
+  flightBRL:"R$ 4.200–11.000", flightNote:"Conexão em Amsterdã, Frankfurt ou Lisboa",
+  milesSmiles:"40k–68k", milesAzul:"42k–70k", milesLatam:"40k–65k",
+  milesDifficulty:2, milesDiffNote:"Cracóvia é destino emergente com disponibilidade crescente.",
+  dailyCost:"R$ 450–1.100", hotelCost:"R$ 200–900", foodCost:"R$ 70–220",
+  tip:"Pierogi à noite num restaurante de porão medieval de Cracóvia com vodka polaca de beterraba. O Leste Europeu mais autêntico.",
+  territories:null, climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem"},{ico:"💳",l:"Cartão sem tarifa"}]},
+    {group:"História", items:[{ico:"🕯️",l:"Reserve visita a Auschwitz com guia certificado"},{ico:"🏰",l:"Castelo Wawel — reserve tíquete com antecedência"},{ico:"📚",l:"Leia sobre a história polonesa antes de ir"}]},
+    {group:"Roupas (Temperado/Inverno)", items:[{ico:"🧥",l:"Casaco de inverno (até -15°C em jan)"},{ico:"🧤",l:"Luvas e gorro"},{ico:"🥾",l:"Bota impermeável para neve"}]}
+  ]
+},
+
+"Austria": {
+  flag:"🇦🇹", region:"Europa Central", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1609783694660-cbcac0de7d75?w=400&q=75", caption:"Viena Belvedere"},
+    {url:"https://images.unsplash.com/photo-1516815231560-8f41ec531527?w=400&q=75", caption:"Hallstatt"},
+    {url:"https://images.unsplash.com/photo-1496307274030-deb5c43b3050?w=400&q=75", caption:"Salzburgo"}
+  ], rotations:[-1,2,-2],
+  months:[0,0,1,2,2,2,2,2,2,1,0,0],
+  bestTime:"Maio a setembro — perfeito para Viena e lagos alpinos. Dezembro é deslumbrante com mercados natalinos. Ski em Innsbruck e Kitzbühel de dezembro a março.",
+  currency:"Euro (EUR)", symbol:"€", currencyCode:"EUR",
+  lang:"Alemão", voltage:"230V · Tipo F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Via VFS Global. Taxa: €80.",
+  vaccines:"Sem exigência. TBE (encefalite de carraça) recomendada para trilhas.",
+  passport:"Validade de 3 meses além da saída Schengen.",
+  foods:[
+    {e:"🥩",name:"Wiener Schnitzel",desc:"Vitela fina empanada e frita no tamanho do prato. Com limão e salada de batata. Obrigatório.",must:true},
+    {e:"🎂",name:"Sachertorte",desc:"Bolo de chocolate com camada de damasco e cobertura de ganache. Hotel Sacher, 1832.",must:true},
+    {e:"🫙",name:"Tafelspitz",desc:"Filé de boi cozido com raízes e molho de maçã e rábano. O prato favorito do Imperador Franz Josef.",must:false},
+    {e:"☕",name:"Melange",desc:"Café vienense com espuma de leite suave — diferente do cappuccino italiano.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Vienenses são formais — use 'Sie' (você formal) até serem convidados à intimidade."},
+    {e:"✅",t:"Ópera é evento formal — vista-se adequadamente mesmo na Staatsoper."},
+    {e:"⚠️",t:"Silêncio nos transportes públicos vienenses é esperado — como nos japoneses."},
+    {e:"❌",t:"Nunca confunda 'Schnitzel vienense' com variações — o original é de vitela, não de porco."}
+  ],
+  vibe:["Imperial","Musical","Elegante","Histórico","Organizado"],
+  airport:"VIE", airportCity:"Viena", flightHours:"~12–13h",
+  flightBRL:"R$ 4.200–11.000", flightNote:"Austrian Airlines e LATAM via Frankfurt",
+  milesSmiles:"40k–68k", milesAzul:"42k–70k", milesLatam:"40k–65k",
+  milesDifficulty:2, milesDiffNote:"Viena é hub da Austrian Airlines. Boa disponibilidade na Star Alliance.",
+  dailyCost:"R$ 750–1.700", hotelCost:"R$ 350–1.500", foodCost:"R$ 100–300",
+  tip:"Café da manhã no Café Central de Viena — um dos mais bonitos do mundo — com melange e Sachertorte, cercado de mármore e pianista ao vivo. Clássico.",
+  territories:null, climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen"},{ico:"🏥",l:"Seguro viagem"},{ico:"💳",l:"Cartão sem tarifa"}]},
+    {group:"Cultura", items:[{ico:"🎭",l:"Reserve Ópera Estatal com meses antecedência"},{ico:"🎵",l:"Mozart e Strauss — assista ao menos um concerto"},{ico:"🏰",l:"Palácio de Schönbrunn — tíquete antecipado"}]},
+    {group:"Roupas (Temperado/Alpino)", items:[{ico:"🧥",l:"Casaco elegante para Viena"},{ico:"🎿",l:"Roupa de ski para estações alpinas"},{ico:"👟",l:"Sapato confortável para Ringstraße"}]}
+  ]
+},
+
+// ── CONFLITO ─────────────────────────────────────────────────────────
+"Ukraine": {
+  flag:"🇺🇦", region:"Europa Oriental", cont:"EU",
+  photos:[{url:"https://images.unsplash.com/photo-1555400038-63f5ba517a47?w=400&q=75",caption:"Kiev (antes do conflito)"}],
+  rotations:[0],
+  months:[1,1,2,2,2,1,1,1,2,2,1,0],
+  bestTime:"Verão era o melhor período. Consulte o Itamaraty antes de qualquer planejamento.",
+  currency:"Hryvnia (UAH)", symbol:"₴", currencyCode:"UAH",
+  lang:"Ucraniano / Russo", voltage:"230V · Tipo C/F",
+  conflict:"red", conflictText:"<strong>Zona de conflito ativo.</strong> O Ministério das Relações Exteriores do Brasil recomenda que brasileiros <strong>não viajem</strong> à Ucrânia. Conflito armado em curso desde fevereiro de 2022.",
+  borderStatus:"closed", borderNote:"Espaço aéreo fechado para voos comerciais.",
+  visa:"cond", visaText:"Entrada não recomendada pelo Itamaraty.",
+  vaccines:"Hepatite A/B e Difteria recomendadas.",
+  passport:"Passaporte com validade de 6 meses.",
+  foods:[{e:"🍲",name:"Borscht",desc:"Sopa de beterraba com repolho e creme azedo. Símbolo cultural.",must:true},{e:"🥟",name:"Varenyky",desc:"Dumplings recheados com batata, queijo ou frutas.",must:false}],
+  etiquette:[{e:"⚠️",t:"Situação de segurança extremamente crítica. Não viaje."}],
+  vibe:["Resiliente","Cultural","Histórico"],
+  airport:"KBP", airportCity:"Kiev (fechado)", flightHours:"Indisponível",
+  flightBRL:"Indisponível", flightNote:"",
+  milesSmiles:"—", milesAzul:"—", milesLatam:"—",
+  milesDifficulty:3, milesDiffNote:"Não recomendado viajar.",
+  dailyCost:"—", hotelCost:"—", foodCost:"—",
+  tip:"Consulte sempre fontes oficiais.", territories:null, climate:"temperate",
+  checklist:[{group:"Atenção",items:[{ico:"🚫",l:"NÃO VIAJE. Consulte o Itamaraty."}]}]
+},
+
+"Israel": {
+  flag:"🇮🇱", region:"Oriente Médio", cont:"AS",
+  photos:[{url:"https://images.unsplash.com/photo-1548013146-72479768bada?w=400&q=75",caption:"Cidade Velha, Jerusalém"}],
+  rotations:[1],
+  months:[2,2,2,2,1,0,0,0,1,2,2,2],
+  bestTime:"Março a maio e outubro a novembro são ideais. Verão muito quente em Jerusalém.",
+  currency:"Shekel (ILS)", symbol:"₪", currencyCode:"ILS",
+  lang:"Hebraico / Árabe", voltage:"230V · Tipo H",
+  conflict:"yellow", conflictText:"<strong>Atenção elevada.</strong> Tensões regionais e conflito em Gaza afetam a segurança. Monitore as recomendações do Itamaraty em tempo real.",
+  borderStatus:"warn", borderNote:"Fronteiras abertas com restrições. Monitoramento constante necessário.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 90 dias.",
+  vaccines:"Hepatite A/B e Febre Tifoide recomendadas.",
+  passport:"Passaporte com 6 meses além da saída.",
+  foods:[{e:"🧆",name:"Hummus",desc:"Pasta de grão-de-bico com tahini, azeite e limão.",must:true},{e:"🥙",name:"Sabich",desc:"Pão pita com berinjela frita, ovo, hummus e salada israelense.",must:true}],
+  etiquette:[{e:"✅",t:"Israelenses são diretos — não interprete como grosseria."},{e:"⚠️",t:"Roupa modesta em bairros ultraortodoxos."},{e:"❌",t:"Não misture carne e laticínios em restaurantes kosher."}],
+  vibe:["Direto","Histórico","Tecnológico","Contraditório"],
+  airport:"TLV", airportCity:"Tel Aviv", flightHours:"~12–14h",
+  flightBRL:"R$ 4.000–10.000", flightNote:"Conexão geralmente necessária",
+  milesSmiles:"44k–72k", milesAzul:"46k–74k", milesLatam:"42k–70k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade variável devido ao conflito.",
+  dailyCost:"R$ 600–1.400", hotelCost:"R$ 350–1.200", foodCost:"R$ 80–250",
+  tip:"Hummus às 7h numa hummusiya árabe na Cidade Velha de Akko. Transcendente.",
+  territories:null, climate:"mediterranean",
+  checklist:[{group:"Atenção",items:[{ico:"⚠️",l:"Monitore o Itamaraty antes da viagem"},{ico:"🏥",l:"Seguro com cobertura para zonas de conflito"}]}]
+},
+
+"United States of America": {
+  flag:"🇺🇸", region:"América do Norte", cont:"NA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=400&q=75", caption:"Nova York"},
+    {url:"https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&q=75", caption:"Grand Canyon"},
+    {url:"https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=400&q=75", caption:"San Francisco"}
+  ], rotations:[1,-2,0],
+  months:[1,1,2,2,2,2,1,1,2,2,1,1],
+  bestTime:"Primavera (abr–mai) e outono (set–out) — temperaturas amenas em todo o país. Verão é movimentado e caro. Inverno é ótimo para neve ou sol na Flórida.",
+  currency:"Dólar Americano (USD)", symbol:"US$", currencyCode:"USD",
+  lang:"Inglês", voltage:"120V · Tipo A/B",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Visto B1/B2 obrigatório para brasileiros.",
+  visa:"req", visaText:"Visto <strong>B1/B2 obrigatório</strong>. Taxa: US$185 (MRV). Entrevista presencial na Embaixada. Processo: 2–10 semanas.",
+  vaccines:"Sem exigência. Covid-19 e Influenza recomendadas.",
+  passport:"Validade mínima de 6 meses além do retorno. ESTA não disponível para brasileiros.",
+  foods:[
+    {e:"🥩",name:"Texas BBQ",desc:"Brisket defumado 12–18h em fogo indireto. Austin, TX é a capital mundial.",must:true},
+    {e:"🦞",name:"Lobster Roll",desc:"Lagosta fresca com manteiga em pão brioche. Maine e Cape Cod são clássicos.",must:true},
+    {e:"🍕",name:"Deep Dish Pizza",desc:"Pizza estilo torta com recheio generoso. Criação exclusivamente chicagoana.",must:false},
+    {e:"🍔",name:"Smash Burger",desc:"Blend prensado na chapa, queijo americano derretido, picles e molho especial.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Gorjeta de 18–22% é OBRIGATÓRIA — faz parte do salário do servidor."},
+    {e:"✅",t:"Small talk com estranhos é normal. 'How are you?' é cumprimento, não pergunta."},
+    {e:"⚠️",t:"Política divide intensamente — evite o assunto em reuniões sociais."},
+    {e:"❌",t:"Nunca deixe de dar gorjeta. É considerado ofensivo."}
+  ],
+  vibe:["Dinâmico","Diverso","Ambicioso","Direto","Barulhento"],
+  airport:"MIA", airportCity:"Miami / Nova York", flightHours:"~10h",
+  flightBRL:"R$ 3.200–8.500", flightNote:"Ida e volta, classe econômica",
+  milesSmiles:"35k–60k", milesAzul:"38k–65k", milesLatam:"35k–58k",
+  milesDifficulty:2, milesDiffNote:"Muitos assentos disponíveis, mas alta demanda. Reserve com 4–6 meses de antecedência.",
+  dailyCost:"R$ 980–2.400", hotelCost:"R$ 600–1.800", foodCost:"R$ 120–350",
+  tip:"Smash burger num diner local às 2h da manhã depois de uma noite em Nova York. Experiência americana pura.",
+  territories:null, climate:"varied",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte com visto B1/B2 válido"},{ico:"📄",l:"Confirmação de visto (I-94)"},{ico:"🏥",l:"Seguro de saúde internacional (OBRIGATÓRIO)"},{ico:"💳",l:"Cartão com chip e senha"}]},
+    {group:"Roupas (Clima Variado)", items:[{ico:"🧥",l:"Casaco para ar-condicionado intenso"},{ico:"👟",l:"Tênis confortável para caminhar muito"},{ico:"☂️",l:"Guarda-chuva compacto"},{ico:"👔",l:"Roupa social (restaurantes fine dining)"}]},
+    {group:"Tecnologia", items:[{ico:"🔌",l:"Adaptador Tipo A/B"},{ico:"📱",l:"Google Maps e Uber instalados"},{ico:"🚗",l:"International Driver Permit"}]}
+  ]
+},
+
+"Mexico": {
+  flag:"🇲🇽", region:"América do Norte", cont:"NA",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1518638150340-f706e86654de?w=400&q=75", caption:"Chichén Itzá"},
+    {url:"https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?w=400&q=75", caption:"Cidade do México"},
+    {url:"https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=400&q=75", caption:"Cancún"}
+  ], rotations:[-1,2,-2],
+  months:[2,2,2,1,1,0,0,0,1,1,2,2],
+  bestTime:"Novembro a abril — temporada seca perfeita para Cancún, CDMX e Oaxaca. Maio a outubro: chuvas e risco de furacões no Caribe.",
+  currency:"Peso Mexicano (MXN)", symbol:"MX$", currencyCode:"MXN",
+  lang:"Espanhol", voltage:"127V · Tipo A/B",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros.",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 180 dias.",
+  vaccines:"Hepatite A e Febre Tifoide recomendadas para regiões rurais.",
+  passport:"Passaporte com 6 meses de validade além da entrada.",
+  foods:[
+    {e:"🌮",name:"Tacos al Pastor",desc:"Carne de porco marinada em adobo e abacaxi, fatiada do trompo.",must:true},
+    {e:"🫙",name:"Mole Negro",desc:"Molho oaxaquenho com 30+ ingredientes e chocolate amargo.",must:true},
+    {e:"🌽",name:"Elote en Vaso",desc:"Milho com maionese, queijo cotija, limão e chili. Street food perfeito.",must:false},
+    {e:"🫔",name:"Tamales de Rajas",desc:"Massa de milho cozida em folha de bananeira com pimentas e queijo.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Nunca recuse comida oferecida por família mexicana — gesto de acolhimento."},
+    {e:"⚠️",t:"Dia de Los Muertos é celebração sagrada dos ancestrais, não Halloween."},
+    {e:"❌",t:"Não confunda tortilla de milho com tortilla de trigo — orgulho regional."},
+    {e:"❌",t:"'Tex-Mex' não é culinária mexicana para os mexicanos."}
+  ],
+  vibe:["Vibrante","Familiar","Picante","Criativo","Hospitaleiro"],
+  airport:"MEX", airportCity:"Cidade do México", flightHours:"~8h",
+  flightBRL:"R$ 2.400–7.000", flightNote:"Ida e volta, classe econômica",
+  milesSmiles:"28k–50k", milesAzul:"30k–55k", milesLatam:"28k–48k",
+  milesDifficulty:1, milesDiffNote:"Destino próximo com boa disponibilidade de assentos.",
+  dailyCost:"R$ 420–950", hotelCost:"R$ 200–700", foodCost:"R$ 30–150",
+  tip:"Tacos de canasta às 7h da manhã num carrinho de rua na CDMX. O melhor café da manhã do planeta. ~R$4.",
+  territories:null, climate:"tropical",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte válido"},{ico:"💳",l:"Cartão de crédito e reais para câmbio"},{ico:"🏥",l:"Seguro viagem"}]},
+    {group:"Saúde", items:[{ico:"💧",l:"Só beba água mineral embalada"},{ico:"💊",l:"Remédio para problemas intestinais"},{ico:"💉",l:"Vacina Hepatite A"}]},
+    {group:"Tecnologia", items:[{ico:"📱",l:"Google Tradutor offline"},{ico:"🚗",l:"Uber instalado (CDMX e Cancún)"},{ico:"💵",l:"Pesos em espécie para táxi e rua"}]}
+  ]
+},
+
+"France": {
+  flag:"🇫🇷", region:"Europa Ocidental", cont:"EU",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=75", caption:"Torre Eiffel"},
+    {url:"https://images.unsplash.com/photo-1555993539-1732b0258235?w=400&q=75", caption:"Versailles"},
+    {url:"https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&q=75", caption:"Provence"}
+  ], rotations:[0,-2,1],
+  months:[0,0,1,2,2,2,1,1,2,2,1,0],
+  bestTime:"Primavera (abr–mai) com jardins floridos. Outono (set–out) tem menos turistas e preços menores. Julho–agosto: Paris está lotada e quente.",
+  currency:"Euro (EUR)", symbol:"€", currencyCode:"EUR",
+  lang:"Francês", voltage:"230V · Tipo E",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras Schengen abertas.",
+  visa:"req", visaText:"Visto <strong>Schengen obrigatório</strong>. Solicite via VFS Global com 2–3 meses de antecedência. Taxa: €80. Válido por 90 dias em 180.",
+  vaccines:"Sem exigência. Febre Amarela necessária se vier de zona endêmica.",
+  passport:"Validade mínima de 3 meses além da saída da área Schengen.",
+  foods:[
+    {e:"🥐",name:"Croissant au Beurre",desc:"Massa folhada com manteiga normanda. Na padaria local às 7h30.",must:true},
+    {e:"🐌",name:"Escargot Bourguignon",desc:"Caracóis com manteiga, alho e salsa. Revela o DNA da cozinha francesa.",must:true},
+    {e:"🧀",name:"Plateau de Fromages",desc:"Brie, Roquefort, Comté, Époisses. Patrimônio cultural imaterial.",must:false},
+    {e:"🍮",name:"Crème Brûlée",desc:"Creme de baunilha com crosta caramelizada na tocha.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Diga 'Bonjour' ao entrar em qualquer estabelecimento."},
+    {e:"✅",t:"Refeições são rituais — não apresse o garçom."},
+    {e:"⚠️",t:"Agosto em Paris: muitos restaurantes fecham para férias."},
+    {e:"❌",t:"Não fale alto em restaurantes. Jamais peça ketchup num prato gourmet."}
+  ],
+  vibe:["Elegante","Artístico","Orgulhoso","Filosófico","Sutil"],
+  airport:"CDG", airportCity:"Paris", flightHours:"~11h",
+  flightBRL:"R$ 4.500–12.000", flightNote:"Ida e volta, classe econômica",
+  milesSmiles:"40k–68k", milesAzul:"42k–72k", milesLatam:"40k–65k",
+  milesDifficulty:2, milesDiffNote:"Alta procura para Paris. Temporada de Verão e Natal têm disponibilidade reduzida.",
+  dailyCost:"R$ 950–2.000", hotelCost:"R$ 500–2.000", foodCost:"R$ 120–400",
+  tip:"Croque-monsieur num café de calçada parisiense às 9h. Simples e perfeito — revela tudo da filosofia gastronômica francesa.",
+  territories:"🌿 <strong>Guiana Francesa</strong> (América do Sul) e 🏝 <strong>Martinica & Guadalupe</strong> (Caribe) são departamentos ultramarinos — mesma moeda, mesmo visto Schengen.",
+  climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + Visto Schengen válido"},{ico:"🏥",l:"Seguro viagem (exigido para Schengen)"},{ico:"💳",l:"Cartão sem tarifa internacional"}]},
+    {group:"Roupas (Temperado)", items:[{ico:"🧥",l:"Casaco impermeável (chuvas frequentes)"},{ico:"👟",l:"Tênis confortável para calçamento parisiense"},{ico:"🧣",l:"Cachecol e lenço (inverno)"},{ico:"👗",l:"Roupa elegante para jantares"}]},
+    {group:"Tecnologia", items:[{ico:"🔌",l:"Adaptador Tipo E/F"},{ico:"🌐",l:"Chip europeu ou eSIM"},{ico:"🗺️",l:"Maps offline (Paris tem metrô complexo)"}]}
+  ]
+},
+
+"Japan": {
+  flag:"🇯🇵", region:"Ásia Oriental", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400&q=75", caption:"Fushimi Inari"},
+    {url:"https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=400&q=75", caption:"Monte Fuji"},
+    {url:"https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=75", caption:"Tokyo Shibuya"}
+  ], rotations:[-1,2,-2],
+  months:[0,0,2,2,1,0,0,0,1,2,2,1],
+  bestTime:"Hanami (cerejeiras, mar–abr) — reserve 6 meses antes. Outono (out–nov) com koyo é igualmente lindo. Verão quente e úmido.",
+  currency:"Iene (JPY)", symbol:"¥", currencyCode:"JPY",
+  lang:"Japonês", voltage:"100V · Tipo A",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros (até 15 dias).",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por até 15 dias. Para estadias maiores, solicite com 60 dias de antecedência.",
+  vaccines:"Sem exigência. Hepatite A/B recomendadas.",
+  passport:"Validade mínima de 6 meses além do retorno.",
+  foods:[
+    {e:"🍜",name:"Ramen Tonkotsu",desc:"Caldo de osso de porco 18h+, macarrão fresco, chashu e ovo marinado. Fukuoka é o epicentro.",must:true},
+    {e:"🥩",name:"Wagyu A5",desc:"Marmorização extrema — derrete na boca literalmente. Kobe ou Matsusaka.",must:true},
+    {e:"🍱",name:"Kaiseki",desc:"Sequência de 12–14 pratos que conta a história de uma estação. Arte culinária.",must:false},
+    {e:"🍙",name:"Onigiri Konbini",desc:"Bolinho de arroz no 7-Eleven japonês às 6h. Surpreendentemente saboroso.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Curve levemente a cabeça ao cumprimentar. Profundidade indica respeito."},
+    {e:"✅",t:"Receba cartões de visita com as duas mãos — protocolo obrigatório."},
+    {e:"❌",t:"Nunca dê gorjeta — é considerado desrespeitoso em toda a cultura japonesa."},
+    {e:"❌",t:"Nunca espete hashi verticalmente no arroz — símbolo de funeral."}
+  ],
+  vibe:["Preciso","Respeitoso","Silencioso","Eficiente","Profundo"],
+  airport:"NRT", airportCity:"Tokyo / Osaka", flightHours:"~24–26h",
+  flightBRL:"R$ 5.500–14.000", flightNote:"Geralmente com escala",
+  milesSmiles:"52k–84k", milesAzul:"55k–88k", milesLatam:"50k–80k",
+  milesDifficulty:3, milesDiffNote:"Alta demanda e poucas parcerias diretas. Emissão pode ser difícil. Recomendado LATAM com parceiro JAL.",
+  dailyCost:"R$ 680–1.400", hotelCost:"R$ 280–1.200", foodCost:"R$ 60–280",
+  tip:"Kaiseki de 12 pratos num ryokan histórico em Kyoto. A experiência gastronômica mais completa que existe.",
+  territories:null, climate:"temperate",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte válido (15 dias sem visto)"},{ico:"💴",l:"Ienes em espécie (Japão é cash society)"},{ico:"🏥",l:"Seguro de saúde internacional"}]},
+    {group:"Roupas (Temperado)", items:[{ico:"👟",l:"Tênis ou tênis sem cadarço (remove frequentemente)"},{ico:"🧥",l:"Casaco para outono/primavera"},{ico:"🧦",l:"Meias sem furos (remove sapatos nos tatamis)"}]},
+    {group:"Tecnologia", items:[{ico:"📶",l:"Pocket WiFi ou SIM japonês (JR Pass)"},{ico:"📱",l:"Suica Card para transporte"},{ico:"🗺️",l:"Google Maps + IC Card para metrô"}]}
+  ]
+},
+
+"Egypt": {
+  flag:"🇪🇬", region:"Norte da África", cont:"AF",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1539650116574-75e09e35e6c3?w=400&q=75", caption:"Pirâmides de Gizé"},
+    {url:"https://images.unsplash.com/photo-1553913861-c0fddf2619ee?w=400&q=75", caption:"Luxor Temple"},
+    {url:"https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=400&q=75", caption:"Mar Vermelho"}
+  ], rotations:[1,-1,2],
+  months:[2,2,2,1,0,0,0,0,1,2,2,2],
+  bestTime:"Outubro a março — 20–28°C para explorar pirâmides. Verão (jun–ago): Cairo bate 40–46°C. Ramadã muda a dinâmica do país.",
+  currency:"Libra Egípcia (EGP)", symbol:"£E", currencyCode:"EGP",
+  lang:"Árabe", voltage:"220V · Tipo C/F",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. e-Visa online obrigatória.",
+  visa:"cond", visaText:"<strong>e-Visa online</strong> para brasileiros. Custo: USD 25. Aprovação em 3–7 dias. Válida 30 dias após chegada.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A e Febre Tifoide recomendadas.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🍚",name:"Koshari",desc:"Lentilha, macarrão e arroz com molho de tomate picante e cebola frita. O prato nacional.",must:true},
+    {e:"🫘",name:"Ful Medames",desc:"Feijão-fava com azeite, limão e cominho. Café da manhã egípcio há 5.000 anos.",must:true},
+    {e:"🥘",name:"Molokhia",desc:"Sopa de folhas de juta com alho e coentro sobre arroz e frango. Sabor ancestral.",must:false},
+    {e:"🥐",name:"Feteer Meshaltet",desc:"Massa folhada egípcia em camadas com mel ou queijo. Exclusividade egípcia.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Regateio em souks é cultura — sorria e o preço cai 40–70%."},
+    {e:"✅",t:"Aceite chá de hortelã quando oferecido — é gesto de hospitalidade."},
+    {e:"⚠️",t:"Durante o Ramadã, evite comer em público durante o dia."},
+    {e:"❌",t:"Nunca fotografe militares, instalações ou pessoas sem permissão."}
+  ],
+  vibe:["Milenar","Caótico","Hospitaleiro","Espiritual","Histórico"],
+  airport:"CAI", airportCity:"Cairo", flightHours:"~12–14h",
+  flightBRL:"R$ 4.200–10.500", flightNote:"Conexão em Europa ou Doha",
+  milesSmiles:"50k–78k", milesAzul:"52k–80k", milesLatam:"48k–76k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade irregular. Conexões via Europa ou Qatar Airways podem ter mais opções.",
+  dailyCost:"R$ 230–580", hotelCost:"R$ 100–500", foodCost:"R$ 25–100",
+  tip:"Koshari num restaurante sem placa no Cairo por EGP 20 (~R$3). O melhor comfort food do planeta.",
+  territories:null, climate:"desert",
+  checklist:[
+    {group:"Documentos", items:[{ico:"📘",l:"Passaporte + e-Visa impressa"},{ico:"💵",l:"Dólares para câmbio local"},{ico:"🏥",l:"Seguro de saúde internacional"}]},
+    {group:"Roupas (Deserto/Calor)", items:[{ico:"👕",l:"Roupas folgadas de manga longa (sol intenso)"},{ico:"🧢",l:"Chapéu de aba larga e óculos de sol"},{ico:"🧴",l:"Protetor solar FPS 70+"},{ico:"👡",l:"Sapatos fechados para templos e ruínas"}]},
+    {group:"Higiene", items:[{ico:"🚰",l:"NUNCA beba água da torneira"},{ico:"💊",l:"Remédio para problemas estomacais (obrigatório)"},{ico:"🧴",l:"Álcool gel (higiene em banheiros públicos)"}]}
+  ]
+},
+
+"Thailand": {
+  flag:"🇹🇭", region:"Sudeste Asiático", cont:"AS",
+  photos:[
+    {url:"https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=400&q=75", caption:"Wat Pho, Bangkok"},
+    {url:"https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=400&q=75", caption:"Ilhas do Sul"},
+    {url:"https://images.unsplash.com/photo-1538485399081-7191377e8241?w=400&q=75", caption:"Chiang Mai"}
+  ], rotations:[-2,0,1],
+  months:[2,2,2,1,0,0,0,0,0,1,2,2],
+  bestTime:"Novembro a fevereiro — temporada seca e fresca perfeita. Março–abril quentes mas secos. Maio–outubro: monção intensa prejudica praias.",
+  currency:"Baht (THB)", symbol:"฿", currencyCode:"THB",
+  lang:"Tailandês", voltage:"220V · Tipo A/B/C",
+  conflict:null, borderStatus:"open", borderNote:"Fronteiras abertas. Sem visto para brasileiros (30 dias).",
+  visa:"free", visaText:"<strong>Isento de visto</strong> para brasileiros por 30 dias. Extensão de 30 dias no escritório de imigração por THB 1.900.",
+  vaccines:"Febre Amarela obrigatória se vier de zona endêmica. Hepatite A/B, Raiva recomendadas.",
+  passport:"Validade mínima de 6 meses além da entrada.",
+  foods:[
+    {e:"🍜",name:"Pad Thai",desc:"Macarrão de arroz com camarão, tofu, ovo, brotos e amendoim. O prato mais famoso.",must:true},
+    {e:"🍛",name:"Massaman Curry",desc:"Curry suave com batata, amendoim e leite de coco. Eleito o melhor prato do mundo.",must:true},
+    {e:"🥗",name:"Som Tam",desc:"Salada de papaia verde com pimenta malagueta, limão e molho de peixe.",must:true},
+    {e:"🍚",name:"Khao Man Gai",desc:"Frango cozido sobre arroz temperado com caldo. Café da manhã de mercado. ~R$8.",must:false}
+  ],
+  etiquette:[
+    {e:"✅",t:"Wai (palmas juntas + cabeça curvada) é o cumprimento tradicional."},
+    {e:"⚠️",t:"Descalce-se ao entrar em templos, casas e alguns restaurantes."},
+    {e:"❌",t:"Nunca toque a cabeça de ninguém — é a parte mais sagrada do corpo."},
+    {e:"❌",t:"Desrespeito à família real é crime com pena de prisão."}
+  ],
+  vibe:["Espiritual","Sorridento","Colorido","Picante","Festivo"],
+  airport:"BKK", airportCity:"Bangkok", flightHours:"~22–24h",
+  flightBRL:"R$ 4.800–13.000", flightNote:"Geralmente com escala",
+  milesSmiles:"54k–90k", milesAzul:"56k–92k", milesLatam:"52k–86k",
+  milesDifficulty:2, milesDiffNote:"Disponibilidade razoável via Singapore Airlines ou Thai Airways. Reserve com antecedência.",
+  dailyCost:"R$ 280–750", hotelCost:"R$ 100–600
